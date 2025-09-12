@@ -1,0 +1,101 @@
+# SSH Vault Keeper Configuration Example
+# Copy this file to ~/.ssh-vault-keeper/config.yaml and customize
+
+version: "1.0"
+
+# Vault connection settings
+vault:
+  address: "http://localhost:8200"  # Your Vault server address (change to your server)
+  token_file: "~/.ssh-vault-keeper/token"  # Path to Vault token file
+  mount_path: "ssh-backups"  # KV v2 mount path in Vault
+  namespace: ""  # Vault namespace (Enterprise only)
+  tls_skip_verify: false  # Skip TLS verification (not recommended for production)
+
+# Backup behavior settings
+backup:
+  ssh_dir: "~/.ssh"  # SSH directory to backup
+  hostname_prefix: true  # Include hostname in Vault path
+  retention_count: 10  # Number of backups to keep
+  
+  # Files to include in backup (glob patterns)
+  include_patterns:
+    - "*.rsa"
+    - "*.pem" 
+    - "*.pub"
+    - "id_rsa*"
+    - "config"
+    - "known_hosts*"
+    - "authorized_keys"
+    - "*_rsa"
+    - "*_rsa.pub"
+  
+  # Files to exclude from backup (glob patterns)
+  exclude_patterns:
+    - "*.tmp"
+    - "*.bak"
+    - "*.old"
+    - "*.orig"
+  
+  # Predefined categories for SSH files
+  categories:
+    services:
+      - "github_rsa"
+      - "gitlab_rsa" 
+      - "bitbucket_rsa"
+      - "argocd_rsa"
+      - "quay_installer"
+    personal:
+      - "id_rsa"
+      - "local_rsa"
+    work:
+      - "rht_classroom.rsa"
+      - "id_rsa_grade"
+    cloud:
+      - "gke_redhat_rsa"
+      - "*aws*"
+      - "*gcp*"
+
+# Security settings
+security:
+  algorithm: "AES-256-GCM"  # Encryption algorithm
+  key_derivation: "PBKDF2"  # Key derivation function
+  iterations: 100000  # PBKDF2 iterations
+  per_file_encrypt: true  # Encrypt each file separately
+  verify_integrity: true  # Verify checksums after decryption
+
+# Logging configuration
+logging:
+  level: "info"  # debug, info, warn, error
+  format: "console"  # console, json
+
+# Key detection settings
+detectors:
+  enabled:
+    - "rsa"
+    - "pem"
+    - "openssh"
+    - "config"
+    - "hosts"
+  
+  # Custom patterns file (optional)
+  custom_patterns_file: ""
+  
+  # Service to category mapping
+  service_mapping:
+    github: "git_hosting"
+    gitlab: "git_hosting"
+    bitbucket: "git_hosting"
+    argocd: "automation"
+    jenkins: "automation"
+    aws: "cloud"
+    gcp: "cloud"
+    azure: "cloud"
+  
+  # Purpose assignment rules (glob patterns)
+  purpose_rules:
+    "*rht*": "work"
+    "*redhat*": "work"
+    "*classroom*": "work" 
+    "*personal*": "personal"
+    "*github*": "service"
+    "*gitlab*": "service"
