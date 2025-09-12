@@ -128,7 +128,7 @@ ssh-vault-keeper restore --target-dir /tmp/restored-ssh
 |---------|-------------|---------|
 | `init` | Initialize configuration and Vault setup | `ssh-vault-keeper init --vault-addr https://vault.company.com:8200` |
 | `backup` | Backup SSH directory to Vault | `ssh-vault-keeper backup my-backup` |
-| `restore` | Restore SSH backup from Vault | `ssh-vault-keeper restore my-backup` |
+| `restore` | Restore SSH backup from Vault | `ssh-vault-keeper restore --select` |
 | `list` | List available backups | `ssh-vault-keeper list --detailed` |
 | `analyze` | Analyze SSH directory structure | `ssh-vault-keeper analyze --verbose` |
 | `status` | Show configuration and connection status | `ssh-vault-keeper status` |
@@ -152,14 +152,20 @@ ssh-vault-keeper backup my-backup-name
 
 #### Restore Options
 ```bash
+# Interactive backup selection
+ssh-vault-keeper restore --select
+
 # Restore specific files only
 ssh-vault-keeper restore --files "github*,gitlab*"
 
 # Restore to different location
 ssh-vault-keeper restore --target-dir /tmp/ssh-restore
 
-# Interactive restore
+# Interactive file selection
 ssh-vault-keeper restore --interactive
+
+# Combine interactive backup and file selection
+ssh-vault-keeper restore --select --interactive
 
 # Overwrite existing files
 ssh-vault-keeper restore --overwrite

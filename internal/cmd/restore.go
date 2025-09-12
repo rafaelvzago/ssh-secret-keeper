@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -24,6 +25,7 @@ func newRestoreCommand(cfg *config.Config) *cobra.Command {
 		dryRun      bool
 		overwrite   bool
 		interactive bool
+		selectBackup bool
 		fileFilter  []string
 	)
 
@@ -40,13 +42,14 @@ If no backup name is provided, the most recent backup will be used.`,
 			}
 
 			return runRestore(cfg, restoreOptions{
-				backupName:  name,
-				targetDir:   targetDir,
-				passphrase:  passphrase,
-				dryRun:      dryRun,
-				overwrite:   overwrite,
-				interactive: interactive,
-				fileFilter:  fileFilter,
+				backupName:   name,
+				targetDir:    targetDir,
+				passphrase:   passphrase,
+				dryRun:       dryRun,
+				overwrite:    overwrite,
+				interactive:  interactive,
+				selectBackup: selectBackup,
+				fileFilter:   fileFilter,
 			})
 		},
 	}
@@ -58,19 +61,21 @@ If no backup name is provided, the most recent backup will be used.`,
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be restored without actually doing it")
 	cmd.Flags().BoolVar(&overwrite, "overwrite", false, "Overwrite existing files without asking")
 	cmd.Flags().BoolVar(&interactive, "interactive", false, "Interactively select files to restore")
+	cmd.Flags().BoolVar(&selectBackup, "select", false, "Interactively select which backup to restore")
 	cmd.Flags().StringSliceVar(&fileFilter, "files", []string{}, "Only restore specific files (glob patterns)")
 
 	return cmd
 }
 
 type restoreOptions struct {
-	backupName  string
-	targetDir   string
-	passphrase  string
-	dryRun      bool
-	overwrite   bool
-	interactive bool
-	fileFilter  []string
+	backupName   string
+	targetDir    string
+	passphrase   string
+	dryRun       bool
+	overwrite    bool
+	interactive  bool
+	selectBackup bool
+	fileFilter   []string
 }
 
 func runRestore(cfg *config.Config, opts restoreOptions) error {
@@ -91,11 +96,18 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 	// Determine backup name
 	backupName := opts.backupName
 	if backupName == "" {
-		backupName, err = getLatestBackupName(vaultClient)
-		if err != nil {
-			return fmt.Errorf("failed to find latest backup: %w", err)
+		if opts.selectBackup {
+			backupName, err = selectBackupInteractively(vaultClient)
+			if err != nil {
+				return fmt.Errorf("failed to select backup: %w", err)
+			}
+		} else {
+			backupName, err = getLatestBackupName(vaultClient)
+			if err != nil {
+				return fmt.Errorf("failed to find latest backup: %w", err)
+			}
+			fmt.Printf("Using most recent backup: %s\n", backupName)
 		}
-		fmt.Printf("Using most recent backup: %s\n", backupName)
 	}
 
 	// Retrieve backup from Vault
@@ -351,3 +363,143 @@ func promptRestorePassphrase(prompt string) (string, error) {
 	
 	return string(passphrase), nil
 }
+
+// selectBackupInteractively shows available backups and lets user choose
+func selectBackupInteractively(client *vault.Client) (string, error) {
+	fmt.Printf("\n🔍 Finding available backups...\n")
+	
+	// Get all backups
+	backups, err := client.ListBackups()
+	if err != nil {
+		return "", fmt.Errorf("failed to list backups: %w", err)
+	}
+
+	if len(backups) == 0 {
+		return "", fmt.Errorf("no backups found")
+	}
+
+	// Get backup metadata for detailed display
+	metadata, err := client.GetMetadata()
+	if err != nil {
+		log.Warn().Err(err).Msg("Failed to get backup metadata")
+	}
+
+	// Prepare backup info with details
+	var backupInfos []backupSelectionInfo
+	for _, name := range backups {
+		info := backupSelectionInfo{
+			Name: name,
+		}
+
+		// Try to get metadata for this backup
+		if metadata != nil {
+			if backupsData, ok := metadata["backups"].(map[string]interface{}); ok {
+				if backupData, ok := backupsData[name].(map[string]interface{}); ok {
+					if timestampStr, ok := backupData["timestamp"].(string); ok {
+						if timestamp, err := time.Parse(time.RFC3339, timestampStr); err == nil {
+							info.Timestamp = timestamp
+						}
+					}
+					if fileCount, ok := backupData["file_count"].(float64); ok {
+						info.FileCount = int(fileCount)
+					}
+					if totalSize, ok := backupData["total_size"].(float64); ok {
+						info.TotalSize = int64(totalSize)
+					}
+					if hostname, ok := backupData["hostname"].(string); ok {
+						info.Hostname = hostname
+					}
+					if username, ok := backupData["username"].(string); ok {
+						info.Username = username
+					}
+				}
+			}
+		}
+
+		backupInfos = append(backupInfos, info)
+	}
+
+	// Sort by timestamp (most recent first)
+	sort.Slice(backupInfos, func(i, j int) bool {
+		return backupInfos[i].Timestamp.After(backupInfos[j].Timestamp)
+	})
+
+	// Display available backups
+	fmt.Printf("\n📦 Available Backups:\n")
+	fmt.Printf("═══════════════════════\n\n")
+
+	for i, info := range backupInfos {
+		fmt.Printf("%d. 📦 %s\n", i+1, info.Name)
+		
+		if !info.Timestamp.IsZero() {
+			fmt.Printf("   📅 Created: %s (%s ago)\n",
+				info.Timestamp.Format("2006-01-02 15:04:05"),
+				formatDuration(time.Since(info.Timestamp)))
+		}
+		
+		if info.FileCount > 0 {
+			fmt.Printf("   📄 Files: %d", info.FileCount)
+			if info.TotalSize > 0 {
+				fmt.Printf(", Size: %s", formatBytes(info.TotalSize))
+			}
+			fmt.Printf("\n")
+		}
+		
+		if info.Hostname != "" || info.Username != "" {
+			fmt.Printf("   💻 Source: %s@%s\n", info.Username, info.Hostname)
+		}
+		
+		fmt.Printf("\n")
+	}
+
+	// Prompt for selection
+	for {
+		fmt.Printf("Select backup to restore [1-%d, q to quit]: ", len(backupInfos))
+		
+		var input string
+		fmt.Scanln(&input)
+		
+		input = strings.TrimSpace(input)
+		
+		if input == "q" || input == "quit" {
+			return "", fmt.Errorf("restore cancelled by user")
+		}
+		
+		// Try to parse as number
+		if choice := parseInt(input); choice >= 1 && choice <= len(backupInfos) {
+			selected := backupInfos[choice-1]
+			fmt.Printf("\n✅ Selected: %s\n", selected.Name)
+			if !selected.Timestamp.IsZero() {
+				fmt.Printf("   Created: %s\n", selected.Timestamp.Format("2006-01-02 15:04:05"))
+			}
+			if selected.FileCount > 0 {
+				fmt.Printf("   Files: %d\n", selected.FileCount)
+			}
+			fmt.Printf("\n")
+			return selected.Name, nil
+		}
+		
+		fmt.Printf("Invalid selection. Please enter a number between 1 and %d, or 'q' to quit.\n")
+	}
+}
+
+// backupSelectionInfo holds backup information for selection
+type backupSelectionInfo struct {
+	Name      string
+	Timestamp time.Time
+	FileCount int
+	TotalSize int64
+	Hostname  string
+	Username  string
+}
+
+// parseInt safely parses an integer from string
+func parseInt(s string) int {
+	if num, err := fmt.Sscanf(s, "%d", new(int)); err == nil && num == 1 {
+		var result int
+		fmt.Sscanf(s, "%d", &result)
+		return result
+	}
+	return 0
+}
+
