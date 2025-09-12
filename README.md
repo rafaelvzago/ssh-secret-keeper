@@ -6,7 +6,7 @@
 
 A secure, intelligent tool for backing up SSH keys and configuration to HashiCorp Vault with client-side encryption.
 
-## 🔒 Security First
+## Security First
 
 - **Triple-layer encryption**: Client-side AES-256-GCM + Vault encryption + TLS
 - **Zero-knowledge**: Vault server never sees your SSH keys in plaintext
@@ -14,7 +14,7 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - **Integrity verification**: SHA-256 checksums for all files
 - **Permission preservation**: Exact SSH file permissions maintained
 
-## 🧠 Intelligent SSH Analysis
+## Intelligent SSH Analysis
 
 - **Automatic detection**: RSA, PEM, Ed25519, ECDSA, OpenSSH formats
 - **Service categorization**: GitHub, GitLab, BitBucket, ArgoCD, AWS, GCP, etc.
@@ -22,18 +22,18 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - **System file recognition**: Config, known_hosts, authorized_keys
 - **Smart categorization**: Personal, work, service, and system files
 
-## 🚀 Features
+## Features
 
-✅ **Complete SSH Directory Backup**  
-✅ **Selective File Restore**  
-✅ **Interactive Mode** for file selection  
-✅ **Dry-run Support** for safe testing  
-✅ **Multiple Backup Versions** with retention  
-✅ **Cross-platform Support** (Linux, macOS, Windows)  
-✅ **Container Ready** with Docker support  
-✅ **CI/CD Integration** friendly  
+- **Complete SSH Directory Backup**  
+- **Selective File Restore**  
+- **Interactive Mode** for file selection  
+- **Dry-run Support** for safe testing  
+- **Multiple Backup Versions** with retention  
+- **Cross-platform Support** (Linux, macOS, Windows)  
+- **Container Ready** with Docker and Podman support  
+- **CI/CD Integration** friendly  
 
-## 📦 Installation
+## Installation
 
 ### Option 1: Download Release Binary
 ```bash
@@ -51,26 +51,35 @@ make build
 sudo make install
 ```
 
-### Option 3: Docker
+### Option 3: Container (Docker/Podman)
 ```bash
+# Using Docker
 docker pull ghcr.io/rzago/ssh-vault-keeper:latest
-docker run --rm -v ~/.ssh:/ssh -v ~/.ssh-vault-keeper:/config ssh-vault-keeper analyze
+docker run --rm -v ~/.ssh:/ssh -v ~/.ssh-vault-keeper:/config ghcr.io/rzago/ssh-vault-keeper analyze
+
+# Using Podman
+podman pull ghcr.io/rzago/ssh-vault-keeper:latest
+podman run --rm -v ~/.ssh:/ssh -v ~/.ssh-vault-keeper:/config ghcr.io/rzago/ssh-vault-keeper analyze
 ```
 
-## 🏗️ Prerequisites
+## Prerequisites
 
 - **HashiCorp Vault server** (local or remote)
 - **Valid Vault token** with KV v2 permissions
 - **SSH directory** with keys to backup (`~/.ssh`)
 
-## ⚡ Quick Start
+## Quick Start
 
 ### 1. Initialize Configuration
 ```bash
-# Replace with your Vault server address and token
+# Set your Vault configuration
+export VAULT_ADDR="https://your-vault-server:8200"
+export VAULT_TOKEN="your-vault-token"
+
+# Initialize the configuration
 ssh-vault-keeper init \
-  --vault-addr https://your-vault-server:8200 \
-  --token your-vault-token
+  --vault-addr "${VAULT_ADDR}" \
+  --token "${VAULT_TOKEN}"
 ```
 
 ### 2. Analyze Your SSH Directory
@@ -81,10 +90,10 @@ ssh-vault-keeper analyze --verbose
 
 Example output:
 ```
-🔍 SSH Directory Analysis
-════════════════════════
+SSH Directory Analysis
+======================
 
-📊 Summary:
+Summary:
   Total files: 28
   Key pairs: 14
   Service keys: 14 (GitHub, GitLab, ArgoCD, etc.)
@@ -92,11 +101,11 @@ Example output:
   Work keys: 1
   System files: 3
 
-🔑 Key Pairs Found:
-  • github_rsa ✓ Complete pair
-  • gitlab_rsa ✓ Complete pair  
-  • argocd_rsa ✓ Complete pair
-  • id_rsa ✓ Complete pair
+Key Pairs Found:
+  - github_rsa (Complete pair)
+  - gitlab_rsa (Complete pair)  
+  - argocd_rsa (Complete pair)
+  - id_rsa (Complete pair)
 ```
 
 ### 3. Create Your First Backup
@@ -104,8 +113,9 @@ Example output:
 # Backup everything (you'll be prompted for encryption passphrase)
 ssh-vault-keeper backup
 
-# Or with a custom name
-ssh-vault-keeper backup my-laptop-keys
+# Or with a custom name using variables
+BACKUP_NAME="laptop-$(hostname)-$(date +%Y%m%d)"
+ssh-vault-keeper backup "${BACKUP_NAME}"
 ```
 
 ### 4. Restore on Another Machine
@@ -116,18 +126,19 @@ ssh-vault-keeper list --detailed
 # Restore the most recent backup
 ssh-vault-keeper restore
 
-# Or restore to a specific directory
-ssh-vault-keeper restore --target-dir /tmp/restored-ssh
+# Or restore to a specific directory using variables
+RESTORE_DIR="/tmp/restored-ssh-$(date +%Y%m%d)"
+ssh-vault-keeper restore --target-dir "${RESTORE_DIR}"
 ```
 
-## 📖 Commands Reference
+## Commands Reference
 
 ### Core Commands
 
 | Command | Description | Example |
 |---------|-------------|---------|
-| `init` | Initialize configuration and Vault setup | `ssh-vault-keeper init --vault-addr https://vault.company.com:8200` |
-| `backup` | Backup SSH directory to Vault | `ssh-vault-keeper backup my-backup` |
+| `init` | Initialize configuration and Vault setup | `ssh-vault-keeper init --vault-addr "${VAULT_ADDR}"` |
+| `backup` | Backup SSH directory to Vault | `ssh-vault-keeper backup "${BACKUP_NAME}"` |
 | `restore` | Restore SSH backup from Vault | `ssh-vault-keeper restore --select` |
 | `list` | List available backups | `ssh-vault-keeper list --detailed` |
 | `analyze` | Analyze SSH directory structure | `ssh-vault-keeper analyze --verbose` |
@@ -143,11 +154,13 @@ ssh-vault-keeper backup --interactive
 # Dry run (preview only)
 ssh-vault-keeper backup --dry-run
 
-# Custom SSH directory
-ssh-vault-keeper backup --ssh-dir /path/to/ssh
+# Custom SSH directory using variables
+SSH_DIR="/path/to/custom/ssh"
+ssh-vault-keeper backup --ssh-dir "${SSH_DIR}"
 
-# Custom backup name
-ssh-vault-keeper backup my-backup-name
+# Custom backup name with timestamp
+BACKUP_NAME="backup-$(hostname)-$(date +%Y%m%d-%H%M%S)"
+ssh-vault-keeper backup "${BACKUP_NAME}"
 ```
 
 #### Restore Options
@@ -158,8 +171,9 @@ ssh-vault-keeper restore --select
 # Restore specific files only
 ssh-vault-keeper restore --files "github*,gitlab*"
 
-# Restore to different location
-ssh-vault-keeper restore --target-dir /tmp/ssh-restore
+# Restore to different location using variables
+TARGET_DIR="/tmp/ssh-restore-$(date +%Y%m%d)"
+ssh-vault-keeper restore --target-dir "${TARGET_DIR}"
 
 # Interactive file selection
 ssh-vault-keeper restore --interactive
@@ -171,7 +185,7 @@ ssh-vault-keeper restore --select --interactive
 ssh-vault-keeper restore --overwrite
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Configuration file location: `~/.ssh-vault-keeper/config.yaml`
 
@@ -229,7 +243,7 @@ security:
   verify_integrity: true
 ```
 
-## 🔐 Vault Setup
+## Vault Setup
 
 ### Required Vault Policy
 
@@ -251,11 +265,14 @@ path "sys/mounts/ssh-backups" {
 ### Create Vault Token
 
 ```bash
+# Set token TTL (time to live)
+TOKEN_TTL="8760h"  # 1 year
+
 # Create a token with the policy
-vault write auth/token/create policies=ssh-vault-keeper ttl=8760h
+vault write auth/token/create policies=ssh-vault-keeper ttl="${TOKEN_TTL}"
 ```
 
-## 🏢 Enterprise Features
+## Enterprise Features
 
 ### Team Deployment
 - **User isolation**: Each user gets their own namespace
@@ -268,44 +285,77 @@ vault write auth/token/create policies=ssh-vault-keeper ttl=8760h
 # Example GitLab CI
 backup_ssh_keys:
   image: ghcr.io/rzago/ssh-vault-keeper:latest
+  variables:
+    BACKUP_NAME: "ci-${CI_COMMIT_SHA}-${CI_PIPELINE_ID}"
   script:
-    - ssh-vault-keeper backup ci-${CI_COMMIT_SHA}
+    - ssh-vault-keeper backup "${BACKUP_NAME}"
   only:
     - main
 ```
 
 ### Automation
 ```bash
-# Automated backups with cron
-0 2 * * * ssh-vault-keeper backup daily-$(date +\%Y\%m\%d)
+# Automated backups with cron using variables
+0 2 * * * BACKUP_NAME="daily-$(date +\%Y\%m\%d)" && ssh-vault-keeper backup "${BACKUP_NAME}"
 
 # Scripted restore for new machines
 #!/bin/bash
-ssh-vault-keeper init --vault-addr $VAULT_ADDR --token $VAULT_TOKEN
+set -e
+
+# Configuration variables
+VAULT_ADDR="${VAULT_ADDR:-https://vault.company.com:8200}"
+VAULT_TOKEN="${VAULT_TOKEN:-}"
+SSH_DIR="${HOME}/.ssh"
+
+# Initialize and restore
+ssh-vault-keeper init --vault-addr "${VAULT_ADDR}" --token "${VAULT_TOKEN}"
 ssh-vault-keeper restore latest
-chmod 700 ~/.ssh
-ssh-add ~/.ssh/id_rsa
+chmod 700 "${SSH_DIR}"
+ssh-add "${SSH_DIR}/id_rsa"
 ```
 
-## 🐳 Docker Usage
+## Container Usage (Docker/Podman)
 
 ### Basic Usage
 ```bash
-# Build image
-docker build -t ssh-vault-keeper .
+# Configuration variables
+IMAGE_NAME="ssh-vault-keeper"
+IMAGE_TAG="latest"
+REGISTRY="ghcr.io/rzago"
 
-# Analyze SSH directory
+# Build image with Docker
+docker build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+
+# Build image with Podman
+podman build -t "${IMAGE_NAME}:${IMAGE_TAG}" .
+
+# Analyze SSH directory with Docker
 docker run --rm \
   -v ~/.ssh:/ssh:ro \
   -v ~/.ssh-vault-keeper:/config \
-  ssh-vault-keeper analyze
+  "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" analyze
 
-# Backup to Vault
+# Analyze SSH directory with Podman
+podman run --rm \
+  -v ~/.ssh:/ssh:ro \
+  -v ~/.ssh-vault-keeper:/config \
+  "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" analyze
+
+# Backup to Vault with Docker
 docker run --rm \
   -v ~/.ssh:/ssh:ro \
   -v ~/.ssh-vault-keeper:/config \
-  -e VAULT_TOKEN=$VAULT_TOKEN \
-  ssh-vault-keeper backup
+  -e VAULT_TOKEN="${VAULT_TOKEN}" \
+  -e VAULT_ADDR="${VAULT_ADDR}" \
+  "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" backup
+
+# Backup to Vault with Podman
+podman run --rm \
+  -v ~/.ssh:/ssh:ro \
+  -v ~/.ssh-vault-keeper:/config \
+  -e VAULT_TOKEN="${VAULT_TOKEN}" \
+  -e VAULT_ADDR="${VAULT_ADDR}" \
+  "${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}" backup
 ```
 
 ### Kubernetes Deployment
@@ -323,7 +373,12 @@ spec:
           containers:
           - name: ssh-vault-keeper
             image: ghcr.io/rzago/ssh-vault-keeper:latest
-            command: ["ssh-vault-keeper", "backup", "daily"]
+            command: 
+            - /bin/sh
+            - -c
+            - |
+              BACKUP_NAME="k8s-daily-$(date +%Y%m%d)"
+              ssh-vault-keeper backup "${BACKUP_NAME}"
             env:
             - name: VAULT_ADDR
               value: "https://vault.company.com:8200"
@@ -332,10 +387,14 @@ spec:
                 secretKeyRef:
                   name: vault-token
                   key: token
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
           restartPolicy: OnFailure
 ```
 
-## 🧪 Development
+## Development
 
 ### Prerequisites
 - Go 1.21+
@@ -351,14 +410,22 @@ make dev-setup
 
 ### Testing
 ```bash
+# Configuration for testing
+export VAULT_ADDR="http://localhost:8200"
+export VAULT_TOKEN="dev-token"
+export TEST_SSH_DIR="/tmp/test-ssh"
+
 # Run unit tests
 make test
 
 # Run integration tests (requires Vault)
-VAULT_ADDR=http://localhost:8200 VAULT_TOKEN=dev-token make test-integration
+make test-integration
 
 # Run with coverage
 make test-coverage
+
+# Test with custom parameters
+VAULT_ADDR="${VAULT_ADDR}" VAULT_TOKEN="${VAULT_TOKEN}" make test-integration
 ```
 
 ### Building
@@ -373,7 +440,7 @@ make build-all
 make release
 ```
 
-## 📊 Project Statistics
+## Project Statistics
 
 - **Language**: Go 1.21+
 - **Lines of Code**: ~4,300
@@ -381,7 +448,7 @@ make release
 - **Dependencies**: Minimal, security-focused
 - **Performance**: <100ms for typical SSH directories
 
-## 🛡️ Security Model
+## Security Model
 
 ### Data Flow
 1. SSH files read from `~/.ssh` with permissions preserved
@@ -402,7 +469,7 @@ make release
 - **Local compromise**: Keys stored encrypted in Vault
 - **Brute force**: Strong PBKDF2 parameters make attacks infeasible
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -419,34 +486,34 @@ make release
 - Use conventional commits
 - Ensure security best practices
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - HashiCorp Vault team for the excellent secrets management platform
 - Go community for the robust standard library
 - Contributors and early adopters
 
-## 📞 Support
+## Support
 
-- 📚 [Documentation](docs/)
-- 🐛 [Issue Tracker](https://github.com/rzago/ssh-vault-keeper/issues)
-- 💬 [Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
-- 📧 [Security Issues](mailto:security@example.com)
+- [Documentation](docs/)
+- [Issue Tracker](https://github.com/rzago/ssh-vault-keeper/issues)
+- [Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
+- [Security Issues](mailto:security@example.com)
 
-## 🚀 What's Next?
+## What's Next
 
-- [ ] Key rotation automation
-- [ ] Web UI for team management
-- [ ] Plugin system for custom key types
-- [ ] Multi-vault redundancy
-- [ ] Compliance reporting (SOC2, PCI)
-- [ ] Integration with cloud HSMs
+- Key rotation automation
+- Web UI for team management
+- Plugin system for custom key types
+- Multi-vault redundancy
+- Compliance reporting (SOC2, PCI)
+- Integration with cloud HSMs
 
 ---
 
-**⚠️ Security Notice**: Always test backup and restore operations in a safe environment before using with critical SSH keys. Maintain independent backups of your SSH keys as well.
+**Security Notice**: Always test backup and restore operations in a safe environment before using with critical SSH keys. Maintain independent backups of your SSH keys as well.
 
-**Made with ❤️ for secure SSH key management**
+**Secure SSH key management solution**
