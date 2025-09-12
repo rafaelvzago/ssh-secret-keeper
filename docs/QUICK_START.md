@@ -4,7 +4,7 @@ This guide will get you up and running with SSH Vault Keeper in minutes.
 
 ## Prerequisites
 
-- HashiCorp Vault server (running at localhost:8200 in your case)
+- HashiCorp Vault server
 - Valid Vault token with appropriate permissions
 - SSH directory with keys to backup (`~/.ssh`)
 
@@ -23,8 +23,8 @@ make install
 ## Step 2: Initialize Configuration
 
 ```bash
-# Initialize with your Vault server
-ssh-vault-keeper init --vault-addr http://localhost:8200 --token YOUR_VAULT_TOKEN
+# Initialize with your Vault server  
+ssh-vault-keeper init --vault-addr https://your-vault-server:8200 --token YOUR_VAULT_TOKEN
 ```
 
 This will:

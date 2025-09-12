@@ -5,7 +5,7 @@
 - **SSH Directory**: Complex structure with 25+ files
 - **Key Types**: RSA, PEM, OpenSSH format
 - **Services**: GitHub, GitLab, BitBucket, ArgoCD, Quay, GKE
-- **Vault**: HashiCorp Vault at localhost:8200 (K8s cluster)
+- **Vault**: HashiCorp Vault server (K8s cluster)
 
 ## SSH File Analysis
 
