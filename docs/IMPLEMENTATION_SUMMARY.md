@@ -218,7 +218,7 @@ backup_ssh_keys:
 
 ## 🎉 Ready for Production Use
 
-The SSH Vault Keeper implementation is complete and ready for immediate use with your Vault server at `localhost:8200`. Key highlights:
+The SSH Vault Keeper implementation is complete and ready for immediate use with your Vault server. Key highlights:
 
 ### Immediate Benefits
 1. **Secure SSH Key Backup**: Your 25+ SSH files can be backed up securely

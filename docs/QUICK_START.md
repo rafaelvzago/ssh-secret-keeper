@@ -145,7 +145,7 @@ ssh-vault-keeper restore --interactive
 ### New Machine Setup
 ```bash
 # On new machine after installing ssh-vault-keeper
-ssh-vault-keeper init --vault-addr http://localhost:8200 --token YOUR_TOKEN
+ssh-vault-keeper init --vault-addr https://your-vault-server:8200 --token YOUR_TOKEN
 ssh-vault-keeper list
 ssh-vault-keeper restore
 chmod 700 ~/.ssh
@@ -165,7 +165,7 @@ Your configuration at `~/.ssh-vault-keeper/config.yaml`:
 ```yaml
 version: "1.0"
 vault:
-  address: "http://localhost:8200"
+  address: "https://your-vault-server:8200"
   token_file: "~/.ssh-vault-keeper/token"
   mount_path: "ssh-backups"
 
@@ -190,7 +190,7 @@ ssh-vault-keeper status --vault
 
 # Common issues:
 # - Token expired: Get new token and update ~/.ssh-vault-keeper/token
-# - Network issues: Check if localhost:8200 is accessible
+# - Network issues: Check if your Vault server is accessible
 # - Mount issues: Ensure mount_path exists in Vault
 ```
 
