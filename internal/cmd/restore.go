@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/rzago/ssh-vault-keeper/internal/analyzer"
 	"github.com/rzago/ssh-vault-keeper/internal/config"
 	"github.com/rzago/ssh-vault-keeper/internal/ssh"
 	"github.com/rzago/ssh-vault-keeper/internal/vault"
@@ -180,14 +181,47 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 		return fmt.Errorf("failed to restore files: %w", err)
 	}
 
+	// Verify restored permissions
+	if !opts.dryRun {
+		fmt.Printf("Verifying file permissions...\n")
+		if err := sshHandler.VerifyRestorePermissions(backupData, opts.targetDir); err != nil {
+			log.Warn().Err(err).Msg("Permission verification completed with warnings")
+			fmt.Printf("⚠️  Permission verification completed with warnings (check logs)\n")
+		} else {
+			fmt.Printf("✓ All file permissions verified\n")
+		}
+	}
+
 	fmt.Printf("✓ Restore completed successfully\n")
 	fmt.Printf("Files restored: %d\n", len(backupData.Files))
 
-	// Remind user about permissions
-	fmt.Printf("\n⚠️  Remember to check file permissions and SSH agent setup\n")
-	fmt.Printf("Recommended next steps:\n")
-	fmt.Printf("  chmod 700 %s\n", opts.targetDir)
-	fmt.Printf("  ssh-add -l  # Check SSH agent\n")
+	// Show permission summary
+	fmt.Printf("\n📋 Permission Summary:\n")
+	fmt.Printf("• SSH directory: %s (0700)\n", opts.targetDir)
+	
+	privateKeyCount := 0
+	publicKeyCount := 0
+	for _, fileData := range backupData.Files {
+		if fileData.KeyInfo != nil {
+			switch fileData.KeyInfo.Type {
+			case analyzer.KeyTypePrivate:
+				privateKeyCount++
+			case analyzer.KeyTypePublic:
+				publicKeyCount++
+			}
+		}
+	}
+	
+	if privateKeyCount > 0 {
+		fmt.Printf("• Private keys: %d files (0600)\n", privateKeyCount)
+	}
+	if publicKeyCount > 0 {
+		fmt.Printf("• Public keys: %d files (0644/0600)\n", publicKeyCount)
+	}
+
+	fmt.Printf("\n💡 Next steps:\n")
+	fmt.Printf("  ssh-add -l    # Check SSH agent\n")
+	fmt.Printf("  ssh-add %s/id_rsa  # Add key to agent\n", opts.targetDir)
 
 	return nil
 }

@@ -204,10 +204,15 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 		Bool("dry_run", options.DryRun).
 		Msg("Starting file restoration")
 
-	// Ensure target directory exists
+	// Ensure target directory exists with correct SSH directory permissions
 	if !options.DryRun {
 		if err := os.MkdirAll(targetDir, 0700); err != nil {
 			return fmt.Errorf("failed to create target directory: %w", err)
+		}
+		
+		// Verify SSH directory permissions
+		if err := h.verifySSHDirectoryPermissions(targetDir); err != nil {
+			log.Warn().Err(err).Msg("SSH directory permission warning")
 		}
 	}
 
@@ -241,9 +246,14 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 			}
 		}
 
-		// Write file content
+		// Write file content with exact permissions
 		if err := os.WriteFile(targetPath, fileData.Content, fileData.Permissions); err != nil {
 			return fmt.Errorf("failed to write file %s: %w", filename, err)
+		}
+
+		// Verify and warn about critical permission issues
+		if err := h.validateFilePermissions(filename, fileData.Permissions, fileData.KeyInfo); err != nil {
+			log.Warn().Err(err).Str("file", filename).Msg("Permission validation warning")
 		}
 
 		// Restore modification time
@@ -254,7 +264,8 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 		log.Info().
 			Str("file", filename).
 			Str("permissions", fileData.Permissions.String()).
-			Msg("File restored successfully")
+			Str("octal", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+			Msg("File restored with exact permissions")
 	}
 
 	log.Info().Msg("File restoration completed")
@@ -334,4 +345,155 @@ func (h *Handler) calculateTotalSize(files map[string]*FileData) int64 {
 		total += fileData.Size
 	}
 	return total
+}
+
+// CalculateTotalSize is a public wrapper for calculateTotalSize
+func (h *Handler) CalculateTotalSize(files map[string]*FileData) int64 {
+	return h.calculateTotalSize(files)
+}
+
+// verifySSHDirectoryPermissions checks SSH directory has correct permissions
+func (h *Handler) verifySSHDirectoryPermissions(sshDir string) error {
+	stat, err := os.Stat(sshDir)
+	if err != nil {
+		return fmt.Errorf("cannot stat SSH directory: %w", err)
+	}
+
+	perm := stat.Mode().Perm()
+	if perm != 0700 {
+		return fmt.Errorf("SSH directory has incorrect permissions %04o (should be 0700)", perm)
+	}
+
+	log.Info().
+		Str("directory", sshDir).
+		Str("permissions", "0700").
+		Msg("SSH directory permissions verified")
+	
+	return nil
+}
+
+// validateFilePermissions validates SSH file permissions and warns about issues
+func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, keyInfo *analyzer.KeyInfo) error {
+	perm := perms & os.ModePerm
+	
+	// Define expected permissions for different file types
+	var expectedPerms []os.FileMode
+	var fileType string
+	
+	if keyInfo != nil {
+		switch keyInfo.Type {
+		case analyzer.KeyTypePrivate:
+			expectedPerms = []os.FileMode{0600}
+			fileType = "private key"
+		case analyzer.KeyTypePublic:
+			expectedPerms = []os.FileMode{0644, 0600}
+			fileType = "public key"
+		case analyzer.KeyTypeConfig:
+			expectedPerms = []os.FileMode{0600, 0644}
+			fileType = "SSH config"
+		case analyzer.KeyTypeHosts:
+			expectedPerms = []os.FileMode{0600, 0644}
+			fileType = "known_hosts"
+		case analyzer.KeyTypeAuthorized:
+			expectedPerms = []os.FileMode{0600, 0644}
+			fileType = "authorized_keys"
+		default:
+			expectedPerms = []os.FileMode{0600, 0644}
+			fileType = "SSH file"
+		}
+	} else {
+		// Fallback for files without key info
+		expectedPerms = []os.FileMode{0600, 0644}
+		fileType = "SSH file"
+	}
+	
+	// Check if current permissions are acceptable
+	permissionOK := false
+	for _, expectedPerm := range expectedPerms {
+		if perm == expectedPerm {
+			permissionOK = true
+			break
+		}
+	}
+	
+	if !permissionOK {
+		// Log warning for problematic permissions
+		log.Warn().
+			Str("file", filename).
+			Str("type", fileType).
+			Str("current_perms", fmt.Sprintf("%04o", perm)).
+			Strs("recommended_perms", permissionsToStrings(expectedPerms)).
+			Msg("File permissions may be insecure")
+		
+		// Special warning for overly permissive private keys
+		if keyInfo != nil && keyInfo.Type == analyzer.KeyTypePrivate && (perm&0077) != 0 {
+			return fmt.Errorf("CRITICAL: Private key %s has world/group readable permissions (%04o) - SSH will reject this key", 
+				filename, perm)
+		}
+	}
+	
+	return nil
+}
+
+// permissionsToStrings converts permission modes to string representations
+func permissionsToStrings(perms []os.FileMode) []string {
+	result := make([]string, len(perms))
+	for i, perm := range perms {
+		result[i] = fmt.Sprintf("%04o", perm)
+	}
+	return result
+}
+
+// VerifyRestorePermissions performs post-restore permission verification
+func (h *Handler) VerifyRestorePermissions(backup *BackupData, targetDir string) error {
+	log.Info().Str("target", targetDir).Msg("Verifying restored file permissions")
+	
+	permissionIssues := 0
+	
+	// Check SSH directory itself
+	if err := h.verifySSHDirectoryPermissions(targetDir); err != nil {
+		log.Error().Err(err).Msg("SSH directory permission issue")
+		permissionIssues++
+	}
+	
+	// Check each restored file
+	for filename, fileData := range backup.Files {
+		targetPath := filepath.Join(targetDir, filename)
+		
+		// Check if file exists
+		stat, err := os.Stat(targetPath)
+		if err != nil {
+			log.Warn().Err(err).Str("file", filename).Msg("Cannot verify file permissions (file not found)")
+			continue
+		}
+		
+		actualPerms := stat.Mode().Perm()
+		expectedPerms := fileData.Permissions & os.ModePerm
+		
+		if actualPerms != expectedPerms {
+			log.Error().
+				Str("file", filename).
+				Str("expected", fmt.Sprintf("%04o", expectedPerms)).
+				Str("actual", fmt.Sprintf("%04o", actualPerms)).
+				Msg("Permission mismatch after restore")
+			permissionIssues++
+		} else {
+			log.Debug().
+				Str("file", filename).
+				Str("permissions", fmt.Sprintf("%04o", actualPerms)).
+				Msg("File permissions verified")
+		}
+		
+		// Validate security of permissions
+		if err := h.validateFilePermissions(filename, stat.Mode(), fileData.KeyInfo); err != nil {
+			log.Warn().Err(err).Str("file", filename).Msg("Permission security warning")
+		}
+	}
+	
+	if permissionIssues > 0 {
+		return fmt.Errorf("found %d permission issues after restore", permissionIssues)
+	}
+	
+	log.Info().Msg("All file permissions verified successfully")
+	return nil
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"syscall"
 	"time"
 
@@ -140,6 +141,20 @@ func runBackup(cfg *config.Config, opts backupOptions) error {
 	fmt.Printf("✓ Backup '%s' completed successfully\n", opts.name)
 	fmt.Printf("Files backed up: %d\n", len(backupData.Files))
 	fmt.Printf("Total size: %d bytes\n", backupData.Metadata["total_size"])
+
+	// Show permission preservation summary
+	fmt.Printf("\nPermission Preservation:\n")
+	permissionMap := make(map[string]int)
+	for _, fileData := range backupData.Files {
+		permStr := fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)
+		permissionMap[permStr]++
+	}
+	
+	for perm, count := range permissionMap {
+		fmt.Printf("• %s: %d files\n", perm, count)
+	}
+	
+	fmt.Printf("\n✅ All file permissions have been preserved in the backup\n")
 
 	return nil
 }

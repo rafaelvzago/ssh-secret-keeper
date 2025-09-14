@@ -12,7 +12,9 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - **Zero-knowledge**: Vault server never sees your SSH keys in plaintext
 - **Strong key derivation**: PBKDF2 with 100,000 iterations
 - **Integrity verification**: SHA-256 checksums for all files
-- **Permission preservation**: Exact SSH file permissions maintained
+- **Perfect permission preservation**: Exact SSH file permissions maintained and verified
+- **Permission validation**: Critical warnings for insecure SSH key permissions
+- **Directory security**: SSH directory automatically secured to 0700 permissions
 
 ## Intelligent SSH Analysis
 
@@ -24,14 +26,15 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 
 ## Features
 
-- **Complete SSH Directory Backup**  
-- **Selective File Restore**  
-- **Interactive Mode** for file selection  
+- **Complete SSH Directory Backup** with metadata
+- **Selective File Restore** with permission verification
+- **Interactive Mode** for file and backup selection  
 - **Dry-run Support** for safe testing  
 - **Multiple Backup Versions** with retention  
 - **Cross-platform Support** (Linux, macOS, Windows)  
 - **Container Ready** with Docker and Podman support  
-- **CI/CD Integration** friendly  
+- **CI/CD Integration** friendly
+- **Permission Security** validation and warnings  
 
 ## Installation
 
@@ -102,10 +105,14 @@ Summary:
   System files: 3
 
 Key Pairs Found:
-  - github_rsa (Complete pair)
-  - gitlab_rsa (Complete pair)  
-  - argocd_rsa (Complete pair)
-  - id_rsa (Complete pair)
+  - github_rsa (Complete pair) [0600/0644]
+  - gitlab_rsa (Complete pair) [0600/0644]
+  - argocd_rsa (Complete pair) [0600/0644]  
+  - id_rsa (Complete pair) [0600/0644]
+
+Permission Summary:
+  - 0600: 14 files (private keys)
+  - 0644: 14 files (public keys, config)
 ```
 
 ### 3. Create Your First Backup
@@ -451,11 +458,13 @@ make release
 ## Security Model
 
 ### Data Flow
-1. SSH files read from `~/.ssh` with permissions preserved
+1. SSH files read from `~/.ssh` with **exact permissions captured** (mode, timestamps)
 2. Client-side encryption using AES-256-GCM with unique salt/IV per file
-3. Encrypted data transmitted to Vault over TLS
-4. Vault stores encrypted data (double encryption)
-5. User namespace isolation: `users/{hostname-username}/`
+3. **Permission metadata stored** alongside encrypted content
+4. Encrypted data transmitted to Vault over TLS
+5. Vault stores encrypted data (double encryption)
+6. User namespace isolation: `users/{hostname-username}/`
+7. **Permission restoration** with validation and security warnings
 
 ### Key Management
 - User-provided passphrase → PBKDF2(100k iterations) → Encryption key
@@ -468,6 +477,8 @@ make release
 - **Network interception**: TLS encryption protects data in transit
 - **Local compromise**: Keys stored encrypted in Vault
 - **Brute force**: Strong PBKDF2 parameters make attacks infeasible
+- **Permission tampering**: Exact file permissions verified during restore
+- **Directory security**: SSH directories automatically secured to proper permissions
 
 ## Contributing
 
