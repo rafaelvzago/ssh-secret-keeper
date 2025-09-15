@@ -32,7 +32,7 @@
 
 **Certificates/PEM Files:**
 - `user-cert.pem` - Personal certificate
-- `cci` + `cci.pem` + `cci.pub` - CI/CD related certificates
+- `service-cert` + `service-cert.pem` + `service-cert.pub` - Service certificates
 
 **System Files:**
 - `config` - SSH client configuration

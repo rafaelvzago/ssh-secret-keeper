@@ -84,7 +84,7 @@ The implementation successfully detects and categorizes your 25+ SSH files:
 - Default: `id_rsa` + `id_rsa.pub`
 - Local: `local_rsa` + `local_rsa.pub`
 - Work: `work_key1.rsa`, `work_key2.rsa`
-- Certificates: `user-cert.pem`, `cci.pem`
+- Certificates: `user-cert.pem`, `service-cert.pem`
 
 **System Files:**
 - SSH config: `config`
