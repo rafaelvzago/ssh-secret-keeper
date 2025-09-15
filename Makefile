@@ -223,28 +223,6 @@ release-snapshot:
 	goreleaser release --snapshot --clean
 	@echo "Snapshot release created"
 
-# Initialize development Vault (requires Docker)
-.PHONY: dev-vault
-dev-vault:
-	@echo "Starting development Vault server..."
-	docker run --rm -d \
-		--name ssh-vault-keeper-vault \
-		--cap-add=IPC_LOCK \
-		-p 8200:8200 \
-		-e 'VAULT_DEV_ROOT_TOKEN_ID=dev-root-token' \
-		-e 'VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200' \
-		vault:latest
-	@echo "Vault started at http://localhost:8200"
-	@echo "   Root token: dev-root-token"
-	@echo "   Stop with: make stop-dev-vault"
-
-# Stop development Vault
-.PHONY: stop-dev-vault
-stop-dev-vault:
-	@echo "Stopping development Vault server..."
-	docker stop ssh-vault-keeper-vault || true
-	@echo "Vault stopped"
-
 # Show help
 .PHONY: help
 help:
@@ -254,8 +232,6 @@ help:
 	@echo "Development:"
 	@echo "  dev-setup          Set up development environment"
 	@echo "  dev-run            Run in development mode"
-	@echo "  dev-vault          Start development Vault server"
-	@echo "  stop-dev-vault     Stop development Vault server"
 	@echo ""
 	@echo "Build & Install:"
 	@echo "  build              Build for current platform"
