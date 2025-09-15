@@ -39,9 +39,9 @@ func New() *Analyzer {
 			"aws":       {"*aws*", "*ec2*"},
 		},
 		purposeRules: map[string]KeyPurpose{
-			"*rht*":       PurposeWork,
-			"*redhat*":    PurposeWork,
-			"*classroom*": PurposeWork,
+			"*work*":      PurposeWork,
+			"*corp*":      PurposeWork,
+			"*office*":    PurposeWork,
 			"*personal*":  PurposePersonal,
 			"id_rsa":      PurposePersonal,
 		},

@@ -5,6 +5,23 @@ All notable changes to SSH Vault Keeper will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-09-15
+
+### Security
+- **BREAKING**: `VAULT_ADDR` environment variable is now required for all operations
+- **Removed hardcoded Vault addresses** from all documentation and examples
+- **Enhanced security**: Application now fails if `VAULT_ADDR` is not set, preventing accidental connections to wrong servers
+- **Privacy protection**: Removed all personal information and network topology references from documentation
+
+### Changed
+- **Configuration loading**: `VAULT_ADDR` environment variable now takes precedence over configuration files
+- **Error handling**: Clear error messages when `VAULT_ADDR` is not set
+- **Documentation**: Updated all examples to use generic placeholders instead of specific addresses
+
+### Fixed
+- **Security vulnerability**: Fixed potential exposure of network topology through hardcoded IP addresses
+- **Configuration precedence**: Environment variables now properly override configuration file settings
+
 ## [1.0.0] - 2025-09-12
 
 ### Added
@@ -23,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Flexible configuration**: YAML files, environment variables, command-line flags
 - **User namespace isolation**: Each user gets isolated storage in Vault
 - **Permission preservation**: Exact SSH file permissions maintained
-- **Integrity verification**: SHA-256 checksums for all files
+- **Integrity verification**: MD5 checksums for all files
 - **Interactive modes**: User-guided file selection for backup/restore
 - **Dry-run support**: Preview operations without executing
 - **Docker containerization** with multi-stage builds
@@ -32,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Complete documentation**: User guides, configuration reference, quick start
 
 ### Security Features
-- **Zero-knowledge architecture**: Vault server never sees plaintext SSH keys  
+- **Zero-knowledge architecture**: Vault server never sees plaintext SSH keys
 - **PBKDF2 key derivation**: 100,000 iterations by default
 - **Unique cryptographic parameters**: Each file encrypted with unique salt/IV
 - **Secure memory handling**: Sensitive data cleared after use
@@ -49,7 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Successfully tested** with 28 SSH files including:
   - 14 key pairs (GitHub, GitLab, ArgoCD, etc.)
   - 10 personal keys
-  - 1 work key  
+  - 1 work key
   - 3 system files (config, known_hosts, authorized_keys)
 - **Vault integration**: Tested with HashiCorp Vault server
 - **End-to-end workflow**: Complete backup/restore cycle verified
@@ -123,11 +140,11 @@ Upgrade instructions will be provided with each release.
 For questions, issues, or feature requests:
 - **Issues**: [GitHub Issues](https://github.com/rzago/ssh-vault-keeper/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
-- **Security**: Email security issues to security@example.com
+- **Security**: Please report security issues via GitHub Issues with the "security" label
 
 ## Contributors
 
-- **rzago** - Initial development and architecture
+- **Project Maintainer** - Initial development and architecture
 - Community contributions welcome!
 
 ---

@@ -156,6 +156,12 @@ func runBackup(cfg *config.Config, opts backupOptions) error {
 
 	fmt.Printf("\n✅ All file permissions have been preserved in the backup\n")
 
+	// Show MD5 checksums summary
+	fmt.Printf("\n🔐 MD5 Integrity Protection:\n")
+	fmt.Printf("• All %d files protected with MD5 checksums\n", len(backupData.Files))
+	fmt.Printf("• Use 'ssh-vault-keeper status --checksums' to view file hashes\n")
+	fmt.Printf("• Use 'ssh-vault-keeper status %s --checksums' for detailed view\n", opts.name)
+
 	return nil
 }
 

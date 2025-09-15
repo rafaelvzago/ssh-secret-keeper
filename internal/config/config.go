@@ -84,9 +84,9 @@ func Default() *Config {
 			},
 			ExcludePatterns: []string{"*.tmp", "*.bak", "*.old"},
 			Categories: map[string][]string{
-				"services": {"github_rsa", "gitlab_rsa", "bitbucket_rsa", "argocd_rsa"},
+				"services": {"service1_rsa", "service2_rsa", "service3_rsa", "service4_rsa"},
 				"personal": {"id_rsa", "local_rsa"},
-				"work":     {"rht_classroom.rsa", "id_rsa_grade"},
+				"work":     {"work_key1.rsa", "work_key2.rsa"},
 			},
 		},
 		Security: SecurityConfig{
@@ -109,8 +109,8 @@ func Default() *Config {
 				"argocd":    "automation",
 			},
 			PurposeRules: map[string]string{
-				"*rht*":      "work",
-				"*redhat*":   "work",
+				"*work*":     "work",
+				"*corp*":     "work",
 				"*personal*": "personal",
 			},
 		},
@@ -145,6 +145,14 @@ func Load() (*Config, error) {
 	if err := viper.Unmarshal(cfg); err != nil {
 		return nil, fmt.Errorf("error unmarshaling config: %w", err)
 	}
+
+	// Require VAULT_ADDR environment variable to be set
+	// This follows HashiCorp Vault's standard environment variable convention
+	vaultAddr := os.Getenv("VAULT_ADDR")
+	if vaultAddr == "" {
+		return nil, fmt.Errorf("VAULT_ADDR environment variable is required but not set")
+	}
+	cfg.Vault.Address = vaultAddr
 
 	return cfg, nil
 }

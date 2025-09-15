@@ -7,7 +7,7 @@ This guide covers all configuration options for SSH Vault Keeper.
 SSH Vault Keeper loads configuration from multiple sources in this order of precedence:
 
 1. **Command line flags** (highest priority)
-2. **Environment variables** 
+2. **Environment variables**
 3. **Configuration file**
 4. **Default values** (lowest priority)
 
@@ -25,16 +25,16 @@ version: "1.0"
 vault:
   # Vault server address - CHANGE THIS TO YOUR VAULT SERVER
   address: "https://vault.company.com:8200"
-  
+
   # Path to Vault token file
   token_file: "~/.ssh-vault-keeper/token"
-  
+
   # KV v2 mount path in Vault for SSH backups
   mount_path: "ssh-backups"
-  
+
   # Vault namespace (Enterprise only)
   namespace: ""
-  
+
   # Skip TLS verification (not recommended for production)
   tls_skip_verify: false
 
@@ -42,17 +42,17 @@ vault:
 backup:
   # SSH directory to backup
   ssh_dir: "~/.ssh"
-  
+
   # Include hostname in Vault storage path
   hostname_prefix: true
-  
+
   # Number of backup versions to retain
   retention_count: 10
-  
+
   # Files to include in backup (glob patterns)
   include_patterns:
     - "*.rsa"
-    - "*.pem" 
+    - "*.pem"
     - "*.pub"
     - "id_rsa*"
     - "config"
@@ -62,7 +62,7 @@ backup:
     - "*_rsa.pub"
     - "*.ed25519"
     - "*.ecdsa"
-  
+
   # Files to exclude from backup (glob patterns)
   exclude_patterns:
     - "*.tmp"
@@ -70,24 +70,24 @@ backup:
     - "*.old"
     - "*.orig"
     - "*.swp"
-  
+
   # Predefined categories for SSH files
   categories:
     services:
-      - "github_rsa"
-      - "gitlab_rsa" 
-      - "bitbucket_rsa"
-      - "argocd_rsa"
-      - "quay_installer"
+      - "service1_rsa"
+      - "service2_rsa"
+      - "service3_rsa"
+      - "service4_rsa"
+      - "service5_rsa"
     personal:
       - "id_rsa"
       - "local_rsa"
     work:
-      - "*rht*"
-      - "*redhat*"
-      - "*classroom*"
+      - "*work*"
+      - "*corp*"
+      - "*office*"
     cloud:
-      - "*gke*"
+      - "*cloud*"
       - "*aws*"
       - "*gcp*"
       - "*azure*"
@@ -96,16 +96,16 @@ backup:
 security:
   # Encryption algorithm (currently only AES-256-GCM supported)
   algorithm: "AES-256-GCM"
-  
+
   # Key derivation function (currently only PBKDF2 supported)
   key_derivation: "PBKDF2"
-  
+
   # PBKDF2 iterations (higher = more secure but slower)
   iterations: 100000
-  
+
   # Encrypt each file separately (recommended)
   per_file_encrypt: true
-  
+
   # Verify file integrity after decryption
   verify_integrity: true
 
@@ -113,7 +113,7 @@ security:
 logging:
   # Log level: debug, info, warn, error
   level: "info"
-  
+
   # Log format: console, json
   format: "console"
 
@@ -128,10 +128,10 @@ detectors:
     - "hosts"
     - "ed25519"
     - "ecdsa"
-  
+
   # Custom patterns file (optional)
   custom_patterns_file: ""
-  
+
   # Service to category mapping
   service_mapping:
     github: "git_hosting"
@@ -143,12 +143,12 @@ detectors:
     gcp: "cloud"
     azure: "cloud"
     quay: "container_registry"
-  
+
   # Purpose assignment rules (glob patterns)
   purpose_rules:
-    "*rht*": "work"
-    "*redhat*": "work"
-    "*classroom*": "work" 
+    "*work*": "work"
+    "*corp*": "work"
+    "*office*": "work"
     "*personal*": "personal"
     "*github*": "service"
     "*gitlab*": "service"
@@ -162,7 +162,10 @@ All configuration options can be overridden with environment variables using the
 
 ### Vault Configuration
 ```bash
-# Vault server address
+# Vault server address (standard HashiCorp Vault environment variable)
+export VAULT_ADDR="https://vault.company.com:8200"
+
+# Alternative: SSH Vault Keeper specific environment variable
 export SSH_VAULT_VAULT_ADDRESS="https://vault.company.com:8200"
 
 # Token file path
@@ -177,6 +180,8 @@ export SSH_VAULT_VAULT_NAMESPACE="team-namespace"
 # Skip TLS verification (not recommended)
 export SSH_VAULT_VAULT_TLS_SKIP_VERIFY="false"
 ```
+
+**Note**: The `VAULT_ADDR` environment variable is **required** and takes precedence over the configuration file and `SSH_VAULT_VAULT_ADDRESS` environment variable, following HashiCorp Vault's standard convention. The application will fail to start if `VAULT_ADDR` is not set.
 
 ### Backup Configuration
 ```bash
@@ -303,37 +308,37 @@ backup:
     - "*.pem"
     - "*.pub"
     - "id_rsa*"
-    
+
     # Ed25519 keys
     - "*ed25519*"
     - "*.ed25519"
-    
-    # ECDSA keys  
+
+    # ECDSA keys
     - "*ecdsa*"
     - "*.ecdsa"
-    
+
     # System files
     - "config"
     - "known_hosts*"
     - "authorized_keys"
-    
+
     # Service-specific patterns
     - "*github*"
     - "*gitlab*"
     - "*aws*"
-    
+
   exclude_patterns:
     # Temporary files
     - "*.tmp"
     - "*.temp"
     - "*.swp"
     - "*~"
-    
+
     # Backup files
     - "*.bak"
     - "*.old"
     - "*.orig"
-    
+
     # Editor files
     - ".*.swp"
     - "*#"
@@ -346,12 +351,12 @@ backup:
     # Company-specific
     - "*company*"
     - "*corp*"
-    
+
     # Project-specific
     - "*project1*"
     - "*staging*"
     - "*prod*"
-    
+
   exclude_patterns:
     # Test files
     - "*test*"
@@ -374,7 +379,7 @@ security:
 security:
   # Balanced configuration for most use cases
   iterations: 100000  # Good security, reasonable performance
-  
+
   # Fast configuration for development
   iterations: 50000   # Faster but less secure
 ```
@@ -412,34 +417,34 @@ detectors:
     github: "git_hosting"
     gitlab: "git_hosting"
     bitbucket: "git_hosting"
-    
+
     # Cloud providers
     aws: "cloud"
     gcp: "cloud"
     azure: "cloud"
-    
+
     # CI/CD
     jenkins: "automation"
     argocd: "automation"
     drone: "automation"
-    
+
     # Container registries
     quay: "container_registry"
     docker: "container_registry"
-    
+
     # Custom services
     myservice: "custom"
-    
+
   purpose_rules:
     # Work patterns
     "*company*": "work"
     "*corp*": "work"
     "*enterprise*": "work"
-    
+
     # Personal patterns
     "*personal*": "personal"
     "*home*": "personal"
-    
+
     # Project patterns
     "*project*": "work"
     "*staging*": "work"
@@ -467,7 +472,7 @@ SSH_VAULT_LOGGING_LEVEL=debug ssh-vault-keeper status
 # If using self-signed certificates
 vault:
   tls_skip_verify: true  # Not recommended for production
-  
+
 # Or provide custom CA
 vault:
   ca_cert: "/path/to/ca.pem"

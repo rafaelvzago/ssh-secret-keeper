@@ -1,7 +1,7 @@
 package files
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -97,9 +97,9 @@ func (s *ReadService) ValidateDirectory(sshDir string) error {
 	return nil
 }
 
-// CalculateChecksum calculates SHA-256 checksum for data
+// CalculateChecksum calculates MD5 checksum for data
 func (s *ReadService) CalculateChecksum(data []byte) string {
-	hash := sha256.Sum256(data)
+	hash := md5.Sum(data)
 	return fmt.Sprintf("%x", hash)
 }
 
@@ -162,9 +162,9 @@ func (s *ReadService) readSingleFile(filePath string) (*ssh.FileData, error) {
 	log.Debug().
 		Str("file", fileData.Filename).
 		Int("size", len(content)).
-		Str("checksum", checksum[:8]+"...").
+		Str("md5", checksum[:8]+"...").
 		Str("permissions", stat.Mode().Perm().String()).
-		Msg("File read successfully")
+		Msg("File read successfully with MD5 checksum")
 
 	return fileData, nil
 }
@@ -191,21 +191,26 @@ func (s *ReadService) AddKeyInfoToFiles(files map[string]*ssh.FileData, analysis
 		Msg("Key info added to file data")
 }
 
-// ValidateFileIntegrity verifies file content matches stored checksum
+// ValidateFileIntegrity verifies file content matches stored MD5 checksum
 func (s *ReadService) ValidateFileIntegrity(fileData *ssh.FileData) error {
 	if fileData == nil {
 		return fmt.Errorf("file data is nil")
 	}
 
 	if fileData.Content == nil {
-		return fmt.Errorf("file content is nil")
+		return fmt.Errorf("file %s has no content for integrity check", fileData.Filename)
 	}
 
 	currentChecksum := s.CalculateChecksum(fileData.Content)
 	if currentChecksum != fileData.Checksum {
-		return fmt.Errorf("checksum mismatch for file %s: expected %s, got %s",
+		return fmt.Errorf("MD5 checksum mismatch for file %s: expected %s, got %s",
 			fileData.Filename, fileData.Checksum, currentChecksum)
 	}
+
+	log.Debug().
+		Str("file", fileData.Filename).
+		Str("md5", currentChecksum[:8]).
+		Msg("File integrity verified with MD5")
 
 	return nil
 }

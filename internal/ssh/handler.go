@@ -1,7 +1,7 @@
 package ssh
 
 import (
-	"crypto/sha256"
+	"crypto/md5"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -119,8 +119,8 @@ func (h *Handler) readFiles(sshDir string, keys []analyzer.KeyInfo) (map[string]
 			continue
 		}
 
-		// Calculate checksum
-		checksum := fmt.Sprintf("%x", sha256.Sum256(content))
+		// Calculate MD5 checksum
+		checksum := fmt.Sprintf("%x", md5.Sum(content))
 
 		fileData := &FileData{
 			Filename:    keyInfo.Filename,
@@ -137,8 +137,8 @@ func (h *Handler) readFiles(sshDir string, keys []analyzer.KeyInfo) (map[string]
 		log.Debug().
 			Str("file", keyInfo.Filename).
 			Int("size", len(content)).
-			Str("checksum", checksum[:8]).
-			Msg("File read successfully")
+			Str("md5", checksum[:8]).
+			Msg("File read successfully with MD5 checksum")
 	}
 
 	return files, nil
@@ -314,9 +314,9 @@ func (h *Handler) promptOverwrite(filename string) bool {
 	return response == "y" || response == "yes"
 }
 
-// VerifyBackup verifies the integrity of a backup
+// VerifyBackup verifies the integrity of a backup using MD5 checksums
 func (h *Handler) VerifyBackup(backup *BackupData) error {
-	log.Info().Msg("Verifying backup integrity")
+	log.Info().Msg("Verifying backup integrity with MD5 checksums")
 
 	for filename, fileData := range backup.Files {
 		if fileData.Content == nil {
@@ -324,17 +324,17 @@ func (h *Handler) VerifyBackup(backup *BackupData) error {
 			continue
 		}
 
-		// Verify checksum
-		currentChecksum := fmt.Sprintf("%x", sha256.Sum256(fileData.Content))
+		// Verify MD5 checksum
+		currentChecksum := fmt.Sprintf("%x", md5.Sum(fileData.Content))
 		if currentChecksum != fileData.Checksum {
-			return fmt.Errorf("checksum mismatch for file %s: expected %s, got %s",
+			return fmt.Errorf("MD5 checksum mismatch for file %s: expected %s, got %s",
 				filename, fileData.Checksum, currentChecksum)
 		}
 
-		log.Debug().Str("file", filename).Msg("Checksum verified")
+		log.Debug().Str("file", filename).Str("md5", currentChecksum[:8]).Msg("MD5 checksum verified")
 	}
 
-	log.Info().Msg("Backup integrity verified")
+	log.Info().Msg("Backup integrity verified with MD5 checksums")
 	return nil
 }
 

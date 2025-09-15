@@ -1,7 +1,7 @@
 # SSH Vault Keeper - Development Context
 
 ## Current User Environment
-- **User**: rzago
+- **User**: example-user
 - **SSH Directory**: Complex structure with 25+ files
 - **Key Types**: RSA, PEM, OpenSSH format
 - **Services**: GitHub, GitLab, BitBucket, ArgoCD, Quay, GKE
@@ -12,26 +12,26 @@
 ### Identified File Patterns from User Directory:
 
 **Service Keys:**
-- `github_rsa` + `github_rsa.pub` - GitHub access
-- `gitlab_rsa` + `gitlab_rsa.pub` - GitLab access  
-- `gitlab_redhat_rsa` + `gitlab_redhat_rsa.pub` - GitLab Red Hat instance
-- `bitbucket_rsa` + `bitbucket_rsa.pub` - BitBucket access
-- `argocd_rsa` + `argocd_rsa.pub` - ArgoCD access
-- `quay_installer` + `quay_installer.pub` - Quay installer
+- `service1_rsa` + `service1_rsa.pub` - Service1 access
+- `service2_rsa` + `service2_rsa.pub` - Service2 access
+- `service2_work_rsa` + `service2_work_rsa.pub` - Service2 work instance
+- `service3_rsa` + `service3_rsa.pub` - Service3 access
+- `service4_rsa` + `service4_rsa.pub` - Service4 access
+- `service5_rsa` + `service5_rsa.pub` - Service5 installer
 
 **Cloud Keys:**
-- `gke_redhat_rsa` + `gke_redhat_rsa.pub` - Google Kubernetes Engine
+- `cloud_key1_rsa` + `cloud_key1_rsa.pub` - Cloud platform access
 
 **Personal/Default Keys:**
 - `id_rsa` + `id_rsa.pub` - Default SSH key pair
 - `local_rsa` + `local_rsa.pub` - Local access keys
 
 **Work/Corporate Keys:**
-- `rht_classroom.rsa` - Red Hat classroom environment
-- `id_rsa_grade` - Grading system access
+- `work_key1.rsa` - Work environment access
+- `work_key2.rsa` - Work system access
 
 **Certificates/PEM Files:**
-- `rzago-psi.pem` - Personal certificate
+- `user-cert.pem` - Personal certificate
 - `cci` + `cci.pem` + `cci.pub` - CI/CD related certificates
 
 **System Files:**
@@ -42,7 +42,7 @@
 
 ### Permission Patterns Observed:
 - Private keys: 600 (-rw-------)
-- Public keys: 644 (-rw-r--r--)  
+- Public keys: 644 (-rw-r--r--)
 - Config files: 600 (-rw-------)
 - System files: 600-644 depending on type
 
@@ -53,7 +53,7 @@
 - **Algorithm**: AES-256-GCM with PBKDF2 key derivation
 - **Implementation**: Each file encrypted separately for granular access
 
-### 2. Categorized Storage  
+### 2. Categorized Storage
 - **Service keys**: Grouped by service (GitHub, GitLab, etc.)
 - **Personal keys**: User's personal/default keys
 - **Work keys**: Corporate/work-related keys
@@ -78,7 +78,7 @@ ssh-backups/data/users/{hostname-username}/
 
 ### Completed Components:
 - ✅ Configuration management (YAML + environment variables)
-- ✅ SSH file analysis and categorization  
+- ✅ SSH file analysis and categorization
 - ✅ Client-side encryption (AES-256-GCM)
 - ✅ Vault client integration
 - ✅ CLI commands (init, backup, restore, analyze, list, status)
@@ -86,7 +86,7 @@ ssh-backups/data/users/{hostname-username}/
 
 ### Core Features:
 - ✅ Intelligent SSH directory analysis
-- ✅ Service-based key categorization  
+- ✅ Service-based key categorization
 - ✅ Complete backup/restore workflow
 - ✅ Interactive file selection
 - ✅ Dry-run support
@@ -111,7 +111,7 @@ ssh-backups/data/users/{hostname-username}/
 ### Documentation:
 - User guide with examples
 - API documentation
-- Security model documentation  
+- Security model documentation
 - Troubleshooting guide
 
 ### Advanced Features:

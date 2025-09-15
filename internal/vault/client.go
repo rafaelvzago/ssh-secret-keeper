@@ -198,9 +198,9 @@ func (c *Client) ListBackups() ([]string, error) {
 
 // DeleteBackup deletes a backup
 func (c *Client) DeleteBackup(backupName string) error {
-	path := fmt.Sprintf("%s/data/%s/backups/%s", c.mountPath, c.basePath, backupName)
-
-	_, err := c.client.Logical().Delete(path)
+	// Delete from data path
+	dataPath := fmt.Sprintf("%s/data/%s/backups/%s", c.mountPath, c.basePath, backupName)
+	_, err := c.client.Logical().Delete(dataPath)
 	if err != nil {
 		return fmt.Errorf("failed to delete backup %s: %w", backupName, err)
 	}
@@ -209,6 +209,75 @@ func (c *Client) DeleteBackup(backupName string) error {
 		Str("backup", backupName).
 		Msg("Backup deleted successfully")
 
+	return nil
+}
+
+// ForceDeleteBackup deletes a backup and waits for metadata to update
+func (c *Client) ForceDeleteBackup(backupName string) error {
+	// First, delete the backup data
+	if err := c.DeleteBackup(backupName); err != nil {
+		return err
+	}
+
+	// Also try to delete from metadata path (some Vault versions may need this)
+	c.DeleteBackupMetadata(backupName)
+
+	// Wait for metadata to update with retries
+	maxRetries := 5
+	for i := 0; i < maxRetries; i++ {
+		time.Sleep(time.Duration(i+1) * time.Second) // Increasing delay: 1s, 2s, 3s, 4s, 5s
+
+		backups, err := c.ListBackups()
+		if err != nil {
+			log.Warn().Err(err).Msg("Failed to verify deletion")
+			continue
+		}
+
+		// Check if backup still exists
+		stillExists := false
+		for _, backup := range backups {
+			if backup == backupName {
+				stillExists = true
+				break
+			}
+		}
+
+		if !stillExists {
+			log.Debug().
+				Str("backup", backupName).
+				Int("retry", i+1).
+				Msg("Backup successfully removed from metadata")
+			return nil
+		}
+
+		log.Debug().
+			Str("backup", backupName).
+			Int("retry", i+1).
+			Msg("Backup still appears in metadata, retrying...")
+	}
+
+	log.Warn().
+		Str("backup", backupName).
+		Msg("Backup data deleted but still appears in metadata after retries")
+
+	return nil
+}
+
+// DeleteBackupMetadata deletes backup metadata entry (for cleanup)
+func (c *Client) DeleteBackupMetadata(backupName string) error {
+	// Try to delete from metadata path as well (some Vault versions may need this)
+	metadataPath := fmt.Sprintf("%s/metadata/%s/backups/%s", c.mountPath, c.basePath, backupName)
+	_, err := c.client.Logical().Delete(metadataPath)
+	if err != nil {
+		log.Debug().
+			Str("backup", backupName).
+			Err(err).
+			Msg("Failed to delete from metadata path (this may be normal)")
+	} else {
+		log.Debug().
+			Str("backup", backupName).
+			Msg("Successfully deleted from metadata path")
+	}
 	return nil
 }
 

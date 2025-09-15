@@ -17,7 +17,7 @@ RUN go mod download
 COPY . .
 
 # Build the application
-ARG VERSION=1.0.0
+ARG VERSION=1.1.0
 ARG BUILD_TIME
 ARG GIT_HASH
 

@@ -11,7 +11,7 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - **Triple-layer encryption**: Client-side AES-256-GCM + Vault encryption + TLS
 - **Zero-knowledge**: Vault server never sees your SSH keys in plaintext
 - **Strong key derivation**: PBKDF2 with 100,000 iterations
-- **Integrity verification**: SHA-256 checksums for all files
+- **Integrity verification**: MD5 checksums for all files
 - **Perfect permission preservation**: Exact SSH file permissions maintained and verified
 - **Permission validation**: Critical warnings for insecure SSH key permissions
 - **Directory security**: SSH directory automatically secured to 0700 permissions
@@ -75,8 +75,8 @@ podman run --rm -v ~/.ssh:/ssh -v ~/.ssh-vault-keeper:/config ghcr.io/rzago/ssh-
 
 ### 1. Initialize Configuration
 ```bash
-# Set your Vault configuration
-export VAULT_ADDR="https://your-vault-server:8200"  # e.g., http://192.168.1.89:8200 for K8s cluster
+# Set your Vault configuration (VAULT_ADDR is required)
+export VAULT_ADDR="https://your-vault-server:8200"  # Replace with your actual Vault server address
 export VAULT_TOKEN="your-vault-token"
 
 # Initialize the configuration
@@ -84,6 +84,8 @@ ssh-vault-keeper init \
   --vault-addr "${VAULT_ADDR}" \
   --token "${VAULT_TOKEN}"
 ```
+
+**Note**: The `VAULT_ADDR` environment variable is required for all operations. The application will fail if it's not set.
 
 ### 2. Analyze Your SSH Directory
 ```bash
@@ -105,9 +107,9 @@ Summary:
   System files: 3
 
 Key Pairs Found:
-  - github_rsa (Complete pair) [0600/0644]
-  - gitlab_rsa (Complete pair) [0600/0644]
-  - argocd_rsa (Complete pair) [0600/0644]
+  - service1_rsa (Complete pair) [0600/0644]
+  - service2_rsa (Complete pair) [0600/0644]
+  - service3_rsa (Complete pair) [0600/0644]
   - id_rsa (Complete pair) [0600/0644]
 
 Permission Summary:
@@ -148,8 +150,9 @@ ssh-vault-keeper restore --target-dir "${RESTORE_DIR}"
 | `backup` | Backup SSH directory to Vault | `ssh-vault-keeper backup "${BACKUP_NAME}"` |
 | `restore` | Restore SSH backup from Vault | `ssh-vault-keeper restore --select` |
 | `list` | List available backups | `ssh-vault-keeper list --detailed` |
+| `delete` | Delete a backup from Vault | `ssh-vault-keeper delete "${BACKUP_NAME}" --force` |
 | `analyze` | Analyze SSH directory structure | `ssh-vault-keeper analyze --verbose` |
-| `status` | Show configuration and connection status | `ssh-vault-keeper status` |
+| `status` | Show configuration and connection status | `ssh-vault-keeper status --checksums` |
 
 ### Command Options
 
@@ -168,6 +171,18 @@ ssh-vault-keeper backup --ssh-dir "${SSH_DIR}"
 # Custom backup name with timestamp
 BACKUP_NAME="backup-$(hostname)-$(date +%Y%m%d-%H%M%S)"
 ssh-vault-keeper backup "${BACKUP_NAME}"
+```
+
+#### Delete Options
+```bash
+# Delete specific backup with confirmation
+ssh-vault-keeper delete "backup-20240101-120000"
+
+# Delete without confirmation prompt
+ssh-vault-keeper delete "old-backup" --force
+
+# Interactive backup selection for deletion
+ssh-vault-keeper delete "" --interactive
 ```
 
 #### Restore Options
@@ -192,6 +207,24 @@ ssh-vault-keeper restore --select --interactive
 ssh-vault-keeper restore --overwrite
 ```
 
+#### Status Options
+```bash
+# Show basic status
+ssh-vault-keeper status
+
+# Show MD5 checksums for most recent backup
+ssh-vault-keeper status --checksums
+
+# Show detailed info for specific backup with checksums
+ssh-vault-keeper status "backup-20240101-120000" --checksums
+
+# Skip vault connection check
+ssh-vault-keeper status --vault=false
+
+# Skip SSH directory check
+ssh-vault-keeper status --ssh=false
+```
+
 ## Configuration
 
 Configuration file location: `~/.ssh-vault-keeper/config.yaml`
@@ -208,7 +241,7 @@ export SSH_VAULT_VAULT_TOKEN_FILE="/path/to/token"
 export SSH_VAULT_VAULT_MOUNT_PATH="ssh-backups"
 
 # For Kubernetes clusters, set your cluster's Vault address:
-# export VAULT_ADDR="http://192.168.1.89:8200"
+# export VAULT_ADDR="http://your-vault-server:8200"
 
 # Backup settings
 export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh/path"
@@ -392,7 +425,7 @@ spec:
               ssh-vault-keeper backup "${BACKUP_NAME}"
             env:
             - name: VAULT_ADDR
-              value: "http://192.168.1.89:8200"  # Your Kubernetes cluster Vault address
+              value: "http://your-vault-server:8200"  # Your Kubernetes cluster Vault address
             - name: VAULT_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -572,7 +605,7 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - [Documentation](docs/)
 - [Issue Tracker](https://github.com/rzago/ssh-vault-keeper/issues)
 - [Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
-- [Security Issues](mailto:security@example.com)
+- [Security Issues](https://github.com/rzago/ssh-vault-keeper/issues/new?labels=security)
 
 ## What's Next
 

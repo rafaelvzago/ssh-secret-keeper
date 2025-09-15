@@ -31,9 +31,6 @@ func getDefaultServicePatterns() map[string][]string {
 func getDefaultPurposeRules() map[string]KeyPurpose {
 	return map[string]KeyPurpose{
 		// Work-related patterns
-		"*rht*":       PurposeWork,
-		"*redhat*":    PurposeWork,
-		"*classroom*": PurposeWork,
 		"*work*":      PurposeWork,
 		"*corp*":      PurposeWork,
 		"*company*":   PurposeWork,

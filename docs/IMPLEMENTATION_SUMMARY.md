@@ -14,7 +14,7 @@ All planned features have been implemented and tested successfully.
 - **Triple-layer encryption**: Client-side AES-256-GCM + Vault encryption + TLS
 - **Client-side encryption**: SSH keys never stored in plaintext on Vault server
 - **Key derivation**: PBKDF2 with 100,000 iterations
-- **Integrity verification**: SHA-256 checksums for all files
+- **Integrity verification**: MD5 checksums for all files
 - **Secure memory handling**: Sensitive data cleared after use
 
 #### ✅ Intelligent SSH Analysis
@@ -73,18 +73,18 @@ SSH Vault Keeper Architecture
 The implementation successfully detects and categorizes your 25+ SSH files:
 
 **Service Keys Detected:**
-- GitHub: `github_rsa` + `github_rsa.pub`
-- GitLab: `gitlab_rsa`, `gitlab_redhat_rsa` + public keys
-- BitBucket: `bitbucket_rsa` + `bitbucket_rsa.pub`
-- ArgoCD: `argocd_rsa` + `argocd_rsa.pub`
-- Quay: `quay_installer` + `quay_installer.pub`
-- GKE: `gke_redhat_rsa` + `gke_redhat_rsa.pub`
+- Service1: `service1_rsa` + `service1_rsa.pub`
+- Service2: `service2_rsa`, `service2_work_rsa` + public keys
+- Service3: `service3_rsa` + `service3_rsa.pub`
+- Service4: `service4_rsa` + `service4_rsa.pub`
+- Service5: `service5_rsa` + `service5_rsa.pub`
+- Cloud: `cloud_key1_rsa` + `cloud_key1_rsa.pub`
 
 **Personal/Work Keys:**
 - Default: `id_rsa` + `id_rsa.pub`
 - Local: `local_rsa` + `local_rsa.pub`
-- Work: `rht_classroom.rsa`, `id_rsa_grade`
-- Certificates: `rzago-psi.pem`, `cci.pem`
+- Work: `work_key1.rsa`, `work_key2.rsa`
+- Certificates: `user-cert.pem`, `cci.pem`
 
 **System Files:**
 - SSH config: `config`
@@ -170,7 +170,7 @@ backup_ssh_keys:
   - Passphrase verification
   - Error handling for wrong passphrases
 
-- **Analyzer Package**: 21/21 tests passing  
+- **Analyzer Package**: 21/21 tests passing
   - File type detection (RSA, PEM, Ed25519, ECDSA)
   - Service categorization
   - Key pair relationship mapping
@@ -178,7 +178,7 @@ backup_ssh_keys:
 
 - **Config Package**: 8/8 tests passing
   - Default configuration generation
-  - YAML serialization/deserialization  
+  - YAML serialization/deserialization
   - Path resolution and validation
   - Environment variable handling
 
@@ -191,7 +191,7 @@ backup_ssh_keys:
 ### Build Verification
 ```bash
 ✅ Go module compilation successful
-✅ Binary creation successful  
+✅ Binary creation successful
 ✅ CLI help system functional
 ✅ Version information correct
 ✅ All imports resolved
@@ -204,7 +204,7 @@ backup_ssh_keys:
 - **QUICK_START.md**: Step-by-step setup and usage guide
 - **Example Configuration**: Fully commented config.example.yaml
 
-### Developer Documentation  
+### Developer Documentation
 - **CONTEXT.md**: Development context and architecture decisions
 - **Code Comments**: Comprehensive inline documentation
 - **Interface Documentation**: All public APIs documented
@@ -241,7 +241,7 @@ The implementation successfully addresses all your original requirements while p
 While the core implementation is complete, potential areas for future development:
 
 1. **Key Rotation**: Automated SSH key rotation with Vault integration
-2. **Compliance Reporting**: SOC2/PCI compliance reporting features  
+2. **Compliance Reporting**: SOC2/PCI compliance reporting features
 3. **Multi-Vault Support**: Backup redundancy across multiple Vault instances
 4. **Web Interface**: Optional web UI for team management
 5. **Plugin System**: External plugins for custom key types and services

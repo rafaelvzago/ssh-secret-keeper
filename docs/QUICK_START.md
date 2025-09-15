@@ -11,7 +11,7 @@ This guide will get you up and running with SSH Vault Keeper in minutes.
 ## Step 1: Build the Application
 
 ```bash
-cd /home/rzago/Code/matrix-vault
+cd /path/to/your/ssh-vault-keeper
 make build
 ```
 
@@ -23,7 +23,7 @@ make install
 ## Step 2: Initialize Configuration
 
 ```bash
-# Initialize with your Vault server  
+# Initialize with your Vault server
 ssh-vault-keeper init --vault-addr https://your-vault-server:8200 --token YOUR_VAULT_TOKEN
 ```
 
@@ -56,20 +56,20 @@ Example output for your SSH directory:
 
 🔑 Key Pairs:
   • github - ✓ Complete pair
-  • gitlab - ✓ Complete pair  
+  • gitlab - ✓ Complete pair
   • bitbucket - ✓ Complete pair
   • argocd - ✓ Complete pair
-  • gke_redhat - ✓ Complete pair
+  • cloud_key1 - ✓ Complete pair
   • id_rsa - ✓ Complete pair
   • local - ✓ Complete pair
-  • rzago-psi - ⚠️  Private key only
+  • user-cert - ⚠️  Private key only
 
 📂 Categories:
   service (8 files):
-    🔐 github_rsa [github]
-    🔑 github_rsa.pub [github]
-    🔐 gitlab_rsa [gitlab]
-    🔑 gitlab_rsa.pub [gitlab]
+    🔐 service1_rsa [service1]
+    🔑 service1_rsa.pub [service1]
+    🔐 service2_rsa [service2]
+    🔑 service2_rsa.pub [service2]
     ...
 
   personal (4 files):
@@ -79,8 +79,8 @@ Example output for your SSH directory:
     🔑 local_rsa.pub
 
   work (3 files):
-    🔐 rht_classroom.rsa
-    🔐 id_rsa_grade
+    🔐 work_key1.rsa
+    🔐 work_key2.rsa
 
 ⚙️ System Files:
   ⚙️ config (917 bytes)
@@ -201,7 +201,7 @@ chmod 700 ~/.ssh
 chmod 600 ~/.ssh/id_rsa ~/.ssh/*_rsa ~/.ssh/config
 chmod 644 ~/.ssh/*.pub
 
-# Fix token file permissions  
+# Fix token file permissions
 chmod 600 ~/.ssh-vault-keeper/token
 ```
 
