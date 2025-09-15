@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/cmd"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/rzago/ssh-vault-keeper/internal/cmd"
+	"github.com/rzago/ssh-vault-keeper/internal/config"
 )
 
 func main() {

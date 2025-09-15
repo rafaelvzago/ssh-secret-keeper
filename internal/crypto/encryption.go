@@ -23,11 +23,11 @@ const (
 
 // EncryptedData represents encrypted data with metadata
 type EncryptedData struct {
-	Data       string `json:"data"`        // Base64 encoded encrypted data
-	Salt       string `json:"salt"`        // Base64 encoded salt
-	IV         string `json:"iv"`          // Base64 encoded IV
-	Algorithm  string `json:"algorithm"`   // Encryption algorithm
-	Iterations int    `json:"iterations"`  // PBKDF2 iterations
+	Data       string `json:"data"`       // Base64 encoded encrypted data
+	Salt       string `json:"salt"`       // Base64 encoded salt
+	IV         string `json:"iv"`         // Base64 encoded IV
+	Algorithm  string `json:"algorithm"`  // Encryption algorithm
+	Iterations int    `json:"iterations"` // PBKDF2 iterations
 }
 
 // Encryptor handles encryption and decryption operations
@@ -40,7 +40,7 @@ func NewEncryptor(iterations int) *Encryptor {
 	if iterations <= 0 {
 		iterations = DefaultIterations
 	}
-	
+
 	return &Encryptor{
 		iterations: iterations,
 	}
@@ -141,7 +141,7 @@ func (e *Encryptor) Decrypt(encData *EncryptedData, passphrase string) ([]byte, 
 // EncryptFiles encrypts multiple files with the same passphrase
 func (e *Encryptor) EncryptFiles(files map[string][]byte, passphrase string) (map[string]*EncryptedData, error) {
 	encrypted := make(map[string]*EncryptedData)
-	
+
 	for filename, data := range files {
 		encData, err := e.Encrypt(data, passphrase)
 		if err != nil {
@@ -149,14 +149,14 @@ func (e *Encryptor) EncryptFiles(files map[string][]byte, passphrase string) (ma
 		}
 		encrypted[filename] = encData
 	}
-	
+
 	return encrypted, nil
 }
 
 // DecryptFiles decrypts multiple files with the same passphrase
 func (e *Encryptor) DecryptFiles(encrypted map[string]*EncryptedData, passphrase string) (map[string][]byte, error) {
 	files := make(map[string][]byte)
-	
+
 	for filename, encData := range encrypted {
 		data, err := e.Decrypt(encData, passphrase)
 		if err != nil {
@@ -164,7 +164,7 @@ func (e *Encryptor) DecryptFiles(encrypted map[string]*EncryptedData, passphrase
 		}
 		files[filename] = data
 	}
-	
+
 	return files, nil
 }
 
@@ -173,12 +173,12 @@ func GeneratePassphrase(length int) (string, error) {
 	if length < 16 {
 		length = 32 // Default to 32 characters
 	}
-	
+
 	bytes := make([]byte, length)
 	if _, err := rand.Read(bytes); err != nil {
 		return "", fmt.Errorf("failed to generate random bytes: %w", err)
 	}
-	
+
 	return base64.URLEncoding.EncodeToString(bytes)[:length], nil
 }
 

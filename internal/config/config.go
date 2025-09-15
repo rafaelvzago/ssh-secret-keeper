@@ -12,40 +12,40 @@ import (
 
 // Config represents the application configuration
 type Config struct {
-	Version   string        `yaml:"version" mapstructure:"version"`
-	Vault     VaultConfig   `yaml:"vault" mapstructure:"vault"`
-	Backup    BackupConfig  `yaml:"backup" mapstructure:"backup"`
+	Version   string         `yaml:"version" mapstructure:"version"`
+	Vault     VaultConfig    `yaml:"vault" mapstructure:"vault"`
+	Backup    BackupConfig   `yaml:"backup" mapstructure:"backup"`
 	Security  SecurityConfig `yaml:"security" mapstructure:"security"`
-	Logging   LoggingConfig `yaml:"logging" mapstructure:"logging"`
+	Logging   LoggingConfig  `yaml:"logging" mapstructure:"logging"`
 	Detectors DetectorConfig `yaml:"detectors" mapstructure:"detectors"`
 }
 
 // VaultConfig holds Vault connection settings
 type VaultConfig struct {
-	Address    string `yaml:"address" mapstructure:"address"`
-	TokenFile  string `yaml:"token_file" mapstructure:"token_file"`
-	MountPath  string `yaml:"mount_path" mapstructure:"mount_path"`
-	Namespace  string `yaml:"namespace,omitempty" mapstructure:"namespace"`
-	TLSSkipVerify bool `yaml:"tls_skip_verify" mapstructure:"tls_skip_verify"`
+	Address       string `yaml:"address" mapstructure:"address"`
+	TokenFile     string `yaml:"token_file" mapstructure:"token_file"`
+	MountPath     string `yaml:"mount_path" mapstructure:"mount_path"`
+	Namespace     string `yaml:"namespace,omitempty" mapstructure:"namespace"`
+	TLSSkipVerify bool   `yaml:"tls_skip_verify" mapstructure:"tls_skip_verify"`
 }
 
-// BackupConfig holds backup behavior settings  
+// BackupConfig holds backup behavior settings
 type BackupConfig struct {
-	SSHDir           string            `yaml:"ssh_dir" mapstructure:"ssh_dir"`
-	HostnamePrefix   bool              `yaml:"hostname_prefix" mapstructure:"hostname_prefix"`
-	RetentionCount   int               `yaml:"retention_count" mapstructure:"retention_count"`
-	IncludePatterns  []string          `yaml:"include_patterns" mapstructure:"include_patterns"`
-	ExcludePatterns  []string          `yaml:"exclude_patterns" mapstructure:"exclude_patterns"`
-	Categories       map[string][]string `yaml:"categories" mapstructure:"categories"`
+	SSHDir          string              `yaml:"ssh_dir" mapstructure:"ssh_dir"`
+	HostnamePrefix  bool                `yaml:"hostname_prefix" mapstructure:"hostname_prefix"`
+	RetentionCount  int                 `yaml:"retention_count" mapstructure:"retention_count"`
+	IncludePatterns []string            `yaml:"include_patterns" mapstructure:"include_patterns"`
+	ExcludePatterns []string            `yaml:"exclude_patterns" mapstructure:"exclude_patterns"`
+	Categories      map[string][]string `yaml:"categories" mapstructure:"categories"`
 }
 
 // SecurityConfig holds encryption and security settings
 type SecurityConfig struct {
-	Algorithm      string `yaml:"algorithm" mapstructure:"algorithm"`
-	KeyDerivation  string `yaml:"key_derivation" mapstructure:"key_derivation"`
-	Iterations     int    `yaml:"iterations" mapstructure:"iterations"`
-	PerFileEncrypt bool   `yaml:"per_file_encrypt" mapstructure:"per_file_encrypt"`
-	VerifyIntegrity bool  `yaml:"verify_integrity" mapstructure:"verify_integrity"`
+	Algorithm       string `yaml:"algorithm" mapstructure:"algorithm"`
+	KeyDerivation   string `yaml:"key_derivation" mapstructure:"key_derivation"`
+	Iterations      int    `yaml:"iterations" mapstructure:"iterations"`
+	PerFileEncrypt  bool   `yaml:"per_file_encrypt" mapstructure:"per_file_encrypt"`
+	VerifyIntegrity bool   `yaml:"verify_integrity" mapstructure:"verify_integrity"`
 }
 
 // LoggingConfig holds logging settings
@@ -56,20 +56,20 @@ type LoggingConfig struct {
 
 // DetectorConfig holds key detection settings
 type DetectorConfig struct {
-	Enabled         []string          `yaml:"enabled" mapstructure:"enabled"`
-	CustomPatterns  string            `yaml:"custom_patterns_file" mapstructure:"custom_patterns_file"`
-	ServiceMapping  map[string]string `yaml:"service_mapping" mapstructure:"service_mapping"`
-	PurposeRules    map[string]string `yaml:"purpose_rules" mapstructure:"purpose_rules"`
+	Enabled        []string          `yaml:"enabled" mapstructure:"enabled"`
+	CustomPatterns string            `yaml:"custom_patterns_file" mapstructure:"custom_patterns_file"`
+	ServiceMapping map[string]string `yaml:"service_mapping" mapstructure:"service_mapping"`
+	PurposeRules   map[string]string `yaml:"purpose_rules" mapstructure:"purpose_rules"`
 }
 
 // Default returns a configuration with default values
 func Default() *Config {
 	homeDir, _ := os.UserHomeDir()
-	
+
 	return &Config{
 		Version: "1.0",
 		Vault: VaultConfig{
-			Address:       "http://localhost:8200", // Default Vault dev server
+			Address:       "http://localhost:8200", // Default to Kubernetes Vault server
 			TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
 			MountPath:     "ssh-backups",
 			TLSSkipVerify: false,
@@ -79,7 +79,7 @@ func Default() *Config {
 			HostnamePrefix: true,
 			RetentionCount: 10,
 			IncludePatterns: []string{
-				"*.rsa", "*.pem", "*.pub", "id_rsa*", 
+				"*.rsa", "*.pem", "*.pub", "id_rsa*",
 				"config", "known_hosts*", "authorized_keys",
 			},
 			ExcludePatterns: []string{"*.tmp", "*.bak", "*.old"},
@@ -120,7 +120,7 @@ func Default() *Config {
 // Load loads configuration from file and environment
 func Load() (*Config, error) {
 	cfg := Default()
-	
+
 	// Setup viper
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")

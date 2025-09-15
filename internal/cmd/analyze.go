@@ -183,7 +183,7 @@ func outputHuman(result *analyzer.DetectionResult, verbose bool) error {
 	if summary.KeyPairCount == 0 {
 		fmt.Printf("  • No SSH key pairs found - consider generating some with ssh-keygen\n")
 	}
-	
+
 	// Check for incomplete pairs
 	incompletePairs := 0
 	for _, keyPair := range result.KeyPairs {

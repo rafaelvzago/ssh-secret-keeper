@@ -68,7 +68,7 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 	fmt.Printf("  Vault address: %s\n", cfg.Vault.Address)
 	fmt.Printf("  Mount path: %s\n", cfg.Vault.MountPath)
 	fmt.Printf("  Token file: %s", cfg.Vault.TokenFile)
-	
+
 	// Check token file
 	if _, err := os.Stat(cfg.Vault.TokenFile); err != nil {
 		fmt.Printf(" ❌ (not found)")
@@ -162,7 +162,7 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 
 	// Recommendations
 	fmt.Printf("\n💡 Recommendations:\n")
-	
+
 	// Check if SSH directory exists and has files
 	if _, err := os.Stat(cfg.Backup.SSHDir); err != nil {
 		fmt.Printf("  • Create SSH directory: mkdir -p %s && chmod 700 %s\n", cfg.Backup.SSHDir, cfg.Backup.SSHDir)

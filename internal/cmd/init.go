@@ -14,10 +14,10 @@ import (
 // newInitCommand creates the init command
 func newInitCommand(cfg *config.Config) *cobra.Command {
 	var (
-		vaultAddr     string
-		token         string
-		mountPath     string
-		configPath    string
+		vaultAddr      string
+		token          string
+		mountPath      string
+		configPath     string
 		forceOverwrite bool
 	)
 

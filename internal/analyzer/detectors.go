@@ -264,3 +264,24 @@ func (d *AuthorizedKeysDetector) Detect(filename string, content []byte) (*KeyIn
 func (d *AuthorizedKeysDetector) GetRelatedFiles(keyInfo *KeyInfo, allFiles []string) []string {
 	return nil // authorized_keys files don't have related files
 }
+
+// UniversalFileDetector detects any file that wasn't caught by other detectors
+// This ensures ALL files in .ssh folder are backed up regardless of name
+type UniversalFileDetector struct{}
+
+func (d *UniversalFileDetector) Name() string {
+	return "universal"
+}
+
+func (d *UniversalFileDetector) Detect(filename string, content []byte) (*KeyInfo, bool) {
+	// This detector catches everything that other detectors missed
+	// It should be the last detector in the list
+	return &KeyInfo{
+		Type:   KeyTypeUnknown,
+		Format: FormatUnknown,
+	}, true
+}
+
+func (d *UniversalFileDetector) GetRelatedFiles(keyInfo *KeyInfo, allFiles []string) []string {
+	return nil // Unknown files don't have predictable related files
+}

@@ -149,11 +149,11 @@ func runBackup(cfg *config.Config, opts backupOptions) error {
 		permStr := fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)
 		permissionMap[permStr]++
 	}
-	
+
 	for perm, count := range permissionMap {
 		fmt.Printf("• %s: %d files\n", perm, count)
 	}
-	
+
 	fmt.Printf("\n✅ All file permissions have been preserved in the backup\n")
 
 	return nil
@@ -201,9 +201,9 @@ func interactiveFileSelection(backup *ssh.BackupData) error {
 	fmt.Printf("Select files to include in backup (y/n/a=all/q=quit):\n")
 
 	for filename, fileData := range backup.Files {
-		fmt.Printf("Include '%s' [%s, %d bytes]? [y/N/a/q]: ", 
-			filename, 
-			fileData.KeyInfo.Type, 
+		fmt.Printf("Include '%s' [%s, %d bytes]? [y/N/a/q]: ",
+			filename,
+			fileData.KeyInfo.Type,
 			fileData.Size)
 
 		var response string
@@ -231,11 +231,11 @@ func promptPassphrase(prompt string) (string, error) {
 	fmt.Print(prompt)
 	passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Println()
-	
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	return string(passphrase), nil
 }
 
@@ -255,13 +255,13 @@ func prepareVaultData(backup *ssh.BackupData) map[string]interface{} {
 	files := make(map[string]interface{})
 	for filename, fileData := range backup.Files {
 		files[filename] = map[string]interface{}{
-			"filename":     fileData.Filename,
-			"permissions":  int(fileData.Permissions),
-			"size":         fileData.Size,
-			"mod_time":     fileData.ModTime.Format(time.RFC3339),
-			"checksum":     fileData.Checksum,
-			"encrypted":    fileData.Encrypted,
-			"key_info":     fileData.KeyInfo,
+			"filename":    fileData.Filename,
+			"permissions": int(fileData.Permissions),
+			"size":        fileData.Size,
+			"mod_time":    fileData.ModTime.Format(time.RFC3339),
+			"checksum":    fileData.Checksum,
+			"encrypted":   fileData.Encrypted,
+			"key_info":    fileData.KeyInfo,
 		}
 	}
 	data["files"] = files
@@ -283,11 +283,11 @@ func updateBackupMetadata(client *vault.Client, backupName string, backup *ssh.B
 
 	backups := metadata["backups"].(map[string]interface{})
 	backups[backupName] = map[string]interface{}{
-		"timestamp":   backup.Timestamp.Format(time.RFC3339),
-		"file_count":  len(backup.Files),
-		"total_size":  backup.Metadata["total_size"],
-		"hostname":    backup.Hostname,
-		"username":    backup.Username,
+		"timestamp":  backup.Timestamp.Format(time.RFC3339),
+		"file_count": len(backup.Files),
+		"total_size": backup.Metadata["total_size"],
+		"hostname":   backup.Hostname,
+		"username":   backup.Username,
 	}
 
 	return client.StoreMetadata(metadata)

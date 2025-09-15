@@ -20,14 +20,14 @@ import (
 // newRestoreCommand creates the restore command
 func newRestoreCommand(cfg *config.Config) *cobra.Command {
 	var (
-		backupName  string
-		targetDir   string
-		passphrase  string
-		dryRun      bool
-		overwrite   bool
-		interactive bool
+		backupName   string
+		targetDir    string
+		passphrase   string
+		dryRun       bool
+		overwrite    bool
+		interactive  bool
 		selectBackup bool
-		fileFilter  []string
+		fileFilter   []string
 	)
 
 	cmd := &cobra.Command{
@@ -198,7 +198,7 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 	// Show permission summary
 	fmt.Printf("\n📋 Permission Summary:\n")
 	fmt.Printf("• SSH directory: %s (0700)\n", opts.targetDir)
-	
+
 	privateKeyCount := 0
 	publicKeyCount := 0
 	for _, fileData := range backupData.Files {
@@ -211,7 +211,7 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 			}
 		}
 	}
-	
+
 	if privateKeyCount > 0 {
 		fmt.Printf("• Private keys: %d files (0600)\n", privateKeyCount)
 	}
@@ -336,7 +336,7 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 func displayRestoreSummary(backup *ssh.BackupData, targetDir string) {
 	fmt.Printf("\n📥 Restore Summary\n")
 	fmt.Printf("═════════════════\n")
-	fmt.Printf("Backup from: %s (%s@%s)\n", 
+	fmt.Printf("Backup from: %s (%s@%s)\n",
 		backup.Timestamp.Format("2006-01-02 15:04:05"),
 		backup.Username,
 		backup.Hostname)
@@ -347,8 +347,8 @@ func displayRestoreSummary(backup *ssh.BackupData, targetDir string) {
 	// Show file list
 	fmt.Printf("\n📄 Files:\n")
 	for filename, fileData := range backup.Files {
-		fmt.Printf("  • %s (%d bytes, %s)\n", 
-			filename, 
+		fmt.Printf("  • %s (%d bytes, %s)\n",
+			filename,
 			fileData.Size,
 			fileData.Permissions.String())
 	}
@@ -360,7 +360,7 @@ func interactiveRestoreSelection(backup *ssh.BackupData) error {
 	fmt.Printf("Select files to restore (y/n/a=all/q=quit):\n")
 
 	for filename, fileData := range backup.Files {
-		fmt.Printf("Restore '%s' [%d bytes, %s]? [y/N/a/q]: ", 
+		fmt.Printf("Restore '%s' [%d bytes, %s]? [y/N/a/q]: ",
 			filename,
 			fileData.Size,
 			fileData.Permissions.String())
@@ -390,18 +390,18 @@ func promptRestorePassphrase(prompt string) (string, error) {
 	fmt.Print(prompt)
 	passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
 	fmt.Println()
-	
+
 	if err != nil {
 		return "", err
 	}
-	
+
 	return string(passphrase), nil
 }
 
 // selectBackupInteractively shows available backups and lets user choose
 func selectBackupInteractively(client *vault.Client) (string, error) {
 	fmt.Printf("\n🔍 Finding available backups...\n")
-	
+
 	// Get all backups
 	backups, err := client.ListBackups()
 	if err != nil {
@@ -464,13 +464,13 @@ func selectBackupInteractively(client *vault.Client) (string, error) {
 
 	for i, info := range backupInfos {
 		fmt.Printf("%d. 📦 %s\n", i+1, info.Name)
-		
+
 		if !info.Timestamp.IsZero() {
 			fmt.Printf("   📅 Created: %s (%s ago)\n",
 				info.Timestamp.Format("2006-01-02 15:04:05"),
 				formatDuration(time.Since(info.Timestamp)))
 		}
-		
+
 		if info.FileCount > 0 {
 			fmt.Printf("   📄 Files: %d", info.FileCount)
 			if info.TotalSize > 0 {
@@ -478,27 +478,27 @@ func selectBackupInteractively(client *vault.Client) (string, error) {
 			}
 			fmt.Printf("\n")
 		}
-		
+
 		if info.Hostname != "" || info.Username != "" {
 			fmt.Printf("   💻 Source: %s@%s\n", info.Username, info.Hostname)
 		}
-		
+
 		fmt.Printf("\n")
 	}
 
 	// Prompt for selection
 	for {
 		fmt.Printf("Select backup to restore [1-%d, q to quit]: ", len(backupInfos))
-		
+
 		var input string
 		fmt.Scanln(&input)
-		
+
 		input = strings.TrimSpace(input)
-		
+
 		if input == "q" || input == "quit" {
 			return "", fmt.Errorf("restore cancelled by user")
 		}
-		
+
 		// Try to parse as number
 		if choice := parseInt(input); choice >= 1 && choice <= len(backupInfos) {
 			selected := backupInfos[choice-1]
@@ -512,8 +512,8 @@ func selectBackupInteractively(client *vault.Client) (string, error) {
 			fmt.Printf("\n")
 			return selected.Name, nil
 		}
-		
-		fmt.Printf("Invalid selection. Please enter a number between 1 and %d, or 'q' to quit.\n")
+
+		fmt.Printf("Invalid selection. Please enter a number between 1 and %d, or 'q' to quit.\n", len(backupInfos))
 	}
 }
 
@@ -536,4 +536,3 @@ func parseInt(s string) int {
 	}
 	return 0
 }
-

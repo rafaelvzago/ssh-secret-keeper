@@ -1,6 +1,6 @@
 # SSH Vault Keeper
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/rzago/ssh-vault-keeper)
 
@@ -26,15 +26,15 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 
 ## Features
 
-- **Complete SSH Directory Backup** with metadata
-- **Selective File Restore** with permission verification
-- **Interactive Mode** for file and backup selection  
-- **Dry-run Support** for safe testing  
-- **Multiple Backup Versions** with retention  
-- **Cross-platform Support** (Linux, macOS, Windows)  
-- **Container Ready** with Docker and Podman support  
-- **CI/CD Integration** friendly
-- **Permission Security** validation and warnings  
+- Complete SSH Directory Backup with metadata
+- Selective File Restore with permission verification
+- Interactive Mode for file and backup selection
+- Dry-run Support for safe testing
+- Multiple Backup Versions with retention
+- Cross-platform Support (Linux, macOS, Windows)
+- Container Ready with Docker and Podman support
+- CI/CD Integration friendly
+- Permission Security validation and warnings
 
 ## Installation
 
@@ -67,9 +67,9 @@ podman run --rm -v ~/.ssh:/ssh -v ~/.ssh-vault-keeper:/config ghcr.io/rzago/ssh-
 
 ## Prerequisites
 
-- **HashiCorp Vault server** (local or remote)
-- **Valid Vault token** with KV v2 permissions
-- **SSH directory** with keys to backup (`~/.ssh`)
+- HashiCorp Vault server (local or remote)
+- Valid Vault token with KV v2 permissions
+- SSH directory with keys to backup (~/.ssh)
 
 ## Quick Start
 
@@ -107,7 +107,7 @@ Summary:
 Key Pairs Found:
   - github_rsa (Complete pair) [0600/0644]
   - gitlab_rsa (Complete pair) [0600/0644]
-  - argocd_rsa (Complete pair) [0600/0644]  
+  - argocd_rsa (Complete pair) [0600/0644]
   - id_rsa (Complete pair) [0600/0644]
 
 Permission Summary:
@@ -206,7 +206,7 @@ export SSH_VAULT_VAULT_ADDRESS="https://vault.company.com:8200"
 export SSH_VAULT_VAULT_TOKEN_FILE="/path/to/token"
 export SSH_VAULT_VAULT_MOUNT_PATH="ssh-backups"
 
-# Backup settings  
+# Backup settings
 export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh/path"
 export SSH_VAULT_BACKUP_RETENTION_COUNT="20"
 
@@ -282,10 +282,10 @@ vault write auth/token/create policies=ssh-vault-keeper ttl="${TOKEN_TTL}"
 ## Enterprise Features
 
 ### Team Deployment
-- **User isolation**: Each user gets their own namespace
-- **Policy-based access**: Integrate with Vault policies
-- **Audit logging**: All operations logged in Vault
-- **Compliance ready**: SOC2, PCI DSS compatible
+- User isolation: Each user gets their own namespace
+- Policy-based access: Integrate with Vault policies
+- Audit logging: All operations logged in Vault
+- Compliance ready: SOC2, PCI DSS compatible
 
 ### CI/CD Integration
 ```yaml
@@ -380,7 +380,7 @@ spec:
           containers:
           - name: ssh-vault-keeper
             image: ghcr.io/rzago/ssh-vault-keeper:latest
-            command: 
+            command:
             - /bin/sh
             - -c
             - |
@@ -400,6 +400,58 @@ spec:
                   fieldPath: metadata.name
           restartPolicy: OnFailure
 ```
+
+## Architecture & Design
+
+### Clean Architecture
+This project follows SOLID principles and clean architecture patterns for maintainability and extensibility:
+
+#### SOLID Principles Implementation
+- Single Responsibility Principle: Each service has one clear purpose
+  - VaultStorageService: Handles only Vault storage operations
+  - FileAnalysisService: Handles only SSH file analysis
+  - EncryptionService: Handles only encryption/decryption operations
+  - ValidationService: Handles only input validation
+- Open/Closed Principle: New detectors can be added via registry pattern
+- Liskov Substitution Principle: All implementations are substitutable via interfaces
+- Interface Segregation Principle: Focused, role-specific interfaces
+- Dependency Inversion Principle: All components depend on abstractions, not concretions
+
+#### Service Architecture
+```
+┌─────────────────┐    ┌─────────────────────┐
+│  CLI Commands   │────│ BackupOrchestrator  │
+└─────────────────┘    └─────────────────────┘
+                                │
+                       ┌────────┼────────┐
+                       │        │        │
+              ┌────────▼──┐  ┌──▼──────┐ │
+              │ Vault     │  │ Crypto  │ │
+              │ Storage   │  │ Service │ │
+              │ Service   │  └─────────┘ │
+              └───────────┘              │
+                       ┌─────────────────▼┐
+                       │ File Services    │
+                       │ - Analysis       │
+                       │ - Read           │
+                       │ - Restore        │
+                       │ - Validation     │
+                       └──────────────────┘
+```
+
+#### Key Design Patterns
+- Service Registry Pattern: Pluggable SSH key detectors
+- Dependency Injection: Constructor-based service wiring
+- Strategy Pattern: Multiple encryption algorithms supported
+- Factory Pattern: Service creation with proper configuration
+- Repository Pattern: Abstract data access layer for Vault
+
+### Code Quality Standards
+- Test Coverage: 85%+ with unit and integration tests
+- Error Handling: Structured, contextual error messages
+- Logging: Structured logging with zerolog
+- Validation: Comprehensive input validation throughout
+- Security: Fail-safe defaults, secure by design
 
 ## Development
 
@@ -449,22 +501,22 @@ make release
 
 ## Project Statistics
 
-- **Language**: Go 1.21+
-- **Lines of Code**: ~4,300
-- **Test Coverage**: 85%+
-- **Dependencies**: Minimal, security-focused
-- **Performance**: <100ms for typical SSH directories
+- Language: Go 1.21+
+- Lines of Code: ~4,300
+- Test Coverage: 85%+
+- Dependencies: Minimal, security-focused
+- Performance: <100ms for typical SSH directories
 
 ## Security Model
 
 ### Data Flow
-1. SSH files read from `~/.ssh` with **exact permissions captured** (mode, timestamps)
+1. SSH files read from ~/.ssh with exact permissions captured (mode, timestamps)
 2. Client-side encryption using AES-256-GCM with unique salt/IV per file
-3. **Permission metadata stored** alongside encrypted content
+3. Permission metadata stored alongside encrypted content
 4. Encrypted data transmitted to Vault over TLS
 5. Vault stores encrypted data (double encryption)
-6. User namespace isolation: `users/{hostname-username}/`
-7. **Permission restoration** with validation and security warnings
+6. User namespace isolation: users/{hostname-username}/
+7. Permission restoration with validation and security warnings
 
 ### Key Management
 - User-provided passphrase → PBKDF2(100k iterations) → Encryption key
@@ -473,12 +525,12 @@ make release
 - Token-based Vault authentication with minimal permissions
 
 ### Attack Resistance
-- **Vault compromise**: SSH keys remain encrypted with user passphrase
-- **Network interception**: TLS encryption protects data in transit
-- **Local compromise**: Keys stored encrypted in Vault
-- **Brute force**: Strong PBKDF2 parameters make attacks infeasible
-- **Permission tampering**: Exact file permissions verified during restore
-- **Directory security**: SSH directories automatically secured to proper permissions
+- Vault compromise: SSH keys remain encrypted with user passphrase
+- Network interception: TLS encryption protects data in transit
+- Local compromise: Keys stored encrypted in Vault
+- Brute force: Strong PBKDF2 parameters make attacks infeasible
+- Permission tampering: Exact file permissions verified during restore
+- Directory security: SSH directories automatically secured to proper permissions
 
 ## Contributing
 
@@ -491,15 +543,46 @@ make release
 7. Open a Pull Request
 
 ### Development Guidelines
-- Follow Go best practices
-- Write comprehensive tests
-- Update documentation
-- Use conventional commits
-- Ensure security best practices
+- SOLID Principles: Follow single responsibility, open/closed, etc.
+- Clean Code: Functions should be small, classes focused, names descriptive
+- Dependency Injection: Use constructor injection, depend on interfaces
+- Error Handling: Return contextual errors with proper wrapping
+- Testing: Write unit tests for all services, integration tests for workflows
+- Documentation: Update interfaces when changing behavior
+- Security: Validate all inputs, use structured logging, secure defaults
+
+### Extending the System
+The architecture supports easy extension:
+
+```go
+// Add a new key detector
+type CustomKeyDetector struct{}
+
+func (d *CustomKeyDetector) Name() string { return "custom" }
+func (d *CustomKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool) {
+    // Implementation
+}
+
+// Register with service
+analysisService := analyzer.NewService()
+analysisService.RegisterDetector(&CustomKeyDetector{})
+```
+
+```go
+// Add a new storage backend
+type S3StorageService struct{}
+
+func (s *S3StorageService) StoreBackup(ctx context.Context, name string, data map[string]interface{}) error {
+    // Implementation
+}
+
+// Use with orchestrator
+orchestrator := orchestrator.New(s3Storage, analysis, fileRead, fileRestore, encryption, validation)
+```
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
@@ -525,6 +608,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Security Notice**: Always test backup and restore operations in a safe environment before using with critical SSH keys. Maintain independent backups of your SSH keys as well.
+Security Notice: Always test backup and restore operations in a safe environment before using with critical SSH keys. Maintain independent backups of your SSH keys as well.
 
-**Secure SSH key management solution**
+Secure SSH key management solution

@@ -29,6 +29,7 @@ const (
 	FormatHosts   KeyFormat = "hosts"
 	FormatEd25519 KeyFormat = "ed25519"
 	FormatECDSA   KeyFormat = "ecdsa"
+	FormatUnknown KeyFormat = "unknown"
 )
 
 // KeyPurpose represents the intended use of the key

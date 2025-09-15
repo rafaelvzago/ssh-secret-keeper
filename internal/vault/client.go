@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/hashicorp/vault/api"
@@ -25,7 +23,7 @@ func New(cfg *config.VaultConfig) (*Client, error) {
 	// Create Vault client
 	vaultConfig := api.DefaultConfig()
 	vaultConfig.Address = cfg.Address
-	
+
 	if cfg.TLSSkipVerify {
 		vaultConfig.ConfigureTLS(&api.TLSConfig{
 			Insecure: true,
@@ -42,7 +40,7 @@ func New(cfg *config.VaultConfig) (*Client, error) {
 		client.SetNamespace(cfg.Namespace)
 	}
 
-	// Load token
+	// Load token using client factory function
 	token, err := loadToken(cfg.TokenFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load Vault token: %w", err)
@@ -73,22 +71,6 @@ func New(cfg *config.VaultConfig) (*Client, error) {
 		mountPath: cfg.MountPath,
 		basePath:  basePath,
 	}, nil
-}
-
-// loadToken loads Vault token from file
-func loadToken(tokenFile string) (string, error) {
-	// Expand home directory
-	if strings.HasPrefix(tokenFile, "~/") {
-		homeDir, _ := os.UserHomeDir()
-		tokenFile = filepath.Join(homeDir, tokenFile[2:])
-	}
-
-	token, err := os.ReadFile(tokenFile)
-	if err != nil {
-		return "", fmt.Errorf("failed to read token file %s: %w", tokenFile, err)
-	}
-
-	return strings.TrimSpace(string(token)), nil
 }
 
 // testConnection tests the Vault connection and permissions
@@ -137,7 +119,7 @@ func (c *Client) EnsureMountExists() error {
 // StoreBackup stores encrypted SSH backup data
 func (c *Client) StoreBackup(backupName string, data map[string]interface{}) error {
 	path := fmt.Sprintf("%s/data/%s/backups/%s", c.mountPath, c.basePath, backupName)
-	
+
 	// Wrap data in KV v2 format
 	secretData := map[string]interface{}{
 		"data": data,

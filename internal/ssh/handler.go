@@ -15,26 +15,26 @@ import (
 
 // FileData represents SSH file data with metadata
 type FileData struct {
-	Filename    string                 `json:"filename"`
-	Content     []byte                 `json:"-"`                  // Raw content (not serialized)
-	Permissions os.FileMode            `json:"permissions"`
-	Size        int64                  `json:"size"`
-	ModTime     time.Time              `json:"mod_time"`
-	Checksum    string                 `json:"checksum"`
-	KeyInfo     *analyzer.KeyInfo      `json:"key_info,omitempty"`
-	Encrypted   *crypto.EncryptedData  `json:"encrypted_data,omitempty"`
+	Filename    string                `json:"filename"`
+	Content     []byte                `json:"-"` // Raw content (not serialized)
+	Permissions os.FileMode           `json:"permissions"`
+	Size        int64                 `json:"size"`
+	ModTime     time.Time             `json:"mod_time"`
+	Checksum    string                `json:"checksum"`
+	KeyInfo     *analyzer.KeyInfo     `json:"key_info,omitempty"`
+	Encrypted   *crypto.EncryptedData `json:"encrypted_data,omitempty"`
 }
 
 // BackupData represents a complete SSH backup
 type BackupData struct {
-	Version     string                    `json:"version"`
-	Timestamp   time.Time                 `json:"timestamp"`
-	Hostname    string                    `json:"hostname"`
-	Username    string                    `json:"username"`
-	SSHDir      string                    `json:"ssh_dir"`
-	Files       map[string]*FileData      `json:"files"`
-	Analysis    *analyzer.DetectionResult `json:"analysis"`
-	Metadata    map[string]interface{}    `json:"metadata"`
+	Version   string                    `json:"version"`
+	Timestamp time.Time                 `json:"timestamp"`
+	Hostname  string                    `json:"hostname"`
+	Username  string                    `json:"username"`
+	SSHDir    string                    `json:"ssh_dir"`
+	Files     map[string]*FileData      `json:"files"`
+	Analysis  *analyzer.DetectionResult `json:"analysis"`
+	Metadata  map[string]interface{}    `json:"metadata"`
 }
 
 // Handler manages SSH file operations
@@ -88,10 +88,10 @@ func (h *Handler) ReadDirectory(sshDir string) (*BackupData, error) {
 		Files:     files,
 		Analysis:  analysis,
 		Metadata: map[string]interface{}{
-			"total_files":     len(files),
-			"total_size":      h.calculateTotalSize(files),
-			"key_pair_count":  len(analysis.KeyPairs),
-			"service_count":   len(analysis.Categories["service"]),
+			"total_files":    len(files),
+			"total_size":     h.calculateTotalSize(files),
+			"key_pair_count": len(analysis.KeyPairs),
+			"service_count":  len(analysis.Categories["service"]),
 		},
 	}
 
@@ -109,7 +109,7 @@ func (h *Handler) readFiles(sshDir string, keys []analyzer.KeyInfo) (map[string]
 
 	for _, keyInfo := range keys {
 		filePath := filepath.Join(sshDir, keyInfo.Filename)
-		
+
 		content, err := os.ReadFile(filePath)
 		if err != nil {
 			log.Warn().
@@ -133,7 +133,7 @@ func (h *Handler) readFiles(sshDir string, keys []analyzer.KeyInfo) (map[string]
 		}
 
 		files[keyInfo.Filename] = fileData
-		
+
 		log.Debug().
 			Str("file", keyInfo.Filename).
 			Int("size", len(content)).
@@ -161,7 +161,7 @@ func (h *Handler) EncryptBackup(backup *BackupData, passphrase string) error {
 		fileData.Encrypted = encrypted
 		// Clear plaintext content after encryption
 		fileData.Content = nil
-		
+
 		log.Debug().
 			Str("file", filename).
 			Msg("File encrypted")
@@ -187,7 +187,7 @@ func (h *Handler) DecryptBackup(backup *BackupData, passphrase string) error {
 
 		fileData.Content = content
 		// Keep encrypted data for verification if needed
-		
+
 		log.Debug().
 			Str("file", filename).
 			Msg("File decrypted")
@@ -209,7 +209,7 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 		if err := os.MkdirAll(targetDir, 0700); err != nil {
 			return fmt.Errorf("failed to create target directory: %w", err)
 		}
-		
+
 		// Verify SSH directory permissions
 		if err := h.verifySSHDirectoryPermissions(targetDir); err != nil {
 			log.Warn().Err(err).Msg("SSH directory permission warning")
@@ -223,7 +223,7 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 		}
 
 		targetPath := filepath.Join(targetDir, filename)
-		
+
 		if options.DryRun {
 			log.Info().
 				Str("file", filename).
@@ -277,8 +277,8 @@ type RestoreOptions struct {
 	DryRun      bool
 	Overwrite   bool
 	Interactive bool
-	FileFilter  []string  // Only restore these files
-	TypeFilter  []string  // Only restore these file types
+	FileFilter  []string // Only restore these files
+	TypeFilter  []string // Only restore these file types
 }
 
 // shouldRestoreFile checks if a file should be restored based on options
@@ -306,10 +306,10 @@ func (h *Handler) shouldRestoreFile(filename string, options RestoreOptions) boo
 // promptOverwrite prompts the user for file overwrite confirmation
 func (h *Handler) promptOverwrite(filename string) bool {
 	fmt.Printf("File %s already exists. Overwrite? [y/N]: ", filename)
-	
+
 	var response string
 	fmt.Scanln(&response)
-	
+
 	response = strings.ToLower(strings.TrimSpace(response))
 	return response == "y" || response == "yes"
 }
@@ -327,7 +327,7 @@ func (h *Handler) VerifyBackup(backup *BackupData) error {
 		// Verify checksum
 		currentChecksum := fmt.Sprintf("%x", sha256.Sum256(fileData.Content))
 		if currentChecksum != fileData.Checksum {
-			return fmt.Errorf("checksum mismatch for file %s: expected %s, got %s", 
+			return fmt.Errorf("checksum mismatch for file %s: expected %s, got %s",
 				filename, fileData.Checksum, currentChecksum)
 		}
 
@@ -368,18 +368,18 @@ func (h *Handler) verifySSHDirectoryPermissions(sshDir string) error {
 		Str("directory", sshDir).
 		Str("permissions", "0700").
 		Msg("SSH directory permissions verified")
-	
+
 	return nil
 }
 
 // validateFilePermissions validates SSH file permissions and warns about issues
 func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, keyInfo *analyzer.KeyInfo) error {
 	perm := perms & os.ModePerm
-	
+
 	// Define expected permissions for different file types
 	var expectedPerms []os.FileMode
 	var fileType string
-	
+
 	if keyInfo != nil {
 		switch keyInfo.Type {
 		case analyzer.KeyTypePrivate:
@@ -406,7 +406,7 @@ func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, ke
 		expectedPerms = []os.FileMode{0600, 0644}
 		fileType = "SSH file"
 	}
-	
+
 	// Check if current permissions are acceptable
 	permissionOK := false
 	for _, expectedPerm := range expectedPerms {
@@ -415,7 +415,7 @@ func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, ke
 			break
 		}
 	}
-	
+
 	if !permissionOK {
 		// Log warning for problematic permissions
 		log.Warn().
@@ -424,14 +424,14 @@ func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, ke
 			Str("current_perms", fmt.Sprintf("%04o", perm)).
 			Strs("recommended_perms", permissionsToStrings(expectedPerms)).
 			Msg("File permissions may be insecure")
-		
+
 		// Special warning for overly permissive private keys
 		if keyInfo != nil && keyInfo.Type == analyzer.KeyTypePrivate && (perm&0077) != 0 {
-			return fmt.Errorf("CRITICAL: Private key %s has world/group readable permissions (%04o) - SSH will reject this key", 
+			return fmt.Errorf("CRITICAL: Private key %s has world/group readable permissions (%04o) - SSH will reject this key",
 				filename, perm)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -447,29 +447,29 @@ func permissionsToStrings(perms []os.FileMode) []string {
 // VerifyRestorePermissions performs post-restore permission verification
 func (h *Handler) VerifyRestorePermissions(backup *BackupData, targetDir string) error {
 	log.Info().Str("target", targetDir).Msg("Verifying restored file permissions")
-	
+
 	permissionIssues := 0
-	
+
 	// Check SSH directory itself
 	if err := h.verifySSHDirectoryPermissions(targetDir); err != nil {
 		log.Error().Err(err).Msg("SSH directory permission issue")
 		permissionIssues++
 	}
-	
+
 	// Check each restored file
 	for filename, fileData := range backup.Files {
 		targetPath := filepath.Join(targetDir, filename)
-		
+
 		// Check if file exists
 		stat, err := os.Stat(targetPath)
 		if err != nil {
 			log.Warn().Err(err).Str("file", filename).Msg("Cannot verify file permissions (file not found)")
 			continue
 		}
-		
+
 		actualPerms := stat.Mode().Perm()
 		expectedPerms := fileData.Permissions & os.ModePerm
-		
+
 		if actualPerms != expectedPerms {
 			log.Error().
 				Str("file", filename).
@@ -483,17 +483,17 @@ func (h *Handler) VerifyRestorePermissions(backup *BackupData, targetDir string)
 				Str("permissions", fmt.Sprintf("%04o", actualPerms)).
 				Msg("File permissions verified")
 		}
-		
+
 		// Validate security of permissions
 		if err := h.validateFilePermissions(filename, stat.Mode(), fileData.KeyInfo); err != nil {
 			log.Warn().Err(err).Str("file", filename).Msg("Permission security warning")
 		}
 	}
-	
+
 	if permissionIssues > 0 {
 		return fmt.Errorf("found %d permission issues after restore", permissionIssues)
 	}
-	
+
 	log.Info().Msg("All file permissions verified successfully")
 	return nil
 }

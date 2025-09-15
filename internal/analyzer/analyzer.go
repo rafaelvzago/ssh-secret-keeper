@@ -27,6 +27,7 @@ func New() *Analyzer {
 			&ConfigFileDetector{},
 			&KnownHostsDetector{},
 			&AuthorizedKeysDetector{},
+			&UniversalFileDetector{}, // Must be last to catch all undetected files
 		},
 		servicePatterns: map[string][]string{
 			"github":    {"*github*"},
