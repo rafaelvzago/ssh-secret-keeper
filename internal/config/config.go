@@ -69,7 +69,7 @@ func Default() *Config {
 	return &Config{
 		Version: "1.0",
 		Vault: VaultConfig{
-			Address:       "http://localhost:8200", // Default to Kubernetes Vault server
+			Address:       "http://localhost:8200", // Default Vault server address - override with VAULT_ADDR env var
 			TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
 			MountPath:     "ssh-backups",
 			TLSSkipVerify: false,
