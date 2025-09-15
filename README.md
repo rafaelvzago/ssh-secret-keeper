@@ -76,7 +76,7 @@ podman run --rm -v ~/.ssh:/ssh -v ~/.ssh-vault-keeper:/config ghcr.io/rzago/ssh-
 ### 1. Initialize Configuration
 ```bash
 # Set your Vault configuration
-export VAULT_ADDR="https://your-vault-server:8200"
+export VAULT_ADDR="https://your-vault-server:8200"  # e.g., http://192.168.1.89:8200 for K8s cluster
 export VAULT_TOKEN="your-vault-token"
 
 # Initialize the configuration
@@ -201,10 +201,14 @@ Configuration file location: `~/.ssh-vault-keeper/config.yaml`
 All configuration can be overridden with environment variables:
 
 ```bash
-# Vault settings
-export SSH_VAULT_VAULT_ADDRESS="https://vault.company.com:8200"
+# Vault settings - IMPORTANT: Set VAULT_ADDR for your environment
+export VAULT_ADDR="https://vault.company.com:8200"          # Standard Vault env var
+export SSH_VAULT_VAULT_ADDRESS="https://vault.company.com:8200"  # Alternative config option
 export SSH_VAULT_VAULT_TOKEN_FILE="/path/to/token"
 export SSH_VAULT_VAULT_MOUNT_PATH="ssh-backups"
+
+# For Kubernetes clusters, set your cluster's Vault address:
+# export VAULT_ADDR="http://192.168.1.89:8200"
 
 # Backup settings
 export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh/path"
@@ -388,7 +392,7 @@ spec:
               ssh-vault-keeper backup "${BACKUP_NAME}"
             env:
             - name: VAULT_ADDR
-              value: "https://vault.company.com:8200"
+              value: "http://192.168.1.89:8200"  # Your Kubernetes cluster Vault address
             - name: VAULT_TOKEN
               valueFrom:
                 secretKeyRef:
