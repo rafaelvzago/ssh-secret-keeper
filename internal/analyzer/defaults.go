@@ -31,11 +31,11 @@ func getDefaultServicePatterns() map[string][]string {
 func getDefaultPurposeRules() map[string]KeyPurpose {
 	return map[string]KeyPurpose{
 		// Work-related patterns
-		"*work*":      PurposeWork,
-		"*corp*":      PurposeWork,
-		"*company*":   PurposeWork,
-		"*office*":    PurposeWork,
-		"*business*":  PurposeWork,
+		"*work*":     PurposeWork,
+		"*corp*":     PurposeWork,
+		"*company*":  PurposeWork,
+		"*office*":   PurposeWork,
+		"*business*": PurposeWork,
 
 		// Personal patterns
 		"*personal*": PurposePersonal,

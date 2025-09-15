@@ -39,11 +39,11 @@ func New() *Analyzer {
 			"aws":       {"*aws*", "*ec2*"},
 		},
 		purposeRules: map[string]KeyPurpose{
-			"*work*":      PurposeWork,
-			"*corp*":      PurposeWork,
-			"*office*":    PurposeWork,
-			"*personal*":  PurposePersonal,
-			"id_rsa":      PurposePersonal,
+			"*work*":     PurposeWork,
+			"*corp*":     PurposeWork,
+			"*office*":   PurposeWork,
+			"*personal*": PurposePersonal,
+			"id_rsa":     PurposePersonal,
 		},
 	}
 }
