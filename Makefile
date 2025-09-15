@@ -21,13 +21,6 @@ BUILD_DIR := bin
 # Default target
 .DEFAULT_GOAL := build
 
-# Development setup
-.PHONY: dev-setup
-dev-setup:
-	@echo "Setting up development environment..."
-	go mod download
-	go mod tidy
-	@echo "Development environment ready"
 
 # Build
 .PHONY: build
@@ -59,11 +52,6 @@ build-all:
 run: build
 	./$(BUILD_DIR)/$(BINARY_NAME)
 
-# Development run with sample config
-.PHONY: dev-run
-dev-run: build
-	@echo "Running in development mode..."
-	SSH_VAULT_LOGGING_LEVEL=debug ./$(BUILD_DIR)/$(BINARY_NAME) status
 
 # Test
 .PHONY: test
@@ -228,10 +216,6 @@ release-snapshot:
 help:
 	@echo "SSH Vault Keeper - Available Commands"
 	@echo "===================================="
-	@echo ""
-	@echo "Development:"
-	@echo "  dev-setup          Set up development environment"
-	@echo "  dev-run            Run in development mode"
 	@echo ""
 	@echo "Build & Install:"
 	@echo "  build              Build for current platform"

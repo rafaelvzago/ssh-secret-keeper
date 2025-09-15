@@ -457,42 +457,17 @@ This project follows SOLID principles and clean architecture patterns for mainta
 - Validation: Comprehensive input validation throughout
 - Security: Fail-safe defaults, secure by design
 
-## Development
+## Building
 
 ### Prerequisites
 - Go 1.21+
-- HashiCorp Vault (for integration tests)
 - Make
 
-### Setup Development Environment
+### Build Instructions
 ```bash
 git clone https://github.com/rzago/ssh-vault-keeper
 cd ssh-vault-keeper
-make dev-setup
-```
 
-### Testing
-```bash
-# Configuration for testing
-export VAULT_ADDR="http://localhost:8200"
-export VAULT_TOKEN="dev-token"
-export TEST_SSH_DIR="/tmp/test-ssh"
-
-# Run unit tests
-make test
-
-# Run integration tests (requires Vault)
-make test-integration
-
-# Run with coverage
-make test-coverage
-
-# Test with custom parameters
-VAULT_ADDR="${VAULT_ADDR}" VAULT_TOKEN="${VAULT_TOKEN}" make test-integration
-```
-
-### Building
-```bash
 # Build for current platform
 make build
 
@@ -501,6 +476,12 @@ make build-all
 
 # Create release
 make release
+```
+
+### Testing
+```bash
+# Run unit tests
+make test
 ```
 
 ## Project Statistics
@@ -541,19 +522,11 @@ make release
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
 3. Make your changes with tests
-4. Run tests and linting (`make test lint`)
+4. Run tests (`make test`)
 5. Commit your changes (`git commit -m 'Add amazing feature'`)
 6. Push to the branch (`git push origin feature/amazing-feature`)
 7. Open a Pull Request
 
-### Development Guidelines
-- SOLID Principles: Follow single responsibility, open/closed, etc.
-- Clean Code: Functions should be small, classes focused, names descriptive
-- Dependency Injection: Use constructor injection, depend on interfaces
-- Error Handling: Return contextual errors with proper wrapping
-- Testing: Write unit tests for all services, integration tests for workflows
-- Documentation: Update interfaces when changing behavior
-- Security: Validate all inputs, use structured logging, secure defaults
 
 ### Extending the System
 The architecture supports easy extension:
