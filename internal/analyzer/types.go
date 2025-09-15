@@ -45,16 +45,16 @@ const (
 
 // KeyInfo contains detailed information about an SSH file
 type KeyInfo struct {
-	Filename     string                 `json:"filename"`
-	Type         KeyType                `json:"type"`
-	Format       KeyFormat              `json:"format"`
-	Service      string                 `json:"service,omitempty"`
-	Purpose      KeyPurpose             `json:"purpose"`
-	KeyPair      *KeyPairInfo           `json:"key_pair,omitempty"`
-	Permissions  os.FileMode            `json:"permissions"`
-	Size         int64                  `json:"size"`
-	ModTime      time.Time              `json:"mod_time"`
-	Metadata     map[string]interface{} `json:"metadata,omitempty"`
+	Filename    string                 `json:"filename"`
+	Type        KeyType                `json:"type"`
+	Format      KeyFormat              `json:"format"`
+	Service     string                 `json:"service,omitempty"`
+	Purpose     KeyPurpose             `json:"purpose"`
+	KeyPair     *KeyPairInfo           `json:"key_pair,omitempty"`
+	Permissions os.FileMode            `json:"permissions"`
+	Size        int64                  `json:"size"`
+	ModTime     time.Time              `json:"mod_time"`
+	Metadata    map[string]interface{} `json:"metadata,omitempty"`
 }
 
 // KeyPairInfo represents a related key pair
@@ -67,25 +67,25 @@ type KeyPairInfo struct {
 
 // DetectionResult represents the result of file analysis
 type DetectionResult struct {
-	Keys         []KeyInfo             `json:"keys"`
+	Keys         []KeyInfo               `json:"keys"`
 	KeyPairs     map[string]*KeyPairInfo `json:"key_pairs"`
-	Categories   map[string][]KeyInfo   `json:"categories"`
-	SystemFiles  []KeyInfo             `json:"system_files"`
-	UnknownFiles []KeyInfo             `json:"unknown_files"`
-	Summary      *AnalysisSummary      `json:"summary"`
+	Categories   map[string][]KeyInfo    `json:"categories"`
+	SystemFiles  []KeyInfo               `json:"system_files"`
+	UnknownFiles []KeyInfo               `json:"unknown_files"`
+	Summary      *AnalysisSummary        `json:"summary"`
 }
 
 // AnalysisSummary provides a summary of the analysis
 type AnalysisSummary struct {
-	TotalFiles      int                   `json:"total_files"`
-	KeyPairCount    int                   `json:"key_pair_count"`
-	ServiceKeys     int                   `json:"service_keys"`
-	PersonalKeys    int                   `json:"personal_keys"`
-	WorkKeys        int                   `json:"work_keys"`
-	SystemFiles     int                   `json:"system_files"`
-	UnknownFiles    int                   `json:"unknown_files"`
-	FormatBreakdown map[KeyFormat]int     `json:"format_breakdown"`
-	PurposeBreakdown map[KeyPurpose]int   `json:"purpose_breakdown"`
+	TotalFiles       int                `json:"total_files"`
+	KeyPairCount     int                `json:"key_pair_count"`
+	ServiceKeys      int                `json:"service_keys"`
+	PersonalKeys     int                `json:"personal_keys"`
+	WorkKeys         int                `json:"work_keys"`
+	SystemFiles      int                `json:"system_files"`
+	UnknownFiles     int                `json:"unknown_files"`
+	FormatBreakdown  map[KeyFormat]int  `json:"format_breakdown"`
+	PurposeBreakdown map[KeyPurpose]int `json:"purpose_breakdown"`
 }
 
 // KeyDetector interface for pluggable key detection

@@ -60,7 +60,7 @@ func (a *Analyzer) AnalyzeDirectory(sshDir string) (*DetectionResult, error) {
 
 	var keys []KeyInfo
 	allFilenames := make([]string, 0, len(files))
-	
+
 	// First pass: collect all filenames
 	for _, file := range files {
 		if file.IsDir() {
@@ -89,7 +89,7 @@ func (a *Analyzer) AnalyzeDirectory(sshDir string) (*DetectionResult, error) {
 
 	// Post-process: find key pairs and categorize
 	result := a.processResults(keys)
-	
+
 	log.Info().
 		Int("total_files", result.Summary.TotalFiles).
 		Int("key_pairs", result.Summary.KeyPairCount).
@@ -121,16 +121,16 @@ func (a *Analyzer) analyzeFile(filePath string, fileInfo fs.DirEntry, allFiles [
 			keyInfo.Permissions = info.Mode()
 			keyInfo.Size = info.Size()
 			keyInfo.ModTime = info.ModTime()
-			
+
 			// Determine service and purpose
 			a.enhanceKeyInfo(keyInfo, allFiles)
-			
+
 			log.Debug().
 				Str("file", fileInfo.Name()).
 				Str("detector", detector.Name()).
 				Str("type", string(keyInfo.Type)).
 				Msg("File detected")
-			
+
 			return keyInfo, nil
 		}
 	}
@@ -160,7 +160,7 @@ func (a *Analyzer) readFileHead(filePath string, maxBytes int) ([]byte, error) {
 // enhanceKeyInfo adds service and purpose information to key info
 func (a *Analyzer) enhanceKeyInfo(keyInfo *KeyInfo, allFiles []string) {
 	filename := strings.ToLower(keyInfo.Filename)
-	
+
 	// Determine service
 	for service, patterns := range a.servicePatterns {
 		for _, pattern := range patterns {
@@ -197,7 +197,7 @@ func (a *Analyzer) enhanceKeyInfo(keyInfo *KeyInfo, allFiles []string) {
 func (a *Analyzer) processResults(keys []KeyInfo) *DetectionResult {
 	keyPairs := a.findKeyPairs(keys)
 	categories := a.categorizeKeys(keys)
-	
+
 	var systemFiles, unknownFiles []KeyInfo
 	for _, key := range keys {
 		if key.Type == KeyTypeConfig || key.Type == KeyTypeHosts || key.Type == KeyTypeAuthorized {
@@ -222,14 +222,14 @@ func (a *Analyzer) processResults(keys []KeyInfo) *DetectionResult {
 // findKeyPairs identifies related key files
 func (a *Analyzer) findKeyPairs(keys []KeyInfo) map[string]*KeyPairInfo {
 	pairs := make(map[string]*KeyPairInfo)
-	
+
 	for _, key := range keys {
 		if key.Type != KeyTypePrivate && key.Type != KeyTypePublic {
 			continue
 		}
 
 		baseName := a.getBaseName(key.Filename)
-		
+
 		if pair, exists := pairs[baseName]; exists {
 			if key.Type == KeyTypePrivate {
 				pair.PrivateKeyFile = key.Filename
@@ -261,19 +261,19 @@ func (a *Analyzer) getBaseName(filename string) string {
 	name = strings.TrimSuffix(name, ".dsa")
 	name = strings.TrimSuffix(name, ".ecdsa")
 	name = strings.TrimSuffix(name, ".ed25519")
-	
+
 	return name
 }
 
 // categorizeKeys groups keys by purpose
 func (a *Analyzer) categorizeKeys(keys []KeyInfo) map[string][]KeyInfo {
 	categories := make(map[string][]KeyInfo)
-	
+
 	for _, key := range keys {
 		category := string(key.Purpose)
 		categories[category] = append(categories[category], key)
 	}
-	
+
 	return categories
 }
 
@@ -289,7 +289,7 @@ func (a *Analyzer) generateSummary(keys []KeyInfo, keyPairs map[string]*KeyPairI
 	for _, key := range keys {
 		summary.FormatBreakdown[key.Format]++
 		summary.PurposeBreakdown[key.Purpose]++
-		
+
 		switch key.Purpose {
 		case PurposeService:
 			summary.ServiceKeys++
@@ -300,7 +300,7 @@ func (a *Analyzer) generateSummary(keys []KeyInfo, keyPairs map[string]*KeyPairI
 		case PurposeSystem:
 			summary.SystemFiles++
 		}
-		
+
 		if key.Type == KeyTypeUnknown {
 			summary.UnknownFiles++
 		}

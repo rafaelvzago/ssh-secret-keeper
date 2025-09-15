@@ -14,7 +14,7 @@ func (d *RSAKeyDetector) Name() string {
 
 func (d *RSAKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool) {
 	filename = strings.ToLower(filename)
-	
+
 	// Check for RSA private key
 	if bytes.Contains(content, []byte("BEGIN RSA PRIVATE KEY")) ||
 		bytes.Contains(content, []byte("BEGIN OPENSSH PRIVATE KEY")) {
@@ -23,7 +23,7 @@ func (d *RSAKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool
 			Format: FormatRSA,
 		}, true
 	}
-	
+
 	// Check for RSA public key
 	if bytes.HasPrefix(content, []byte("ssh-rsa ")) ||
 		strings.HasSuffix(filename, ".pub") {
@@ -32,7 +32,7 @@ func (d *RSAKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool
 			Format: FormatRSA,
 		}, true
 	}
-	
+
 	// Check filename patterns
 	if strings.Contains(filename, "rsa") && !strings.HasSuffix(filename, ".pub") {
 		return &KeyInfo{
@@ -40,7 +40,7 @@ func (d *RSAKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool
 			Format: FormatRSA,
 		}, true
 	}
-	
+
 	return nil, false
 }
 
@@ -48,10 +48,10 @@ func (d *RSAKeyDetector) GetRelatedFiles(keyInfo *KeyInfo, allFiles []string) []
 	if keyInfo.Type != KeyTypePrivate && keyInfo.Type != KeyTypePublic {
 		return nil
 	}
-	
+
 	baseName := strings.TrimSuffix(keyInfo.Filename, ".pub")
 	var related []string
-	
+
 	for _, file := range allFiles {
 		if file == baseName || file == baseName+".pub" {
 			if file != keyInfo.Filename {
@@ -59,7 +59,7 @@ func (d *RSAKeyDetector) GetRelatedFiles(keyInfo *KeyInfo, allFiles []string) []
 			}
 		}
 	}
-	
+
 	return related
 }
 
@@ -75,18 +75,18 @@ func (d *PEMKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool
 		bytes.Contains(content, []byte("BEGIN EC PRIVATE KEY")) ||
 		bytes.Contains(content, []byte("BEGIN RSA PRIVATE KEY")) ||
 		strings.HasSuffix(strings.ToLower(filename), ".pem") {
-		
+
 		keyType := KeyTypePrivate
 		if bytes.Contains(content, []byte("BEGIN CERTIFICATE")) {
 			keyType = KeyTypeCertificate
 		}
-		
+
 		return &KeyInfo{
 			Type:   keyType,
 			Format: FormatPEM,
 		}, true
 	}
-	
+
 	return nil, false
 }
 
@@ -103,7 +103,7 @@ func (d *OpenSSHKeyDetector) Name() string {
 
 func (d *OpenSSHKeyDetector) Detect(filename string, content []byte) (*KeyInfo, bool) {
 	contentStr := string(content)
-	
+
 	// Ed25519 keys
 	if bytes.HasPrefix(content, []byte("ssh-ed25519 ")) {
 		return &KeyInfo{
@@ -111,7 +111,7 @@ func (d *OpenSSHKeyDetector) Detect(filename string, content []byte) (*KeyInfo, 
 			Format: FormatEd25519,
 		}, true
 	}
-	
+
 	// ECDSA keys
 	if bytes.HasPrefix(content, []byte("ssh-ecdsa ")) ||
 		strings.Contains(contentStr, "BEGIN EC PRIVATE KEY") {
@@ -124,7 +124,7 @@ func (d *OpenSSHKeyDetector) Detect(filename string, content []byte) (*KeyInfo, 
 			Format: FormatECDSA,
 		}, true
 	}
-	
+
 	// Generic OpenSSH private key
 	if bytes.Contains(content, []byte("BEGIN OPENSSH PRIVATE KEY")) {
 		return &KeyInfo{
@@ -132,14 +132,14 @@ func (d *OpenSSHKeyDetector) Detect(filename string, content []byte) (*KeyInfo, 
 			Format: FormatOpenSSH,
 		}, true
 	}
-	
+
 	return nil, false
 }
 
 func (d *OpenSSHKeyDetector) GetRelatedFiles(keyInfo *KeyInfo, allFiles []string) []string {
 	baseName := strings.TrimSuffix(keyInfo.Filename, ".pub")
 	var related []string
-	
+
 	for _, file := range allFiles {
 		if file == baseName || file == baseName+".pub" {
 			if file != keyInfo.Filename {
@@ -147,7 +147,7 @@ func (d *OpenSSHKeyDetector) GetRelatedFiles(keyInfo *KeyInfo, allFiles []string
 			}
 		}
 	}
-	
+
 	return related
 }
 
@@ -165,10 +165,10 @@ func (d *ConfigFileDetector) Detect(filename string, content []byte) (*KeyInfo, 
 			Format: FormatConfig,
 		}, true
 	}
-	
+
 	// Check content for SSH config patterns
 	contentStr := strings.ToLower(string(content))
-	if strings.Contains(contentStr, "host ") || 
+	if strings.Contains(contentStr, "host ") ||
 		strings.Contains(contentStr, "hostname ") ||
 		strings.Contains(contentStr, "identityfile ") {
 		return &KeyInfo{
@@ -176,7 +176,7 @@ func (d *ConfigFileDetector) Detect(filename string, content []byte) (*KeyInfo, 
 			Format: FormatConfig,
 		}, true
 	}
-	
+
 	return nil, false
 }
 
@@ -193,14 +193,14 @@ func (d *KnownHostsDetector) Name() string {
 
 func (d *KnownHostsDetector) Detect(filename string, content []byte) (*KeyInfo, bool) {
 	filename = strings.ToLower(filename)
-	
+
 	if strings.Contains(filename, "known_hosts") {
 		return &KeyInfo{
 			Type:   KeyTypeHosts,
 			Format: FormatHosts,
 		}, true
 	}
-	
+
 	// Check content pattern (hostname + key)
 	lines := bytes.Split(content, []byte("\n"))
 	for _, line := range lines {
@@ -211,7 +211,7 @@ func (d *KnownHostsDetector) Detect(filename string, content []byte) (*KeyInfo, 
 			}, true
 		}
 	}
-	
+
 	return nil, false
 }
 
@@ -234,14 +234,14 @@ func (d *AuthorizedKeysDetector) Name() string {
 
 func (d *AuthorizedKeysDetector) Detect(filename string, content []byte) (*KeyInfo, bool) {
 	filename = strings.ToLower(filename)
-	
+
 	if strings.Contains(filename, "authorized_keys") {
 		return &KeyInfo{
 			Type:   KeyTypeAuthorized,
 			Format: FormatOpenSSH,
 		}, true
 	}
-	
+
 	// Check content - should contain public keys
 	lines := bytes.Split(content, []byte("\n"))
 	sshKeyCount := 0
@@ -250,14 +250,14 @@ func (d *AuthorizedKeysDetector) Detect(filename string, content []byte) (*KeyIn
 			sshKeyCount++
 		}
 	}
-	
+
 	if sshKeyCount > 0 && len(lines) < 50 { // Heuristic: not too many lines
 		return &KeyInfo{
 			Type:   KeyTypeAuthorized,
 			Format: FormatOpenSSH,
 		}, true
 	}
-	
+
 	return nil, false
 }
 

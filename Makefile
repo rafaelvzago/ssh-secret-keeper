@@ -266,7 +266,7 @@ help:
 	@echo "  container-build-branch Build container image tagged with current branch"
 	@echo "  docker-build       Build Docker images specifically"
 	@echo "  docker-build-branch Build Docker images tagged with current branch"
-	@echo "  podman-build       Build Podman images specifically" 
+	@echo "  podman-build       Build Podman images specifically"
 	@echo "  podman-build-branch Build Podman images tagged with current branch"
 	@echo "  docker             Build Docker images (legacy alias)"
 	@echo ""
