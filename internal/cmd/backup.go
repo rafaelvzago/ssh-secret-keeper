@@ -1,17 +1,17 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
-	"syscall"
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/ssh"
-	"github.com/rzago/ssh-vault-keeper/internal/vault"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
+	"github.com/rzago/ssh-secret-keeper/internal/ssh"
+	"github.com/rzago/ssh-secret-keeper/internal/storage"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // newBackupCommand creates the backup command
@@ -19,7 +19,6 @@ func newBackupCommand(cfg *config.Config) *cobra.Command {
 	var (
 		backupName  string
 		sshDir      string
-		passphrase  string
 		dryRun      bool
 		interactive bool
 	)
@@ -27,7 +26,7 @@ func newBackupCommand(cfg *config.Config) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "backup [name]",
 		Short: "Backup SSH directory to Vault",
-		Long: `Backup your SSH directory to Vault with client-side encryption.
+		Long: `Backup your SSH directory to Vault.
 The backup includes all SSH keys, configuration files, and metadata.`,
 		Args: cobra.MaximumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -43,7 +42,6 @@ The backup includes all SSH keys, configuration files, and metadata.`,
 			return runBackup(cfg, backupOptions{
 				name:        name,
 				sshDir:      sshDir,
-				passphrase:  passphrase,
 				dryRun:      dryRun,
 				interactive: interactive,
 			})
@@ -53,7 +51,6 @@ The backup includes all SSH keys, configuration files, and metadata.`,
 	// Command-specific flags
 	cmd.Flags().StringVar(&backupName, "name", "", "Custom backup name (default: backup-YYYYMMDD-HHMMSS)")
 	cmd.Flags().StringVar(&sshDir, "ssh-dir", cfg.Backup.SSHDir, "SSH directory to backup")
-	cmd.Flags().StringVar(&passphrase, "passphrase", "", "Encryption passphrase (will prompt if not provided)")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be backed up without actually doing it")
 	cmd.Flags().BoolVar(&interactive, "interactive", false, "Interactively select files to backup")
 
@@ -63,7 +60,6 @@ The backup includes all SSH keys, configuration files, and metadata.`,
 type backupOptions struct {
 	name        string
 	sshDir      string
-	passphrase  string
 	dryRun      bool
 	interactive bool
 }
@@ -100,41 +96,37 @@ func runBackup(cfg *config.Config, opts backupOptions) error {
 		}
 	}
 
-	// Get encryption passphrase
-	passphrase := opts.passphrase
-	if passphrase == "" {
-		passphrase, err = promptPassphrase("Enter encryption passphrase: ")
-		if err != nil {
-			return fmt.Errorf("failed to get passphrase: %w", err)
-		}
-	}
+	// No passphrase needed - Vault provides the security
 
-	// Encrypt backup
-	fmt.Printf("Encrypting backup data...\n")
-	if err := sshHandler.EncryptBackup(backupData, passphrase); err != nil {
-		return fmt.Errorf("failed to encrypt backup: %w", err)
-	}
-	fmt.Printf("✓ Backup encrypted successfully\n")
+	// Backup data is ready for storage (no encryption needed)
+	fmt.Printf("✓ Backup data prepared successfully\n")
 
-	// Connect to Vault
-	fmt.Printf("Connecting to Vault...\n")
-	vaultClient, err := vault.New(&cfg.Vault)
+	// Create storage provider via factory
+	factory := storage.NewFactory()
+	storageProvider, err := factory.CreateStorage(cfg)
 	if err != nil {
-		return fmt.Errorf("failed to connect to Vault: %w", err)
+		return fmt.Errorf("failed to create storage provider: %w", err)
 	}
-	defer vaultClient.Close()
+	defer storageProvider.Close()
 
-	// Prepare vault data (remove content fields for storage)
+	// Test connection
+	ctx := context.Background()
+	fmt.Printf("Connecting to %s storage...\n", storageProvider.GetProviderType())
+	if err := storageProvider.TestConnection(ctx); err != nil {
+		return fmt.Errorf("storage connection test failed: %w", err)
+	}
+
+	// Prepare data for storage
 	vaultData := prepareVaultData(backupData)
 
-	// Store backup in Vault
-	fmt.Printf("Storing backup in Vault...\n")
-	if err := vaultClient.StoreBackup(opts.name, vaultData); err != nil {
+	// Store backup using abstraction
+	fmt.Printf("Storing backup in %s...\n", storageProvider.GetProviderType())
+	if err := storageProvider.StoreBackup(ctx, opts.name, vaultData); err != nil {
 		return fmt.Errorf("failed to store backup: %w", err)
 	}
 
 	// Update metadata
-	if err := updateBackupMetadata(vaultClient, opts.name, backupData); err != nil {
+	if err := updateBackupMetadata(storageProvider, opts.name, backupData); err != nil {
 		log.Warn().Err(err).Msg("Failed to update metadata")
 	}
 
@@ -232,19 +224,6 @@ func interactiveFileSelection(backup *ssh.BackupData) error {
 	return nil
 }
 
-// promptPassphrase securely prompts for a passphrase
-func promptPassphrase(prompt string) (string, error) {
-	fmt.Print(prompt)
-	passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
-	fmt.Println()
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(passphrase), nil
-}
-
 // prepareVaultData converts backup data for Vault storage
 func prepareVaultData(backup *ssh.BackupData) map[string]interface{} {
 	data := map[string]interface{}{
@@ -257,16 +236,34 @@ func prepareVaultData(backup *ssh.BackupData) map[string]interface{} {
 		"files":     make(map[string]interface{}),
 	}
 
-	// Convert file data for storage (without raw content)
+	// Convert file data for storage (with plain content)
 	files := make(map[string]interface{})
 	for filename, fileData := range backup.Files {
+		// Validate and log the permissions being stored
+		permissionsToStore := int(fileData.Permissions & os.ModePerm)
+
+		// Critical validation: permissions should never be 0000 for real files
+		if permissionsToStore == 0 {
+			log.Error().
+				Str("file", filename).
+				Str("original_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+				Str("full_mode", fmt.Sprintf("%04o", fileData.Permissions)).
+				Msg("CRITICAL: File has 0000 permissions - this should not happen for real files")
+		}
+
+		log.Debug().
+			Str("file", filename).
+			Str("original_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+			Int("stored_perms", permissionsToStore).
+			Msg("Storing file permissions in backup")
+
 		files[filename] = map[string]interface{}{
 			"filename":    fileData.Filename,
-			"permissions": int(fileData.Permissions),
+			"content":     string(fileData.Content), // Store as base64 or plain text
+			"permissions": permissionsToStore,       // Store only permission bits, not file type
 			"size":        fileData.Size,
 			"mod_time":    fileData.ModTime.Format(time.RFC3339),
 			"checksum":    fileData.Checksum,
-			"encrypted":   fileData.Encrypted,
 			"key_info":    fileData.KeyInfo,
 		}
 	}
@@ -275,9 +272,11 @@ func prepareVaultData(backup *ssh.BackupData) map[string]interface{} {
 	return data
 }
 
-// updateBackupMetadata updates the backup metadata in Vault
-func updateBackupMetadata(client *vault.Client, backupName string, backup *ssh.BackupData) error {
-	metadata, err := client.GetMetadata()
+// updateBackupMetadata updates the backup metadata using storage provider
+func updateBackupMetadata(provider interfaces.StorageProvider, backupName string, backup *ssh.BackupData) error {
+	ctx := context.Background()
+
+	metadata, err := provider.GetMetadata(ctx)
 	if err != nil {
 		return err
 	}
@@ -296,5 +295,5 @@ func updateBackupMetadata(client *vault.Client, backupName string, backup *ssh.B
 		"username":   backup.Username,
 	}
 
-	return client.StoreMetadata(metadata)
+	return provider.StoreMetadata(ctx, metadata)
 }

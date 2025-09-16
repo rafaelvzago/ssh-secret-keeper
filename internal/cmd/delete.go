@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/vault"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
+	"github.com/rzago/ssh-secret-keeper/internal/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -53,23 +55,26 @@ func runDelete(cfg *config.Config, opts deleteOptions) error {
 		Bool("interactive", opts.interactive).
 		Msg("Starting backup deletion")
 
-	// Connect to Vault
-	fmt.Printf("Connecting to Vault...\n")
-	vaultClient, err := vault.New(&cfg.Vault)
+	// Create storage provider via factory
+	factory := storage.NewFactory()
+	storageProvider, err := factory.CreateStorage(cfg)
 	if err != nil {
-		return fmt.Errorf("failed to connect to Vault: %w", err)
+		return fmt.Errorf("failed to create storage provider: %w", err)
 	}
-	defer vaultClient.Close()
+	defer storageProvider.Close()
+
+	ctx := context.Background()
 
 	// Test connection
-	if err := vaultClient.TestConnection(); err != nil {
-		return fmt.Errorf("failed to connect to Vault: %w", err)
+	fmt.Printf("Connecting to %s storage...\n", storageProvider.GetProviderType())
+	if err := storageProvider.TestConnection(ctx); err != nil {
+		return fmt.Errorf("failed to connect to storage: %w", err)
 	}
-	fmt.Printf("✓ Connected to Vault\n")
+	fmt.Printf("✓ Connected to %s\n", storageProvider.GetProviderType())
 
 	// Handle interactive mode
 	if opts.interactive {
-		backupName, err := interactiveBackupSelection(vaultClient)
+		backupName, err := interactiveBackupSelection(storageProvider)
 		if err != nil {
 			return fmt.Errorf("interactive selection failed: %w", err)
 		}
@@ -82,7 +87,7 @@ func runDelete(cfg *config.Config, opts deleteOptions) error {
 
 	// Verify backup exists
 	fmt.Printf("Checking if backup '%s' exists...\n", opts.backupName)
-	backups, err := vaultClient.ListBackups()
+	backups, err := storageProvider.ListBackups(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list backups: %w", err)
 	}
@@ -102,7 +107,7 @@ func runDelete(cfg *config.Config, opts deleteOptions) error {
 
 	// Show backup details before deletion
 	fmt.Printf("✓ Backup '%s' found\n", opts.backupName)
-	if err := showBackupDetailsForDeletion(vaultClient, opts.backupName); err != nil {
+	if err := showBackupDetailsForDeletion(storageProvider, opts.backupName); err != nil {
 		log.Warn().Err(err).Msg("Failed to get backup details")
 		// Continue with deletion even if we can't show details
 	}
@@ -125,14 +130,14 @@ func runDelete(cfg *config.Config, opts deleteOptions) error {
 
 	// Delete the backup
 	fmt.Printf("Deleting backup '%s'...\n", opts.backupName)
-	if err := vaultClient.ForceDeleteBackup(opts.backupName); err != nil {
+	if err := storageProvider.DeleteBackup(ctx, opts.backupName); err != nil {
 		return fmt.Errorf("failed to delete backup: %w", err)
 	}
 
 	fmt.Printf("✓ Backup '%s' deleted successfully\n", opts.backupName)
 
 	// Update metadata to remove the backup entry
-	if err := updateMetadataAfterDeletion(vaultClient, opts.backupName); err != nil {
+	if err := updateMetadataAfterDeletion(storageProvider, opts.backupName); err != nil {
 		log.Warn().Err(err).Msg("Failed to update metadata after deletion")
 	}
 
@@ -144,8 +149,9 @@ func runDelete(cfg *config.Config, opts deleteOptions) error {
 }
 
 // interactiveBackupSelection allows user to select a backup to delete
-func interactiveBackupSelection(vaultClient *vault.Client) (string, error) {
-	backups, err := vaultClient.ListBackups()
+func interactiveBackupSelection(provider interfaces.StorageProvider) (string, error) {
+	ctx := context.Background()
+	backups, err := provider.ListBackups(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to list backups: %w", err)
 	}
@@ -186,8 +192,9 @@ func interactiveBackupSelection(vaultClient *vault.Client) (string, error) {
 }
 
 // showBackupDetailsForDeletion displays backup details before deletion
-func showBackupDetailsForDeletion(vaultClient *vault.Client, backupName string) error {
-	backupData, err := vaultClient.GetBackup(backupName)
+func showBackupDetailsForDeletion(provider interfaces.StorageProvider, backupName string) error {
+	ctx := context.Background()
+	backupData, err := provider.GetBackup(ctx, backupName)
 	if err != nil {
 		return err
 	}
@@ -263,8 +270,9 @@ func showBackupDetailsForDeletion(vaultClient *vault.Client, backupName string) 
 }
 
 // updateMetadataAfterDeletion removes the backup from metadata
-func updateMetadataAfterDeletion(vaultClient *vault.Client, backupName string) error {
-	metadata, err := vaultClient.GetMetadata()
+func updateMetadataAfterDeletion(provider interfaces.StorageProvider, backupName string) error {
+	ctx := context.Background()
+	metadata, err := provider.GetMetadata(ctx)
 	if err != nil {
 		return err
 	}
@@ -275,7 +283,7 @@ func updateMetadataAfterDeletion(vaultClient *vault.Client, backupName string) e
 		metadata["backups"] = backups
 
 		// Store updated metadata
-		if err := vaultClient.StoreMetadata(metadata); err != nil {
+		if err := provider.StoreMetadata(ctx, metadata); err != nil {
 			return err
 		}
 

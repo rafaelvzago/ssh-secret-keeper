@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -19,11 +19,11 @@ var (
 // NewRootCommand creates the root command
 func NewRootCommand(cfg *config.Config) *cobra.Command {
 	var rootCmd = &cobra.Command{
-		Use:   "ssh-vault-keeper",
+		Use:   "sshsk",
 		Short: "Securely backup SSH keys to HashiCorp Vault",
-		Long: `SSH Vault Keeper is a tool for securely backing up SSH keys and configuration
-to HashiCorp Vault with client-side encryption. It provides intelligent analysis
-of SSH directories and flexible backup/restore operations.`,
+		Long: `SSH Secret Keeper is a tool for securely backing up SSH keys and configuration
+to HashiCorp Vault. It provides intelligent analysis of SSH directories and
+flexible backup/restore operations.`,
 		SilenceUsage: true,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 			// This runs before every command
@@ -60,7 +60,7 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Show version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("SSH Vault Keeper %s\n", Version)
+			fmt.Printf("SSH Secret Keeper %s\n", Version)
 			fmt.Printf("Built at: %s\n", BuildTime)
 			fmt.Printf("Git hash: %s\n", GitHash)
 		},

@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/vault"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +23,8 @@ func newInitCommand(cfg *config.Config) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "init",
-		Short: "Initialize SSH Vault Keeper configuration and Vault setup",
-		Long: `Initialize SSH Vault Keeper by:
+		Short: "Initialize SSH Secret Keeper configuration and Vault setup",
+		Long: `Initialize SSH Secret Keeper by:
 1. Creating configuration file
 2. Setting up Vault token
 3. Testing Vault connection
@@ -59,19 +59,25 @@ type initOptions struct {
 }
 
 func runInit(cfg *config.Config, opts initOptions) error {
-	log.Info().Msg("Starting SSH Vault Keeper initialization")
+	log.Info().Msg("Starting SSH Secret Keeper initialization")
 
-	// Determine config file path
-	configFile := opts.configPath
-	if configFile == "" {
-		configFile = config.GetConfigPath()
-	}
+	// Check if we're using environment variables for everything
+	usingEnvVars := os.Getenv("VAULT_TOKEN") != "" && os.Getenv("VAULT_ADDR") != ""
 
-	// Check if config already exists
-	if _, err := os.Stat(configFile); err == nil && !opts.forceOverwrite {
-		fmt.Printf("Configuration file already exists: %s\n", configFile)
-		fmt.Printf("Use --force to overwrite, or specify a different path with --config-path\n")
-		return nil
+	var configFile string
+	if !usingEnvVars {
+		// Determine config file path
+		configFile = opts.configPath
+		if configFile == "" {
+			configFile = config.GetConfigPath()
+		}
+
+		// Check if config already exists
+		if _, err := os.Stat(configFile); err == nil && !opts.forceOverwrite {
+			fmt.Printf("Configuration file already exists: %s\n", configFile)
+			fmt.Printf("Use --force to overwrite, or specify a different path with --config-path\n")
+			return nil
+		}
 	}
 
 	// Update configuration with provided values
@@ -107,9 +113,14 @@ func runInit(cfg *config.Config, opts initOptions) error {
 	}
 	fmt.Printf("✓ Vault mount ready\n")
 
-	// Save configuration
-	if err := cfg.Save(configFile); err != nil {
-		return fmt.Errorf("failed to save configuration: %w", err)
+	// Save configuration only if not using environment variables
+	if !usingEnvVars {
+		if err := cfg.Save(configFile); err != nil {
+			return fmt.Errorf("failed to save configuration: %w", err)
+		}
+		fmt.Printf("Configuration saved to: %s\n", configFile)
+	} else {
+		fmt.Printf("✓ Using environment variables (no config file created)\n")
 	}
 
 	// Create SSH directory if it doesn't exist (for first-time users)
@@ -121,11 +132,13 @@ func runInit(cfg *config.Config, opts initOptions) error {
 	}
 
 	// Success message
-	fmt.Printf("\n✓ SSH Vault Keeper initialized successfully!\n")
-	fmt.Printf("\nConfiguration saved to: %s\n", configFile)
-	fmt.Printf("Vault server: %s\n", cfg.Vault.Address)
+	fmt.Printf("\n✓ SSH Secret Keeper initialized successfully!\n")
+	fmt.Printf("\nVault server: %s\n", cfg.Vault.Address)
 	fmt.Printf("Mount path: %s\n", cfg.Vault.MountPath)
 	fmt.Printf("SSH directory: %s\n", cfg.Backup.SSHDir)
+	if usingEnvVars {
+		fmt.Printf("Authentication: Environment variables\n")
+	}
 	fmt.Printf("\nNext steps:\n")
 	fmt.Printf("  1. Run 'ssh-vault-keeper analyze' to see your SSH files\n")
 	fmt.Printf("  2. Run 'ssh-vault-keeper backup' to create your first backup\n")
@@ -139,11 +152,14 @@ func setupToken(cfg *config.Config, token string) error {
 		// Try to read token from environment
 		if envToken := os.Getenv("VAULT_TOKEN"); envToken != "" {
 			token = envToken
+			fmt.Printf("✓ Using token from VAULT_TOKEN environment variable\n")
+			return nil // Don't create token file when using environment variable
 		} else {
 			return fmt.Errorf("no Vault token provided. Use --token flag or VAULT_TOKEN environment variable")
 		}
 	}
 
+	// If token was provided via --token flag, save it to file
 	// Ensure token directory exists
 	tokenDir := filepath.Dir(cfg.Vault.TokenFile)
 	if err := os.MkdirAll(tokenDir, 0700); err != nil {
