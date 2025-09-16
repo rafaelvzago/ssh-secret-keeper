@@ -314,13 +314,12 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
 					Msg("Parsed permissions from int")
 			} else {
-				// If permissions are missing or invalid, this is a critical error
-				// We should not proceed with default permissions as this loses original data
-				log.Error().
+				// If permissions are missing or invalid, use a safe fallback (0600) and log a warning
+				log.Warn().
 					Str("file", filename).
 					Interface("permissions", fileDataMap["permissions"]).
-					Msg("CRITICAL: Missing or invalid permissions in backup data")
-				return nil, fmt.Errorf("missing or invalid permissions for file %s in backup data - this indicates backup corruption", filename)
+					Msg("Missing or invalid permissions in backup data; using fallback permission 0600")
+				fileData.Permissions = os.FileMode(0600)
 			}
 
 			if size, ok := fileDataMap["size"].(float64); ok {
