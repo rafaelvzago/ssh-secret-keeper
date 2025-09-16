@@ -4,11 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/vault/api"
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
 )
 
 // Client wraps HashiCorp Vault API client with SSH-specific operations
@@ -45,6 +46,12 @@ func New(cfg *config.VaultConfig) (*Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load Vault token: %w", err)
 	}
+
+	// Ensure we actually have a token
+	if strings.TrimSpace(token) == "" {
+		return nil, fmt.Errorf("empty Vault token: authentication requires a valid token")
+	}
+
 	client.SetToken(token)
 
 	// Test connection
@@ -103,7 +110,7 @@ func (c *Client) EnsureMountExists() error {
 	// Create KV v2 mount
 	err = c.client.Sys().Mount(c.mountPath, &api.MountInput{
 		Type:        "kv",
-		Description: "SSH Vault Keeper storage",
+		Description: "SSH Secret Keeper storage",
 		Options: map[string]string{
 			"version": "2",
 		},

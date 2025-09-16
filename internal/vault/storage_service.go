@@ -7,7 +7,7 @@ import (
 
 	"github.com/hashicorp/vault/api"
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
 )
 
 // StorageService provides Vault storage functionality following SRP
@@ -74,7 +74,7 @@ func (s *StorageService) EnsureMountExists(ctx context.Context) error {
 	// Create KV v2 mount
 	err = s.client.Sys().MountWithContext(ctx, s.mountPath, &api.MountInput{
 		Type:        "kv",
-		Description: "SSH Vault Keeper storage",
+		Description: "SSH Secret Keeper storage",
 		Options: map[string]string{
 			"version": "2",
 		},

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/vault/api"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
 )
 
 // createVaultClient creates and configures a Vault API client
@@ -37,13 +37,28 @@ func createVaultClient(cfg *config.VaultConfig) (*api.Client, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to load Vault token: %w", err)
 	}
+
+	// Ensure we actually have a token
+	if strings.TrimSpace(token) == "" {
+		return nil, fmt.Errorf("empty Vault token: authentication requires a valid token")
+	}
+
 	client.SetToken(token)
 
 	return client, nil
 }
 
-// loadToken loads Vault token from file with proper path resolution
+// loadToken loads Vault token with priority: environment variable > file
 func loadToken(tokenFile string) (string, error) {
+	// First, try to get token from environment variable
+	if envToken := os.Getenv("VAULT_TOKEN"); envToken != "" {
+		tokenStr := strings.TrimSpace(envToken)
+		if len(tokenStr) > 0 {
+			return tokenStr, nil
+		}
+	}
+
+	// If no environment token, try to read from file
 	// Expand home directory
 	if strings.HasPrefix(tokenFile, "~/") {
 		homeDir, err := os.UserHomeDir()
@@ -60,7 +75,7 @@ func loadToken(tokenFile string) (string, error) {
 	stat, err := os.Stat(tokenFile)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return "", fmt.Errorf("token file does not exist: %s", tokenFile)
+			return "", fmt.Errorf("no Vault token found: VAULT_TOKEN environment variable not set and token file does not exist: %s", tokenFile)
 		}
 		return "", fmt.Errorf("cannot access token file: %w", err)
 	}

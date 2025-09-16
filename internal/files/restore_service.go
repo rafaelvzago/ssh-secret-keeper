@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/analyzer"
-	"github.com/rzago/ssh-vault-keeper/internal/ssh"
+	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
+	"github.com/rzago/ssh-secret-keeper/internal/ssh"
 )
 
 // RestoreService provides file restoration functionality following SRP
@@ -84,7 +84,7 @@ func (s *RestoreService) RestoreFiles(backup *ssh.BackupData, targetDir string, 
 		log.Info().
 			Str("file", filename).
 			Str("target", targetPath).
-			Str("permissions", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+			Str("permissions", fmt.Sprintf("%04o", s.getAppropriatePermissions(fileData)&os.ModePerm)).
 			Msg("File restored successfully")
 	}
 
@@ -272,7 +272,7 @@ func (s *RestoreService) logDryRunRestore(filename, targetPath string, fileData 
 	log.Info().
 		Str("file", filename).
 		Str("target", targetPath).
-		Str("permissions", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+		Str("permissions", fmt.Sprintf("%04o", s.getAppropriatePermissions(fileData)&os.ModePerm)).
 		Int64("size", fileData.Size).
 		Msg("[DRY RUN] Would restore file")
 }
@@ -319,9 +319,75 @@ func (s *RestoreService) restoreSingleFile(fileData *ssh.FileData, targetPath st
 		return fmt.Errorf("file content is nil")
 	}
 
-	// Write file with exact permissions
-	if err := os.WriteFile(targetPath, fileData.Content, fileData.Permissions); err != nil {
+	// Check if file is empty and warn
+	if len(fileData.Content) == 0 {
+		log.Warn().
+			Str("file", fileData.Filename).
+			Msg("Restoring empty file - this may indicate a backup issue")
+	}
+
+	// Determine appropriate permissions for the file
+	permissions := s.getAppropriatePermissions(fileData)
+
+	// If file exists, fix its permissions first to allow overwriting
+	if s.fileExists(targetPath) {
+		log.Info().
+			Str("file", filepath.Base(targetPath)).
+			Msg("Fixing permissions of existing file before overwrite")
+
+		// Use 0666 to make file writable, then set correct permissions later
+		if err := os.Chmod(targetPath, 0666); err != nil {
+			log.Warn().
+				Err(err).
+				Str("file", filepath.Base(targetPath)).
+				Msg("Failed to fix permissions of existing file before overwrite")
+		} else {
+			log.Info().
+				Str("file", filepath.Base(targetPath)).
+				Msg("Successfully fixed permissions of existing file")
+		}
+	}
+
+	// Write file with appropriate permissions
+	if err := os.WriteFile(targetPath, fileData.Content, permissions); err != nil {
 		return fmt.Errorf("cannot write file: %w", err)
+	}
+
+	// Ensure permissions are set correctly (os.WriteFile only sets permissions for new files)
+	log.Debug().
+		Str("file", filepath.Base(targetPath)).
+		Str("permissions", fmt.Sprintf("%04o", permissions&os.ModePerm)).
+		Msg("Setting file permissions")
+
+	if err := os.Chmod(targetPath, permissions); err != nil {
+		log.Warn().
+			Err(err).
+			Str("file", filepath.Base(targetPath)).
+			Str("permissions", fmt.Sprintf("%04o", permissions&os.ModePerm)).
+			Msg("Failed to set file permissions")
+	} else {
+		// Verify the permissions were set correctly
+		if stat, err := os.Stat(targetPath); err == nil {
+			actualPerms := stat.Mode().Perm()
+			expectedPerms := permissions & os.ModePerm
+			if actualPerms != expectedPerms {
+				log.Error().
+					Str("file", filepath.Base(targetPath)).
+					Str("expected", fmt.Sprintf("%04o", expectedPerms)).
+					Str("actual", fmt.Sprintf("%04o", actualPerms)).
+					Msg("Permission verification failed after restore")
+			} else {
+				log.Debug().
+					Str("file", filepath.Base(targetPath)).
+					Str("permissions", fmt.Sprintf("%04o", actualPerms)).
+					Msg("File permissions verified successfully")
+			}
+		} else {
+			log.Warn().
+				Err(err).
+				Str("file", filepath.Base(targetPath)).
+				Msg("Could not verify file permissions after restore")
+		}
 	}
 
 	// Restore modification time
@@ -333,6 +399,30 @@ func (s *RestoreService) restoreSingleFile(fileData *ssh.FileData, targetPath st
 	}
 
 	return nil
+}
+
+// getAppropriatePermissions determines the correct permissions for a file
+func (s *RestoreService) getAppropriatePermissions(fileData *ssh.FileData) os.FileMode {
+	originalPerms := fileData.Permissions & os.ModePerm
+
+	// ALWAYS use original permissions - they should never be 0000 if backup was created correctly
+	if originalPerms == 0000 {
+		log.Error().
+			Str("file", fileData.Filename).
+			Str("raw_permissions", fmt.Sprintf("%04o", fileData.Permissions)).
+			Msg("CRITICAL: Original permissions are 0000 - this indicates a backup corruption issue")
+		// This should not happen if backup was created correctly
+		// Return 0600 as a fallback, but log this as an error
+		return 0600
+	}
+
+	// Use original permissions exactly as they were
+	log.Debug().
+		Str("file", fileData.Filename).
+		Str("permissions", fmt.Sprintf("%04o", originalPerms)).
+		Msg("Using original permissions from backup")
+
+	return originalPerms
 }
 
 func (s *RestoreService) verifySSHDirectoryPermissions(sshDir string) error {
@@ -356,7 +446,7 @@ func (s *RestoreService) verifyFilePermissions(targetPath string, fileData *ssh.
 	}
 
 	actualPerm := stat.Mode().Perm()
-	expectedPerm := fileData.Permissions & os.ModePerm
+	expectedPerm := s.getAppropriatePermissions(fileData) & os.ModePerm
 
 	if actualPerm != expectedPerm {
 		return fmt.Errorf("permission mismatch: expected %04o, got %04o",
@@ -373,7 +463,7 @@ func (s *RestoreService) isCriticalPermissionError(err error, fileData *ssh.File
 
 	// Private keys with world/group readable permissions are critical
 	if fileData.KeyInfo.Type == analyzer.KeyTypePrivate {
-		actualPerm := fileData.Permissions & os.ModePerm
+		actualPerm := s.getAppropriatePermissions(fileData) & os.ModePerm
 		if (actualPerm & 0077) != 0 {
 			return true
 		}
