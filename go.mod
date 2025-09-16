@@ -1,4 +1,4 @@
-module github.com/rzago/ssh-vault-keeper
+module github.com/rzago/ssh-secret-keeper
 
 go 1.21
 

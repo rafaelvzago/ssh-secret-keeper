@@ -1,14 +1,16 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/vault"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
+	"github.com/rzago/ssh-secret-keeper/internal/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +25,8 @@ func newStatusCommand(cfg *config.Config) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "status [backup-name]",
-		Short: "Show status of SSH Vault Keeper configuration and connections",
-		Long: `Check the status of your SSH Vault Keeper setup including:
+		Short: "Show status of SSH Secret Keeper configuration and connections",
+		Long: `Check the status of your SSH Secret Keeper setup including:
 - Configuration file status
 - Vault connection
 - SSH directory analysis
@@ -66,9 +68,9 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 		Bool("check_ssh", opts.checkSSH).
 		Bool("show_checksums", opts.showChecksums).
 		Str("backup_name", opts.backupName).
-		Msg("Checking SSH Vault Keeper status")
+		Msg("Checking SSH Secret Keeper status")
 
-	fmt.Printf("🔍 SSH Vault Keeper Status\n")
+	fmt.Printf("🔍 SSH Secret Keeper Status\n")
 	fmt.Printf("═══════════════════════════\n\n")
 
 	// Configuration status
@@ -94,25 +96,27 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 	}
 	fmt.Printf("\n")
 
-	// Vault connection check
+	// Storage connection check
 	if opts.checkVault {
-		fmt.Printf("\n🔐 Vault Connection:\n")
-		vaultClient, err := vault.New(&cfg.Vault)
+		fmt.Printf("\n🔐 Storage Connection:\n")
+		factory := storage.NewFactory()
+		storageProvider, err := factory.CreateStorage(cfg)
 		if err != nil {
 			fmt.Printf("  Connection: ❌ Failed to create client\n")
 			fmt.Printf("  Error: %v\n", err)
 		} else {
-			defer vaultClient.Close()
+			defer storageProvider.Close()
 
-			if err := vaultClient.TestConnection(); err != nil {
+			ctx := context.Background()
+			if err := storageProvider.TestConnection(ctx); err != nil {
 				fmt.Printf("  Connection: ❌ Failed\n")
 				fmt.Printf("  Error: %v\n", err)
 			} else {
-				fmt.Printf("  Connection: ✅ Success\n")
-				fmt.Printf("  Base path: %s\n", vaultClient.GetBasePath())
+				fmt.Printf("  Connection: ✅ Success (%s)\n", storageProvider.GetProviderType())
+				fmt.Printf("  Base path: %s\n", storageProvider.GetBasePath())
 
 				// Check for existing backups
-				backups, err := vaultClient.ListBackups()
+				backups, err := storageProvider.ListBackups(ctx)
 				if err != nil {
 					fmt.Printf("  Backups: ❌ Failed to list\n")
 				} else {
@@ -123,14 +127,14 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 
 					// Show detailed backup info if specific backup requested
 					if opts.backupName != "" {
-						if err := showBackupDetails(vaultClient, opts.backupName, opts.showChecksums); err != nil {
+						if err := showBackupDetails(storageProvider, opts.backupName, opts.showChecksums); err != nil {
 							fmt.Printf("  ❌ Failed to get backup details: %v\n", err)
 						}
 					} else if opts.showChecksums && len(backups) > 0 {
 						// Show checksums for most recent backup
 						mostRecent := backups[len(backups)-1]
 						fmt.Printf("\n📋 Most Recent Backup Details (%s):\n", mostRecent)
-						if err := showBackupDetails(vaultClient, mostRecent, true); err != nil {
+						if err := showBackupDetails(storageProvider, mostRecent, true); err != nil {
 							fmt.Printf("  ❌ Failed to get backup details: %v\n", err)
 						}
 					}
@@ -186,9 +190,6 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 
 	// Security settings
 	fmt.Printf("\n🔒 Security Settings:\n")
-	fmt.Printf("  Encryption algorithm: %s\n", cfg.Security.Algorithm)
-	fmt.Printf("  Key derivation: %s (%d iterations)\n", cfg.Security.KeyDerivation, cfg.Security.Iterations)
-	fmt.Printf("  Per-file encryption: %v\n", cfg.Security.PerFileEncrypt)
 	fmt.Printf("  Integrity verification: %v\n", cfg.Security.VerifyIntegrity)
 
 	// Recommendations
@@ -207,11 +208,13 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 		if fileCount == 0 {
 			fmt.Printf("  • SSH directory is empty - consider generating SSH keys\n")
 		} else if opts.checkVault {
-			if vaultClient, err := vault.New(&cfg.Vault); err == nil {
-				if backups, err := vaultClient.ListBackups(); err == nil && len(backups) == 0 {
-					fmt.Printf("  • No backups found - run 'ssh-vault-keeper backup' to create one\n")
+			factory := storage.NewFactory()
+			if storageProvider, err := factory.CreateStorage(cfg); err == nil {
+				ctx := context.Background()
+				if backups, err := storageProvider.ListBackups(ctx); err == nil && len(backups) == 0 {
+					fmt.Printf("  • No backups found - run 'sshsk backup' to create one\n")
 				}
-				vaultClient.Close()
+				storageProvider.Close()
 			}
 		}
 	}
@@ -223,18 +226,19 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 		}
 	}
 
-	fmt.Printf("  • Run 'ssh-vault-keeper analyze' to see detailed SSH file analysis\n")
-	fmt.Printf("  • Run 'ssh-vault-keeper list' to see available backups\n")
+	fmt.Printf("  • Run 'sshsk analyze' to see detailed SSH file analysis\n")
+	fmt.Printf("  • Run 'sshsk list' to see available backups\n")
 	if opts.showChecksums {
-		fmt.Printf("  • Use 'ssh-vault-keeper status --checksums' to view MD5 checksums\n")
+		fmt.Printf("  • Use 'sshsk status --checksums' to view MD5 checksums\n")
 	}
 
 	return nil
 }
 
 // showBackupDetails displays detailed information about a specific backup
-func showBackupDetails(vaultClient *vault.Client, backupName string, showChecksums bool) error {
-	backupData, err := vaultClient.GetBackup(backupName)
+func showBackupDetails(provider interfaces.StorageProvider, backupName string, showChecksums bool) error {
+	ctx := context.Background()
+	backupData, err := provider.GetBackup(ctx, backupName)
 	if err != nil {
 		return err
 	}

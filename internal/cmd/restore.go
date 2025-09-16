@@ -1,20 +1,20 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"sort"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/analyzer"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/ssh"
-	"github.com/rzago/ssh-vault-keeper/internal/vault"
+	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
+	"github.com/rzago/ssh-secret-keeper/internal/ssh"
+	"github.com/rzago/ssh-secret-keeper/internal/storage"
 	"github.com/spf13/cobra"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 // newRestoreCommand creates the restore command
@@ -22,7 +22,6 @@ func newRestoreCommand(cfg *config.Config) *cobra.Command {
 	var (
 		backupName   string
 		targetDir    string
-		passphrase   string
 		dryRun       bool
 		overwrite    bool
 		interactive  bool
@@ -45,7 +44,6 @@ If no backup name is provided, the most recent backup will be used.`,
 			return runRestore(cfg, restoreOptions{
 				backupName:   name,
 				targetDir:    targetDir,
-				passphrase:   passphrase,
 				dryRun:       dryRun,
 				overwrite:    overwrite,
 				interactive:  interactive,
@@ -58,7 +56,6 @@ If no backup name is provided, the most recent backup will be used.`,
 	// Command-specific flags
 	cmd.Flags().StringVar(&backupName, "backup", "", "Backup name to restore (default: most recent)")
 	cmd.Flags().StringVar(&targetDir, "target-dir", cfg.Backup.SSHDir, "Target directory for restored files")
-	cmd.Flags().StringVar(&passphrase, "passphrase", "", "Decryption passphrase (will prompt if not provided)")
 	cmd.Flags().BoolVar(&dryRun, "dry-run", false, "Show what would be restored without actually doing it")
 	cmd.Flags().BoolVar(&overwrite, "overwrite", false, "Overwrite existing files without asking")
 	cmd.Flags().BoolVar(&interactive, "interactive", false, "Interactively select files to restore")
@@ -71,7 +68,6 @@ If no backup name is provided, the most recent backup will be used.`,
 type restoreOptions struct {
 	backupName   string
 	targetDir    string
-	passphrase   string
 	dryRun       bool
 	overwrite    bool
 	interactive  bool
@@ -86,24 +82,31 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 		Bool("dry_run", opts.dryRun).
 		Msg("Starting restore process")
 
-	// Connect to Vault
-	fmt.Printf("Connecting to Vault...\n")
-	vaultClient, err := vault.New(&cfg.Vault)
+	// Create storage provider via factory
+	factory := storage.NewFactory()
+	storageProvider, err := factory.CreateStorage(cfg)
 	if err != nil {
-		return fmt.Errorf("failed to connect to Vault: %w", err)
+		return fmt.Errorf("failed to create storage provider: %w", err)
 	}
-	defer vaultClient.Close()
+	defer storageProvider.Close()
+
+	// Test connection
+	ctx := context.Background()
+	fmt.Printf("Connecting to %s storage...\n", storageProvider.GetProviderType())
+	if err := storageProvider.TestConnection(ctx); err != nil {
+		return fmt.Errorf("storage connection test failed: %w", err)
+	}
 
 	// Determine backup name
 	backupName := opts.backupName
 	if backupName == "" {
 		if opts.selectBackup {
-			backupName, err = selectBackupInteractively(vaultClient)
+			backupName, err = selectBackupInteractively(storageProvider)
 			if err != nil {
 				return fmt.Errorf("failed to select backup: %w", err)
 			}
 		} else {
-			backupName, err = getLatestBackupName(vaultClient)
+			backupName, err = getLatestBackupName(storageProvider)
 			if err != nil {
 				return fmt.Errorf("failed to find latest backup: %w", err)
 			}
@@ -111,9 +114,9 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 		}
 	}
 
-	// Retrieve backup from Vault
-	fmt.Printf("Retrieving backup '%s' from Vault...\n", backupName)
-	vaultData, err := vaultClient.GetBackup(backupName)
+	// Retrieve backup from storage
+	fmt.Printf("Retrieving backup '%s' from %s...\n", backupName, storageProvider.GetProviderType())
+	vaultData, err := storageProvider.GetBackup(ctx, backupName)
 	if err != nil {
 		return fmt.Errorf("failed to retrieve backup: %w", err)
 	}
@@ -132,24 +135,13 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 		return nil
 	}
 
-	// Get decryption passphrase
-	passphrase := opts.passphrase
-	if passphrase == "" {
-		passphrase, err = promptRestorePassphrase("Enter decryption passphrase: ")
-		if err != nil {
-			return fmt.Errorf("failed to get passphrase: %w", err)
-		}
-	}
+	// No passphrase needed - the storage provider is responsible for security
 
 	// Initialize SSH handler
 	sshHandler := ssh.New()
 
-	// Decrypt backup
-	fmt.Printf("Decrypting backup data...\n")
-	if err := sshHandler.DecryptBackup(backupData, passphrase); err != nil {
-		return fmt.Errorf("failed to decrypt backup: %w", err)
-	}
-	fmt.Printf("✓ Backup decrypted successfully\n")
+	// Backup data is ready for restore (no decryption needed)
+	fmt.Printf("✓ Backup data loaded successfully\n")
 
 	// Verify backup integrity
 	if cfg.Security.VerifyIntegrity {
@@ -227,8 +219,9 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 }
 
 // getLatestBackupName finds the most recent backup
-func getLatestBackupName(client *vault.Client) (string, error) {
-	backups, err := client.ListBackups()
+func getLatestBackupName(provider interfaces.StorageProvider) (string, error) {
+	ctx := context.Background()
+	backups, err := provider.ListBackups(ctx)
 	if err != nil {
 		return "", err
 	}
@@ -297,9 +290,36 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 				Filename: filename,
 			}
 
-			// Parse file metadata
+			// Parse file metadata - handle both float64 and int64 from JSON
+			// Note: stored permissions are just the permission bits (e.g., 420 for 0644)
 			if perms, ok := fileDataMap["permissions"].(float64); ok {
 				fileData.Permissions = os.FileMode(int(perms))
+				log.Info().
+					Str("file", filename).
+					Float64("raw_perms", perms).
+					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+					Msg("Parsed permissions from float64")
+			} else if perms, ok := fileDataMap["permissions"].(int64); ok {
+				fileData.Permissions = os.FileMode(perms)
+				log.Info().
+					Str("file", filename).
+					Int64("raw_perms", perms).
+					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+					Msg("Parsed permissions from int64")
+			} else if perms, ok := fileDataMap["permissions"].(int); ok {
+				fileData.Permissions = os.FileMode(perms)
+				log.Info().
+					Str("file", filename).
+					Int("raw_perms", perms).
+					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+					Msg("Parsed permissions from int")
+			} else {
+				// If permissions are missing or invalid, use a safe fallback (0600) and log a warning
+				log.Warn().
+					Str("file", filename).
+					Interface("permissions", fileDataMap["permissions"]).
+					Msg("Missing or invalid permissions in backup data; using fallback permission 0600")
+				fileData.Permissions = os.FileMode(0600)
 			}
 
 			if size, ok := fileDataMap["size"].(float64); ok {
@@ -316,13 +336,46 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 				}
 			}
 
-			// Parse encrypted data
-			if encryptedInterface, ok := fileDataMap["encrypted"]; ok {
-				if _, ok := encryptedInterface.(map[string]interface{}); ok {
-					// This would require more complex parsing of the crypto.EncryptedData structure
-					// For now, create a basic structure
-					log.Debug().Str("file", filename).Msg("Parsing encrypted data")
+			// Parse file content
+			if content, ok := fileDataMap["content"].(string); ok {
+				fileData.Content = []byte(content)
+				log.Debug().Str("file", filename).Msg("Parsed file content successfully")
+			}
+
+			// Parse key info if available
+			if keyInfoData, ok := fileDataMap["key_info"].(map[string]interface{}); ok {
+				keyInfo := &analyzer.KeyInfo{}
+
+				if filename, ok := keyInfoData["filename"].(string); ok {
+					keyInfo.Filename = filename
 				}
+				if keyType, ok := keyInfoData["type"].(string); ok {
+					keyInfo.Type = analyzer.KeyType(keyType)
+				}
+				if format, ok := keyInfoData["format"].(string); ok {
+					keyInfo.Format = analyzer.KeyFormat(format)
+				}
+				if size, ok := keyInfoData["size"].(float64); ok {
+					keyInfo.Size = int64(size)
+				}
+				if perms, ok := keyInfoData["permissions"].(float64); ok {
+					keyInfo.Permissions = os.FileMode(int(perms))
+				} else if perms, ok := keyInfoData["permissions"].(int64); ok {
+					keyInfo.Permissions = os.FileMode(perms)
+				} else if perms, ok := keyInfoData["permissions"].(int); ok {
+					keyInfo.Permissions = os.FileMode(perms)
+				}
+				if modTimeStr, ok := keyInfoData["mod_time"].(string); ok {
+					if modTime, err := time.Parse(time.RFC3339, modTimeStr); err == nil {
+						keyInfo.ModTime = modTime
+					}
+				}
+
+				fileData.KeyInfo = keyInfo
+				log.Debug().
+					Str("file", filename).
+					Str("key_type", string(keyInfo.Type)).
+					Msg("Parsed key info successfully")
 			}
 
 			backup.Files[filename] = fileData
@@ -385,25 +438,14 @@ func interactiveRestoreSelection(backup *ssh.BackupData) error {
 	return nil
 }
 
-// promptRestorePassphrase securely prompts for a passphrase
-func promptRestorePassphrase(prompt string) (string, error) {
-	fmt.Print(prompt)
-	passphrase, err := terminal.ReadPassword(int(syscall.Stdin))
-	fmt.Println()
-
-	if err != nil {
-		return "", err
-	}
-
-	return string(passphrase), nil
-}
-
 // selectBackupInteractively shows available backups and lets user choose
-func selectBackupInteractively(client *vault.Client) (string, error) {
+func selectBackupInteractively(provider interfaces.StorageProvider) (string, error) {
 	fmt.Printf("\n🔍 Finding available backups...\n")
 
+	ctx := context.Background()
+
 	// Get all backups
-	backups, err := client.ListBackups()
+	backups, err := provider.ListBackups(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to list backups: %w", err)
 	}
@@ -413,7 +455,7 @@ func selectBackupInteractively(client *vault.Client) (string, error) {
 	}
 
 	// Get backup metadata for detailed display
-	metadata, err := client.GetMetadata()
+	metadata, err := provider.GetMetadata(ctx)
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to get backup metadata")
 	}

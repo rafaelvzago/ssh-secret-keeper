@@ -3,6 +3,7 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -71,15 +72,15 @@ func TestConfig_Save(t *testing.T) {
 
 	// Check content contains expected values
 	contentStr := string(content)
-	if !contains(contentStr, "version: \"1.0\"") {
+	if !strings.Contains(contentStr, "version: \"1.0\"") {
 		t.Error("Config file doesn't contain version")
 	}
 
-	if !contains(contentStr, "address: http://localhost:8200") {
+	if !strings.Contains(contentStr, "address: http://localhost:8200") {
 		t.Error("Config file doesn't contain vault address")
 	}
 
-	if !contains(contentStr, "algorithm: AES-256-GCM") {
+	if !strings.Contains(contentStr, "algorithm: AES-256-GCM") {
 		t.Error("Config file doesn't contain encryption algorithm")
 	}
 }
@@ -91,11 +92,11 @@ func TestGetConfigPath(t *testing.T) {
 		t.Error("GetConfigPath() returned empty string")
 	}
 
-	if !contains(path, ".ssh-vault-keeper") {
-		t.Error("Config path doesn't contain .ssh-vault-keeper directory")
+	if !strings.Contains(path, ".ssh-secret-keeper") {
+		t.Error("Config path doesn't contain .ssh-secret-keeper directory")
 	}
 
-	if !contains(path, "config.yaml") {
+	if !strings.Contains(path, "config.yaml") {
 		t.Error("Config path doesn't end with config.yaml")
 	}
 }
@@ -238,23 +239,152 @@ func TestDetectorConfig_Fields(t *testing.T) {
 	}
 }
 
-// Helper function to check if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 || s[0:len(substr)] == substr || contains(s[1:], substr))
+func TestConfig_EnvironmentVariableOverrides(t *testing.T) {
+	tests := []struct {
+		name     string
+		envVars  map[string]string
+		expected func(*Config) bool
+	}{
+		{
+			name: "VAULT_ADDR override",
+			envVars: map[string]string{
+				"VAULT_ADDR": "https://vault.example.com:8200",
+			},
+			expected: func(cfg *Config) bool {
+				return cfg.Vault.Address == "https://vault.example.com:8200"
+			},
+		},
+		{
+			name: "SSH_SECRET_VAULT_TOKEN_FILE override",
+			envVars: map[string]string{
+				"VAULT_ADDR":                  "http://localhost:8200",
+				"SSH_SECRET_VAULT_TOKEN_FILE": "/custom/token/path",
+			},
+			expected: func(cfg *Config) bool {
+				return cfg.Vault.TokenFile == "/custom/token/path"
+			},
+		},
+		{
+			name: "Multiple environment variables",
+			envVars: map[string]string{
+				"VAULT_ADDR":                  "https://prod-vault.company.com:8200",
+				"SSH_SECRET_VAULT_TOKEN_FILE": "/etc/vault/token",
+			},
+			expected: func(cfg *Config) bool {
+				return cfg.Vault.Address == "https://prod-vault.company.com:8200" &&
+					cfg.Vault.TokenFile == "/etc/vault/token"
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Set environment variables
+			for k, v := range tt.envVars {
+				t.Setenv(k, v)
+			}
+
+			cfg, err := Load()
+			if err != nil {
+				t.Fatalf("Load() error = %v", err)
+			}
+
+			if !tt.expected(cfg) {
+				t.Error("Environment variable override did not work as expected")
+			}
+		})
+	}
 }
 
-// Simple substring check since we're not importing strings package in tests
-func simpleContains(s, substr string) bool {
-	if len(substr) == 0 {
-		return true
+func TestConfig_RequiredEnvironmentVariables(t *testing.T) {
+	// Test that VAULT_ADDR is required
+	t.Setenv("VAULT_ADDR", "") // Unset VAULT_ADDR
+
+	_, err := Load()
+	if err == nil {
+		t.Error("Expected error when VAULT_ADDR is not set")
 	}
-	if len(s) < len(substr) {
-		return false
+
+	if !strings.Contains(err.Error(), "VAULT_ADDR environment variable is required") {
+		t.Errorf("Expected specific error message, got: %v", err)
 	}
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
+}
+
+func TestConfig_ConfigFileLoading(t *testing.T) {
+	// Create a temporary config file
+	tempDir := t.TempDir()
+	configPath := tempDir + "/config.yaml"
+
+	configContent := `version: "1.0"
+storage:
+  provider: "vault"
+  vault:
+    address: "http://test-vault:8200"
+    mount_path: "test-mount"
+vault:
+  address: "http://test-vault:8200"
+  mount_path: "test-mount"
+backup:
+  ssh_dir: "/test/ssh"
+  hostname_prefix: false
+security:
+  algorithm: "AES-256-GCM"
+  iterations: 200000
+logging:
+  level: "debug"
+  format: "json"
+`
+
+	err := os.WriteFile(configPath, []byte(configContent), 0644)
+	if err != nil {
+		t.Fatalf("Failed to write test config file: %v", err)
 	}
-	return false
+
+	// Set environment variables for the test
+	t.Setenv("VAULT_ADDR", "http://localhost:8200")
+
+	// Change to the temp directory so the config file is found
+	originalDir, _ := os.Getwd()
+	defer os.Chdir(originalDir)
+	os.Chdir(tempDir)
+
+	cfg, err := Load()
+	if err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+
+	// Verify config was loaded from file
+	if cfg.Security.Iterations != 200000 {
+		t.Errorf("Expected iterations 200000 from config file, got %d", cfg.Security.Iterations)
+	}
+
+	if cfg.Logging.Level != "debug" {
+		t.Errorf("Expected log level 'debug' from config file, got '%s'", cfg.Logging.Level)
+	}
+
+	if cfg.Logging.Format != "json" {
+		t.Errorf("Expected log format 'json' from config file, got '%s'", cfg.Logging.Format)
+	}
+}
+
+func TestConfig_StorageConfigValidation(t *testing.T) {
+	cfg := Default()
+
+	// Test default storage config
+	if cfg.Storage.Provider != "vault" {
+		t.Errorf("Expected default storage provider 'vault', got '%s'", cfg.Storage.Provider)
+	}
+
+	if cfg.Storage.Vault == nil {
+		t.Error("Expected vault config to be present in storage config")
+	}
+
+	// Test that storage vault config matches main vault config
+	if cfg.Storage.Vault.Address != cfg.Vault.Address {
+		t.Error("Storage vault address should match main vault address")
+	}
+
+	if cfg.Storage.Vault.MountPath != cfg.Vault.MountPath {
+		t.Error("Storage vault mount path should match main vault mount path")
+	}
 }

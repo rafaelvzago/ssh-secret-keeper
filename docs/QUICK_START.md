@@ -1,6 +1,6 @@
-# SSH Vault Keeper - Quick Start Guide
+# SSH Secret Keeper - Quick Start Guide
 
-This guide will get you up and running with SSH Vault Keeper in minutes.
+This guide will get you up and running with SSH Secret Keeper in minutes.
 
 ## Prerequisites
 
@@ -11,7 +11,7 @@ This guide will get you up and running with SSH Vault Keeper in minutes.
 ## Step 1: Build the Application
 
 ```bash
-cd /path/to/your/ssh-vault-keeper
+cd /path/to/your/sshsk
 make build
 ```
 
@@ -24,12 +24,12 @@ make install
 
 ```bash
 # Initialize with your Vault server
-ssh-vault-keeper init --vault-addr https://your-vault-server:8200 --token YOUR_VAULT_TOKEN
+sshsk init --vault-addr https://your-vault-server:8200 --token YOUR_VAULT_TOKEN
 ```
 
 This will:
-- Create configuration at `~/.ssh-vault-keeper/config.yaml`
-- Store your token securely at `~/.ssh-vault-keeper/token`
+- Create configuration at `~/.ssh-secret-keeper/config.yaml`
+- Store your token securely at `~/.ssh-secret-keeper/token`
 - Test Vault connection
 - Create necessary Vault mounts
 
@@ -38,7 +38,7 @@ This will:
 Before backing up, see what SSH files you have:
 
 ```bash
-ssh-vault-keeper analyze --verbose
+sshsk analyze --verbose
 ```
 
 Example output for your SSH directory:
@@ -92,10 +92,10 @@ Example output for your SSH directory:
 
 ```bash
 # Backup everything (you'll be prompted for encryption passphrase)
-ssh-vault-keeper backup
+sshsk backup
 
 # Or with a custom name
-ssh-vault-keeper backup pre-migration
+sshsk backup pre-migration
 ```
 
 The backup process:
@@ -109,45 +109,45 @@ The backup process:
 
 ```bash
 # See what would be restored
-ssh-vault-keeper restore --dry-run
+sshsk restore --dry-run
 
 # Or restore to a test directory
 mkdir ~/test-restore
-ssh-vault-keeper restore --target-dir ~/test-restore
+sshsk restore --target-dir ~/test-restore
 ```
 
 ## Step 6: List and Manage Backups
 
 ```bash
 # List all backups
-ssh-vault-keeper list --detailed
+sshsk list --detailed
 
 # Check system status
-ssh-vault-keeper status
+sshsk status
 ```
 
 ## Common Use Cases
 
 ### Backup Before System Changes
 ```bash
-ssh-vault-keeper backup pre-upgrade-$(date +%Y%m%d)
+sshsk backup pre-upgrade-$(date +%Y%m%d)
 ```
 
 ### Selective Restore
 ```bash
 # Restore only specific files
-ssh-vault-keeper restore --files "github*,gitlab*"
+sshsk restore --files "github*,gitlab*"
 
 # Interactive restore
-ssh-vault-keeper restore --interactive
+sshsk restore --interactive
 ```
 
 ### New Machine Setup
 ```bash
-# On new machine after installing ssh-vault-keeper
-ssh-vault-keeper init --vault-addr https://your-vault-server:8200 --token YOUR_TOKEN
-ssh-vault-keeper list
-ssh-vault-keeper restore
+# On new machine after installing sshsk
+sshsk init --vault-addr https://your-vault-server:8200 --token YOUR_TOKEN
+sshsk list
+sshsk restore
 chmod 700 ~/.ssh
 ssh-add -l
 ```
@@ -155,18 +155,18 @@ ssh-add -l
 ### Backup Automation
 ```bash
 # Add to crontab for weekly backups
-0 2 * * 0 /usr/local/bin/ssh-vault-keeper backup weekly-$(date +\%Y\%m\%d) --passphrase-file ~/.ssh-vault-keeper/backup-passphrase
+0 2 * * 0 /usr/local/bin/sshsk backup weekly-$(date +\%Y\%m\%d)
 ```
 
 ## Configuration Examples
 
-Your configuration at `~/.ssh-vault-keeper/config.yaml`:
+Your configuration at `~/.ssh-secret-keeper/config.yaml`:
 
 ```yaml
 version: "1.0"
 vault:
   address: "https://your-vault-server:8200"
-  token_file: "~/.ssh-vault-keeper/token"
+  token_file: "~/.ssh-secret-keeper/token"
   mount_path: "ssh-backups"
 
 backup:
@@ -186,10 +186,10 @@ security:
 ### Connection Issues
 ```bash
 # Test Vault connection
-ssh-vault-keeper status --vault
+sshsk status --vault
 
 # Common issues:
-# - Token expired: Get new token and update ~/.ssh-vault-keeper/token
+# - Token expired: Get new token and update ~/.ssh-secret-keeper/token
 # - Network issues: Check if your Vault server is accessible
 # - Mount issues: Ensure mount_path exists in Vault
 ```
@@ -202,16 +202,16 @@ chmod 600 ~/.ssh/id_rsa ~/.ssh/*_rsa ~/.ssh/config
 chmod 644 ~/.ssh/*.pub
 
 # Fix token file permissions
-chmod 600 ~/.ssh-vault-keeper/token
+chmod 600 ~/.ssh-secret-keeper/token
 ```
 
 ### Backup Issues
 ```bash
 # Check what would be backed up
-ssh-vault-keeper backup --dry-run
+sshsk backup --dry-run
 
 # Verbose logging for debugging
-ssh-vault-keeper --verbose backup
+sshsk --verbose backup
 ```
 
 ## Security Best Practices
@@ -245,6 +245,6 @@ ssh-vault-keeper --verbose backup
 
 ## Support
 
-- Run `ssh-vault-keeper --help` for command reference
+- Run `sshsk --help` for command reference
 - Check logs for detailed error messages
-- Review configuration with `ssh-vault-keeper status`
+- Review configuration with `sshsk status`

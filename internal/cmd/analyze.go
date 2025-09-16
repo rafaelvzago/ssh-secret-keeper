@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/analyzer"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -195,7 +195,7 @@ func outputHuman(result *analyzer.DetectionResult, verbose bool) error {
 		fmt.Printf("  • %d incomplete key pairs found - consider generating missing parts\n", incompletePairs)
 	}
 
-	fmt.Printf("  • Run 'ssh-vault-keeper backup' to create a secure backup\n")
+	fmt.Printf("  • Run 'sshsk backup' to create a secure backup\n")
 
 	return nil
 }

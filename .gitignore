@@ -4,18 +4,25 @@
 *.dll
 *.so
 *.dylib
+
+# Build directories and artifacts
 bin/
 dist/
+build/
 
 # Test binary, built with `go test -c`
 *.test
 
 # Output of the go coverage tool
 *.out
+*.cov
 coverage.html
+coverage.txt
+coverage.xml
 
 # Go workspace file
 go.work
+go.work.sum
 
 # IDE files
 .vscode/
@@ -23,6 +30,9 @@ go.work
 *.swp
 *.swo
 *~
+
+# Cursor AI IDE files (local development only)
+.cursorrules
 
 # OS generated files
 .DS_Store
@@ -40,10 +50,12 @@ Thumbs.db
 # Configuration and secrets (real ones, not examples)
 config.yaml
 token
-.ssh-vault-keeper/
+.ssh-secret-keeper/
 !configs/
 
-# Build artifacts
+# Build artifacts - project specific
+sshsk
+sshsk-*
 ssh-vault-keeper
 ssh-vault-keeper-*
 
@@ -55,3 +67,21 @@ temp/
 # Local development
 .env
 .env.local
+
+# Container/Docker artifacts
+.dockerignore.local
+
+# Release artifacts (goreleaser)
+dist/
+
+# Test artifacts
+testdata/output/
+*.test.log
+
+# Backup files
+*.bak
+*.backup
+
+# Local configuration overrides
+config.local.yaml
+.config/

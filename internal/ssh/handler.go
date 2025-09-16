@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/analyzer"
-	"github.com/rzago/ssh-vault-keeper/internal/crypto"
+	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
+	"github.com/rzago/ssh-secret-keeper/internal/crypto"
 )
 
 // FileData represents SSH file data with metadata
@@ -246,13 +246,30 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 			}
 		}
 
-		// Write file content with exact permissions
-		if err := os.WriteFile(targetPath, fileData.Content, fileData.Permissions); err != nil {
+		// Determine appropriate permissions for the file
+		permissions := h.getAppropriatePermissions(fileData)
+
+		// Write file content with appropriate permissions
+		if err := os.WriteFile(targetPath, fileData.Content, permissions); err != nil {
 			return fmt.Errorf("failed to write file %s: %w", filename, err)
 		}
 
+		// Ensure permissions are set correctly (os.WriteFile only sets permissions for new files)
+		if err := os.Chmod(targetPath, permissions); err != nil {
+			log.Warn().
+				Err(err).
+				Str("file", filename).
+				Str("permissions", fmt.Sprintf("%04o", permissions&os.ModePerm)).
+				Msg("Failed to set file permissions")
+		} else {
+			log.Debug().
+				Str("file", filename).
+				Str("permissions", fmt.Sprintf("%04o", permissions&os.ModePerm)).
+				Msg("File permissions set successfully")
+		}
+
 		// Verify and warn about critical permission issues
-		if err := h.validateFilePermissions(filename, fileData.Permissions, fileData.KeyInfo); err != nil {
+		if err := h.validateFilePermissions(filename, permissions, fileData.KeyInfo); err != nil {
 			log.Warn().Err(err).Str("file", filename).Msg("Permission validation warning")
 		}
 
@@ -263,9 +280,9 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 
 		log.Info().
 			Str("file", filename).
-			Str("permissions", fileData.Permissions.String()).
-			Str("octal", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
-			Msg("File restored with exact permissions")
+			Str("permissions", permissions.String()).
+			Str("octal", fmt.Sprintf("%04o", permissions&os.ModePerm)).
+			Msg("File restored with appropriate permissions")
 	}
 
 	log.Info().Msg("File restoration completed")
@@ -468,7 +485,7 @@ func (h *Handler) VerifyRestorePermissions(backup *BackupData, targetDir string)
 		}
 
 		actualPerms := stat.Mode().Perm()
-		expectedPerms := fileData.Permissions & os.ModePerm
+		expectedPerms := h.getAppropriatePermissions(fileData) & os.ModePerm
 
 		if actualPerms != expectedPerms {
 			log.Error().
@@ -496,4 +513,28 @@ func (h *Handler) VerifyRestorePermissions(backup *BackupData, targetDir string)
 
 	log.Info().Msg("All file permissions verified successfully")
 	return nil
+}
+
+// getAppropriatePermissions determines the correct permissions for a file
+func (h *Handler) getAppropriatePermissions(fileData *FileData) os.FileMode {
+	originalPerms := fileData.Permissions & os.ModePerm
+
+	// ALWAYS use original permissions - they should never be 0000 if backup was created correctly
+	if originalPerms == 0000 {
+		log.Error().
+			Str("file", fileData.Filename).
+			Str("raw_permissions", fmt.Sprintf("%04o", fileData.Permissions)).
+			Msg("CRITICAL: Original permissions are 0000 - this indicates a backup corruption issue")
+		// This should not happen if backup was created correctly
+		// Return 0600 as a fallback, but log this as an error
+		return 0600
+	}
+
+	// Use original permissions exactly as they were
+	log.Debug().
+		Str("file", fileData.Filename).
+		Str("permissions", fmt.Sprintf("%04o", originalPerms)).
+		Msg("Using original permissions from backup")
+
+	return originalPerms
 }

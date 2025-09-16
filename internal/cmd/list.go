@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -8,8 +9,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/config"
-	"github.com/rzago/ssh-vault-keeper/internal/vault"
+	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/storage"
 	"github.com/spf13/cobra"
 )
 
@@ -60,29 +61,32 @@ func runList(cfg *config.Config, opts listOptions) error {
 		Bool("detailed", opts.detailed).
 		Msg("Listing backups")
 
-	// Connect to Vault
-	vaultClient, err := vault.New(&cfg.Vault)
+	// Create storage provider via factory
+	factory := storage.NewFactory()
+	storageProvider, err := factory.CreateStorage(cfg)
 	if err != nil {
-		return fmt.Errorf("failed to connect to Vault: %w", err)
+		return fmt.Errorf("failed to create storage provider: %w", err)
 	}
-	defer vaultClient.Close()
+	defer storageProvider.Close()
+
+	ctx := context.Background()
 
 	// List backups
-	backupNames, err := vaultClient.ListBackups()
+	backupNames, err := storageProvider.ListBackups(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list backups: %w", err)
 	}
 
 	if len(backupNames) == 0 {
-		fmt.Printf("No backups found in Vault.\n")
-		fmt.Printf("Use 'ssh-vault-keeper backup' to create your first backup.\n")
+		fmt.Printf("No backups found in %s storage.\n", storageProvider.GetProviderType())
+		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
 		return nil
 	}
 
 	// Get detailed information if requested
 	var backups []backupInfo
 	if opts.detailed {
-		metadata, err := vaultClient.GetMetadata()
+		metadata, err := storageProvider.GetMetadata(ctx)
 		if err != nil {
 			log.Warn().Err(err).Msg("Failed to get metadata, using basic info")
 		}
@@ -195,8 +199,8 @@ func outputHumanList(backups []backupInfo, detailed bool) error {
 	}
 
 	fmt.Printf("\n💡 Commands:\n")
-	fmt.Printf("  • ssh-vault-keeper restore <backup-name>  - Restore a specific backup\n")
-	fmt.Printf("  • ssh-vault-keeper restore               - Restore most recent backup\n")
+	fmt.Printf("  • sshsk restore <backup-name>  - Restore a specific backup\n")
+	fmt.Printf("  • sshsk restore               - Restore most recent backup\n")
 
 	return nil
 }

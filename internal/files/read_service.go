@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/rzago/ssh-vault-keeper/internal/analyzer"
-	"github.com/rzago/ssh-vault-keeper/internal/ssh"
+	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
+	"github.com/rzago/ssh-secret-keeper/internal/ssh"
 )
 
 // ReadService provides file reading functionality following SRP

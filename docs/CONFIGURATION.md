@@ -1,10 +1,10 @@
-# SSH Vault Keeper Configuration Guide
+# SSH Secret Keeper Configuration Guide
 
-This guide covers all configuration options for SSH Vault Keeper.
+This guide covers all configuration options for SSH Secret Keeper.
 
 ## Configuration Sources
 
-SSH Vault Keeper loads configuration from multiple sources in this order of precedence:
+SSH Secret Keeper loads configuration from multiple sources in this order of precedence:
 
 1. **Command line flags** (highest priority)
 2. **Environment variables**
@@ -13,12 +13,12 @@ SSH Vault Keeper loads configuration from multiple sources in this order of prec
 
 ## Configuration File
 
-Default location: `~/.ssh-vault-keeper/config.yaml`
+Default location: `~/.sshsk/config.yaml`
 
 ### Complete Configuration Example
 
 ```yaml
-# SSH Vault Keeper Configuration
+# SSH Secret Keeper Configuration
 version: "1.0"
 
 # Vault connection settings
@@ -27,7 +27,7 @@ vault:
   address: "https://vault.company.com:8200"
 
   # Path to Vault token file
-  token_file: "~/.ssh-vault-keeper/token"
+  token_file: "~/.sshsk/token"
 
   # KV v2 mount path in Vault for SSH backups
   mount_path: "ssh-backups"
@@ -158,62 +158,72 @@ detectors:
 
 ## Environment Variables
 
-All configuration options can be overridden with environment variables using the prefix `SSH_VAULT_` and replacing dots with underscores:
+All configuration options can be overridden with environment variables using the prefix `SSH_SECRET_` and replacing dots with underscores:
 
 ### Vault Configuration
 ```bash
 # Vault server address (standard HashiCorp Vault environment variable)
 export VAULT_ADDR="https://vault.company.com:8200"
 
-# Alternative: SSH Vault Keeper specific environment variable
-export SSH_VAULT_VAULT_ADDRESS="https://vault.company.com:8200"
+# Alternative: SSH Secret Keeper specific environment variable
+export SSH_SECRET_VAULT_ADDRESS="https://vault.company.com:8200"
 
 # Token file path
-export SSH_VAULT_VAULT_TOKEN_FILE="/path/to/vault/token"
+export SSH_SECRET_VAULT_TOKEN_FILE="/path/to/vault/token"
 
 # Mount path in Vault
-export SSH_VAULT_VAULT_MOUNT_PATH="ssh-backups"
+export SSH_SECRET_VAULT_MOUNT_PATH="ssh-backups"
 
 # Vault namespace (Enterprise)
-export SSH_VAULT_VAULT_NAMESPACE="team-namespace"
+export SSH_SECRET_VAULT_NAMESPACE="team-namespace"
 
 # Skip TLS verification (not recommended)
-export SSH_VAULT_VAULT_TLS_SKIP_VERIFY="false"
+export SSH_SECRET_VAULT_TLS_SKIP_VERIFY="false"
 ```
 
-**Note**: The `VAULT_ADDR` environment variable is **required** and takes precedence over the configuration file and `SSH_VAULT_VAULT_ADDRESS` environment variable, following HashiCorp Vault's standard convention. The application will fail to start if `VAULT_ADDR` is not set.
+**Note**: The `VAULT_ADDR` environment variable is **required** and takes precedence over the configuration file and `SSH_SECRET_VAULT_ADDRESS` environment variable, following HashiCorp Vault's standard convention. The application will fail to start if `VAULT_ADDR` is not set.
+
+### Authentication Priority
+
+The application uses the following priority for Vault authentication:
+
+1. **VAULT_TOKEN environment variable** (highest priority)
+2. **Token file** (as specified in configuration or SSH_SECRET_VAULT_TOKEN_FILE)
+3. **Error** (if neither is available)
+
+For enhanced security, especially in containerized or CI/CD environments, using `VAULT_TOKEN` environment variable is recommended over token files.
 
 ### Backup Configuration
 ```bash
 # SSH directory to backup
-export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh/path"
+export SSH_SECRET_BACKUP_SSH_DIR="/custom/ssh/path"
 
 # Include hostname in path
-export SSH_VAULT_BACKUP_HOSTNAME_PREFIX="true"
+export SSH_SECRET_BACKUP_HOSTNAME_PREFIX="true"
 
 # Number of backups to keep
-export SSH_VAULT_BACKUP_RETENTION_COUNT="20"
+export SSH_SECRET_BACKUP_RETENTION_COUNT="20"
 ```
 
 ### Security Configuration
 ```bash
 # PBKDF2 iterations
-export SSH_VAULT_SECURITY_ITERATIONS="150000"
+export SSH_SECRET_SECURITY_ITERATIONS="150000"
 
 # Per-file encryption
-export SSH_VAULT_SECURITY_PER_FILE_ENCRYPT="true"
+export SSH_SECRET_SECURITY_PER_FILE_ENCRYPT="true"
 
 # Integrity verification
-export SSH_VAULT_SECURITY_VERIFY_INTEGRITY="true"
+export SSH_SECRET_SECURITY_VERIFY_INTEGRITY="true"
 ```
 
 ### Logging Configuration
 ```bash
 # Log level
-export SSH_VAULT_LOGGING_LEVEL="debug"
+export SSH_SECRET_LOGGING_LEVEL="debug"
 
 # Log format
-export SSH_VAULT_LOGGING_FORMAT="json"
+export SSH_SECRET_LOGGING_FORMAT="json"
 ```
 
 ## Command Line Flags
@@ -248,7 +258,7 @@ vault:
 ```yaml
 vault:
   address: "https://vault.company.com:8200"
-  token_file: "~/.ssh-vault-keeper/token"
+  token_file: "~/.sshsk/token"
   mount_path: "ssh-backups"
   namespace: "team/ssh"  # Enterprise feature
   tls_skip_verify: false
@@ -258,7 +268,7 @@ vault:
 ```yaml
 vault:
   address: "https://vault-cluster.company.com:8200"
-  token_file: "/etc/ssh-vault-keeper/token"
+  token_file: "/etc/sshsk/token"
   mount_path: "ssh-backups"
 ```
 
@@ -267,26 +277,26 @@ vault:
 #### Development Token
 ```bash
 # Create a dev token (short-lived)
-vault write auth/token/create policies=ssh-vault-keeper ttl=24h
+vault write auth/token/create policies=sshsk ttl=24h
 
 # Save token
-echo "hvs.ABCD..." > ~/.ssh-vault-keeper/token
-chmod 600 ~/.ssh-vault-keeper/token
+echo "hvs.ABCD..." > ~/.sshsk/token
+chmod 600 ~/.sshsk/token
 ```
 
 #### Production Token
 ```bash
 # Create a renewable token
 vault write auth/token/create \
-  policies=ssh-vault-keeper \
+  policies=sshsk \
   ttl=30d \
   renewable=true \
   explicit_max_ttl=90d
 
 # Save token with proper permissions
-echo "hvs.PROD..." > ~/.ssh-vault-keeper/token
-chmod 600 ~/.ssh-vault-keeper/token
-chown $(whoami):$(whoami) ~/.ssh-vault-keeper/token
+echo "hvs.PROD..." > ~/.sshsk/token
+chmod 600 ~/.sshsk/token
+chown $(whoami):$(whoami) ~/.sshsk/token
 ```
 
 ## SSH Directory Configuration
@@ -456,13 +466,13 @@ detectors:
 ### Debug Configuration Loading
 ```bash
 # Show effective configuration
-ssh-vault-keeper status --verbose
+sshsk status --verbose
 
 # Test with custom config
-ssh-vault-keeper --config /path/to/config.yaml status
+sshsk --config /path/to/config.yaml status
 
 # Override with environment
-SSH_VAULT_LOGGING_LEVEL=debug ssh-vault-keeper status
+SSH_SECRET_LOGGING_LEVEL=debug sshsk status
 ```
 
 ### Common Issues
@@ -481,7 +491,7 @@ vault:
 #### Permission Issues
 ```bash
 # Fix token file permissions
-chmod 600 ~/.ssh-vault-keeper/token
+chmod 600 ~/.sshsk/token
 
 # Fix SSH directory permissions
 chmod 700 ~/.ssh
@@ -493,9 +503,9 @@ chmod 644 ~/.ssh/*.pub
 ```yaml
 # Use absolute paths to avoid issues
 vault:
-  token_file: "/home/user/.ssh-vault-keeper/token"
+  token_file: "/home/user/.sshsk/token"
 backup:
   ssh_dir: "/home/user/.ssh"
 ```
 
-This configuration guide should help you customize SSH Vault Keeper for your specific environment and security requirements.
+This configuration guide should help you customize SSH Secret Keeper for your specific environment and security requirements.

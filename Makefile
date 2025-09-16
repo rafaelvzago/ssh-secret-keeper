@@ -1,21 +1,21 @@
-# SSH Vault Keeper Makefile
+# SSH Secret Keeper Makefile
 
 # Build information
-VERSION ?= 1.1.0
+VERSION ?= 1.2.0
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 GIT_HASH := $(shell git rev-parse --short HEAD)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 GIT_TAG := $(shell git describe --tags --exact-match 2>/dev/null || echo "")
 
 # Go build flags
-LDFLAGS := -ldflags "-X 'github.com/rzago/ssh-vault-keeper/internal/cmd.Version=$(VERSION)' \
-                     -X 'github.com/rzago/ssh-vault-keeper/internal/cmd.BuildTime=$(BUILD_TIME)' \
-                     -X 'github.com/rzago/ssh-vault-keeper/internal/cmd.GitHash=$(GIT_HASH)'"
+LDFLAGS := -ldflags "-X 'github.com/rzago/ssh-secret-keeper/internal/cmd.Version=$(VERSION)' \
+                     -X 'github.com/rzago/ssh-secret-keeper/internal/cmd.BuildTime=$(BUILD_TIME)' \
+                     -X 'github.com/rzago/ssh-secret-keeper/internal/cmd.GitHash=$(GIT_HASH)'"
 
 # Build settings
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
-BINARY_NAME := ssh-vault-keeper
+BINARY_NAME := sshsk
 BUILD_DIR := bin
 
 # Default target
@@ -30,10 +30,15 @@ build:
 	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) cmd/main.go
 	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME)"
 
-# Build for all platforms
+# Build for all platforms including container images
 .PHONY: build-all
-build-all:
-	@echo "Building for all platforms..."
+build-all: build-binaries container-build-all
+	@echo "All builds complete (binaries + all container images)"
+
+# Build binaries for all platforms
+.PHONY: build-binaries
+build-binaries:
+	@echo "Building binaries for all platforms..."
 	@mkdir -p $(BUILD_DIR)
 	GOOS=linux GOARCH=amd64 make build
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64
@@ -45,7 +50,7 @@ build-all:
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64
 	GOOS=windows GOARCH=amd64 make build
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe
-	@echo "All builds complete"
+	@echo "All binary builds complete"
 
 # Run
 .PHONY: run
@@ -56,9 +61,35 @@ run: build
 # Test
 .PHONY: test
 test:
-	@echo "Running tests..."
-	go test -v -race ./...
+	@echo "Running tests with coverage..."
+	go test -v -race -coverprofile=coverage.out ./...
 	@echo "Tests passed"
+
+# Test coverage report
+.PHONY: test-coverage
+test-coverage: test
+	@echo "Generating coverage report..."
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
+
+# Test coverage percentage check
+.PHONY: test-coverage-check
+test-coverage-check: test
+	@echo "Checking coverage percentage..."
+	@go tool cover -func=coverage.out | grep total | awk '{print "Total coverage: " $$3}'
+	@go tool cover -func=coverage.out | grep total | awk '{coverage=$$3; gsub(/%/, "", coverage); if(coverage < 85) {print "❌ Coverage below 85% target: " coverage "%"; exit 1} else {print "✅ Coverage meets 85% target: " coverage "%"}}'
+
+# Test with short flag for quick feedback
+.PHONY: test-short
+test-short:
+	@echo "Running short tests..."
+	go test -short -race ./...
+
+# Benchmark tests
+.PHONY: test-bench
+test-bench:
+	@echo "Running benchmark tests..."
+	go test -bench=. -benchmem ./...
 
 
 # Generate
@@ -104,6 +135,31 @@ container-build:
 		exit 1; \
 	fi
 
+# Build container images with both Docker and Podman
+.PHONY: container-build-all
+container-build-all:
+	@echo "Building container images with both Docker and Podman..."
+	@DOCKER_AVAILABLE=false; PODMAN_AVAILABLE=false; \
+	if command -v docker > /dev/null 2>&1; then DOCKER_AVAILABLE=true; fi; \
+	if command -v podman > /dev/null 2>&1; then PODMAN_AVAILABLE=true; fi; \
+	if [ "$$DOCKER_AVAILABLE" = "false" ] && [ "$$PODMAN_AVAILABLE" = "false" ]; then \
+		echo "Neither Docker nor Podman found. Please install at least one."; \
+		exit 1; \
+	fi; \
+	if [ "$$DOCKER_AVAILABLE" = "true" ]; then \
+		echo "Building Docker images..."; \
+		$(MAKE) docker-build; \
+	else \
+		echo "Docker not available, skipping Docker build"; \
+	fi; \
+	if [ "$$PODMAN_AVAILABLE" = "true" ]; then \
+		echo "Building Podman images..."; \
+		$(MAKE) podman-build; \
+	else \
+		echo "Podman not available, skipping Podman build"; \
+	fi; \
+	echo "Container build complete (Docker: $$DOCKER_AVAILABLE, Podman: $$PODMAN_AVAILABLE)"
+
 # Build container image based on current git branch
 .PHONY: container-build-branch
 container-build-branch:
@@ -126,10 +182,10 @@ docker-build:
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME=$(BUILD_TIME) \
 		--build-arg GIT_HASH=$(GIT_HASH) \
-		-t ssh-vault-keeper:$(VERSION) \
-		-t ssh-vault-keeper:latest \
+		-t ssh-secret-keeper:$(VERSION) \
+		-t ssh-secret-keeper:latest \
 		.
-	@echo "Docker images built: ssh-vault-keeper:$(VERSION), ssh-vault-keeper:latest"
+	@echo "Docker images built: ssh-secret-keeper:$(VERSION), ssh-secret-keeper:latest"
 
 .PHONY: docker-build-branch
 docker-build-branch:
@@ -139,11 +195,11 @@ docker-build-branch:
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME=$(BUILD_TIME) \
 		--build-arg GIT_HASH=$(GIT_HASH) \
-		-t ssh-vault-keeper:$(BRANCH_TAG) \
-		-t ssh-vault-keeper:$(BRANCH_TAG)-$(GIT_HASH) \
-		$(if $(filter main master,$(GIT_BRANCH)),-t ssh-vault-keeper:latest) \
+		-t ssh-secret-keeper:$(BRANCH_TAG) \
+		-t ssh-secret-keeper:$(BRANCH_TAG)-$(GIT_HASH) \
+		$(if $(filter main master,$(GIT_BRANCH)),-t ssh-secret-keeper:latest) \
 		.
-	@echo "Docker images built: ssh-vault-keeper:$(BRANCH_TAG), ssh-vault-keeper:$(BRANCH_TAG)-$(GIT_HASH)"
+	@echo "Docker images built: ssh-secret-keeper:$(BRANCH_TAG), ssh-secret-keeper:$(BRANCH_TAG)-$(GIT_HASH)"
 
 .PHONY: podman-build
 podman-build:
@@ -152,10 +208,10 @@ podman-build:
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME=$(BUILD_TIME) \
 		--build-arg GIT_HASH=$(GIT_HASH) \
-		-t ssh-vault-keeper:$(VERSION) \
-		-t ssh-vault-keeper:latest \
+		-t ssh-secret-keeper:$(VERSION) \
+		-t ssh-secret-keeper:latest \
 		.
-	@echo "Podman images built: ssh-vault-keeper:$(VERSION), ssh-vault-keeper:latest"
+	@echo "Podman images built: ssh-secret-keeper:$(VERSION), ssh-secret-keeper:latest"
 
 .PHONY: podman-build-branch
 podman-build-branch:
@@ -165,11 +221,11 @@ podman-build-branch:
 		--build-arg VERSION=$(VERSION) \
 		--build-arg BUILD_TIME=$(BUILD_TIME) \
 		--build-arg GIT_HASH=$(GIT_HASH) \
-		-t ssh-vault-keeper:$(BRANCH_TAG) \
-		-t ssh-vault-keeper:$(BRANCH_TAG)-$(GIT_HASH) \
-		$(if $(filter main master,$(GIT_BRANCH)),-t ssh-vault-keeper:latest) \
+		-t ssh-secret-keeper:$(BRANCH_TAG) \
+		-t ssh-secret-keeper:$(BRANCH_TAG)-$(GIT_HASH) \
+		$(if $(filter main master,$(GIT_BRANCH)),-t ssh-secret-keeper:latest) \
 		.
-	@echo "Podman images built: ssh-vault-keeper:$(BRANCH_TAG), ssh-vault-keeper:$(BRANCH_TAG)-$(GIT_HASH)"
+	@echo "Podman images built: ssh-secret-keeper:$(BRANCH_TAG), ssh-secret-keeper:$(BRANCH_TAG)-$(GIT_HASH)"
 
 # Legacy docker target for backward compatibility
 .PHONY: docker
@@ -214,15 +270,17 @@ release-snapshot:
 # Show help
 .PHONY: help
 help:
-	@echo "SSH Vault Keeper - Available Commands"
+	@echo "SSH Secret Keeper - Available Commands"
 	@echo "===================================="
 	@echo ""
 	@echo "Build & Install:"
 	@echo "  build              Build for current platform"
-	@echo "  build-all          Build for all platforms"
+	@echo "  build-all          Build for all platforms + all container images"
+	@echo "  build-binaries     Build binaries for all platforms only"
 	@echo "  install            Install to /usr/local/bin"
 	@echo "  uninstall          Remove from /usr/local/bin"
 	@echo "  container-build    Build container image (auto-detect Docker/Podman)"
+	@echo "  container-build-all Build container images with both Docker and Podman"
 	@echo "  container-build-branch Build container image tagged with current branch"
 	@echo "  docker-build       Build Docker images specifically"
 	@echo "  docker-build-branch Build Docker images tagged with current branch"
@@ -231,7 +289,11 @@ help:
 	@echo "  docker             Build Docker images (legacy alias)"
 	@echo ""
 	@echo "Testing:"
-	@echo "  test               Run unit tests"
+	@echo "  test               Run unit tests with coverage"
+	@echo "  test-coverage      Generate HTML coverage report"
+	@echo "  test-coverage-check Verify 85%+ coverage target"
+	@echo "  test-short         Run tests with short flag"
+	@echo "  test-bench         Run benchmark tests"
 	@echo ""
 	@echo "Release:"
 	@echo "  tag-release        Create git tag for release (use VERSION=x.y.z)"
@@ -246,6 +308,10 @@ help:
 	@echo ""
 	@echo "Examples:"
 	@echo "  make build VERSION=1.0.1"
+	@echo "  make build-all                 # Builds binaries + all container images"
+	@echo "  make build-binaries            # Builds only binaries"
+	@echo "  make container-build           # Auto-detect and build with one runtime"
+	@echo "  make container-build-all       # Build with both Docker and Podman"
 	@echo "  make container-build-branch"
 	@echo "  make tag-release VERSION=1.2.0"
 	@echo "  make release-with-images VERSION=1.2.0"
