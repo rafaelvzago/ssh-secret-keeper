@@ -801,7 +801,7 @@ make test
 ## Project Statistics
 
 - Language: Go 1.21+
-- Lines of Code: ~4,300+ 
+- Lines of Code: ~4,300+
 - Test Coverage: 85%+ (comprehensive test suite)
 - Dependencies: Minimal, security-focused
 - Performance: <100ms for typical SSH directories
@@ -991,7 +991,7 @@ sshsk [command] --verbose
 If you encounter issues:
 
 1. **Check logs**: Run with `--verbose` flag
-2. **Verify environment**: Use `sshsk status` command  
+2. **Verify environment**: Use `sshsk status` command
 3. **Test connectivity**: Ensure Vault is accessible
 4. **Check permissions**: Verify SSH directory structure
 5. **Review documentation**: Check command examples above
@@ -1021,7 +1021,7 @@ If you encounter issues:
 ## What's Next
 
 - Key rotation automation
-- Web UI for team management  
+- Web UI for team management
 - Plugin system for custom key types
 - Multi-vault redundancy
 - Compliance reporting (SOC2, PCI)
