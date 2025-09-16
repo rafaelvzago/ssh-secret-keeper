@@ -92,8 +92,8 @@ func TestGetConfigPath(t *testing.T) {
 		t.Error("GetConfigPath() returned empty string")
 	}
 
-	if !strings.Contains(path, ".ssh-vault-keeper") {
-		t.Error("Config path doesn't contain .ssh-vault-keeper directory")
+	if !strings.Contains(path, ".ssh-secret-keeper") {
+		t.Error("Config path doesn't contain .ssh-secret-keeper directory")
 	}
 
 	if !strings.Contains(path, "config.yaml") {

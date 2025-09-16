@@ -132,7 +132,7 @@ func (s *RestoreService) ValidateRestoreTarget(targetDir string) error {
 	}
 
 	// Test write permission by creating a temp file
-	testFile := filepath.Join(parentDir, ".ssh-vault-keeper-test")
+	testFile := filepath.Join(parentDir, ".ssh-secret-keeper-test")
 	f, err := os.Create(testFile)
 	if err != nil {
 		return fmt.Errorf("cannot write to parent directory: %w", err)

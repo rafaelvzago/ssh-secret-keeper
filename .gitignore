@@ -50,7 +50,7 @@ Thumbs.db
 # Configuration and secrets (real ones, not examples)
 config.yaml
 token
-.ssh-vault-keeper/
+.ssh-secret-keeper/
 !configs/
 
 # Build artifacts - project specific

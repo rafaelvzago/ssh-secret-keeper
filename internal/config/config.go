@@ -70,7 +70,7 @@ func Default() *Config {
 	// Create a single vault configuration to avoid duplication
 	vaultConfig := &VaultConfig{
 		Address:       "http://localhost:8200",
-		TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
+		TokenFile:     filepath.Join(homeDir, ".ssh-secret-keeper", "token"),
 		MountPath:     "ssh-backups",
 		TLSSkipVerify: false,
 	}
@@ -133,7 +133,7 @@ func Load() (*Config, error) {
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.AddConfigPath("$HOME/.ssh-vault-keeper")
+	viper.AddConfigPath("$HOME/.ssh-secret-keeper")
 	viper.AddConfigPath("/etc/ssh-vault-keeper")
 
 	// Environment variables
@@ -195,5 +195,5 @@ func (c *Config) Save(path string) error {
 // GetConfigPath returns the default config file path
 func GetConfigPath() string {
 	homeDir, _ := os.UserHomeDir()
-	return filepath.Join(homeDir, ".ssh-vault-keeper", "config.yaml")
+	return filepath.Join(homeDir, ".ssh-secret-keeper", "config.yaml")
 }
