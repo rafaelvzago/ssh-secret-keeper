@@ -1,7 +1,7 @@
 # SSH Secret Keeper Makefile
 
 # Build information
-VERSION ?= 1.1.0
+VERSION ?= 1.2.0
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 GIT_HASH := $(shell git rev-parse --short HEAD)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)

@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2025-09-16
+
+### Added
+- **Storage Abstraction Layer**: New pluggable storage provider architecture
+- **Multi-Provider Support**: Framework for Vault, 1Password, and S3 storage backends
+- **Storage Factory**: Centralized provider creation and management
+- **Enhanced Configuration**: Storage provider selection with backward compatibility
+- **Provider Interface**: Standardized StorageProvider interface for all backends
+
 ### Changed
+- **Architecture**: Refactored to use storage abstraction layer throughout
+- **Configuration**: Enhanced config system with storage provider options
+- **CLI Integration**: All commands now use provider-agnostic storage interface
+- **Error Handling**: Improved provider-specific error messages and handling
 - **Updated .gitignore**: Enhanced gitignore patterns to better align with project build system
   - Added coverage file patterns (*.cov, coverage.txt, coverage.xml)
   - Added go.work.sum pattern
@@ -16,6 +29,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added test artifacts and backup file patterns
   - Added local configuration override patterns
   - Better organized sections with clearer comments
+
+### Technical
+- **Backward Compatibility**: Maintained - existing configurations continue to work
+- **Default Behavior**: Automatically defaults to vault provider if not specified
+- **Interface Design**: Clean separation between storage logic and application logic
+- **Future Ready**: Architecture prepared for additional storage provider implementations
 
 ## [1.1.0] - 2025-09-15
 
