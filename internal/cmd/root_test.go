@@ -116,14 +116,18 @@ func TestVersionCommand(t *testing.T) {
 	cmd.SetErr(buf)
 
 	if cmd.Run != nil {
-		cmd.Run(cmd, []string{})
+		// Execute the command to capture output
+		err := cmd.Execute()
+		if err != nil {
+			t.Fatalf("Version command execution failed: %v", err)
+		}
 	} else {
 		t.Error("Version command should have a Run function")
 	}
 
 	output := buf.String()
 	if !strings.Contains(output, "SSH Secret Keeper") {
-		t.Error("Version output doesn't contain project name")
+		t.Errorf("Version output doesn't contain project name. Got: %q", output)
 	}
 }
 

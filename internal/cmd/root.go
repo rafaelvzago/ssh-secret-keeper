@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/rs/zerolog/log"
@@ -60,9 +59,9 @@ func newVersionCommand() *cobra.Command {
 		Use:   "version",
 		Short: "Show version information",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Printf("SSH Secret Keeper %s\n", Version)
-			fmt.Printf("Built at: %s\n", BuildTime)
-			fmt.Printf("Git hash: %s\n", GitHash)
+			cmd.Printf("SSH Secret Keeper %s\n", Version)
+			cmd.Printf("Built at: %s\n", BuildTime)
+			cmd.Printf("Git hash: %s\n", GitHash)
 		},
 	}
 }
