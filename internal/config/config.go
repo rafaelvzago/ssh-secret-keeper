@@ -67,23 +67,21 @@ type DetectorConfig struct {
 func Default() *Config {
 	homeDir, _ := os.UserHomeDir()
 
+	// Create a single vault configuration to avoid duplication
+	vaultConfig := &VaultConfig{
+		Address:       "http://localhost:8200",
+		TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
+		MountPath:     "ssh-backups",
+		TLSSkipVerify: false,
+	}
+
 	return &Config{
 		Version: "1.0",
 		Storage: StorageConfig{
 			Provider: "vault", // Default to vault for backward compatibility
-			Vault: &VaultConfig{
-				Address:       "http://localhost:8200",
-				TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
-				MountPath:     "ssh-backups",
-				TLSSkipVerify: false,
-			},
+			Vault:    vaultConfig,
 		},
-		Vault: VaultConfig{
-			Address:       "http://localhost:8200", // Default Vault server address - override with VAULT_ADDR env var
-			TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
-			MountPath:     "ssh-backups",
-			TLSSkipVerify: false,
-		},
+		Vault: *vaultConfig, // Copy for backward compatibility
 		Backup: BackupConfig{
 			SSHDir:         filepath.Join(homeDir, ".ssh"),
 			HostnamePrefix: true,
