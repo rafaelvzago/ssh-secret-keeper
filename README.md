@@ -41,7 +41,8 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 ### Option 1: Download Release Binary
 ```bash
 # Download latest release (replace VERSION and ARCH)
-curl -L https://github.com/rzago/ssh-secret-keeper/releases/latest/download/sshsk-linux-amd64 -o sshsk
+curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-vault-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
+tar -xzf sshsk.tar.gz
 chmod +x sshsk
 sudo mv sshsk /usr/local/bin/
 ```
