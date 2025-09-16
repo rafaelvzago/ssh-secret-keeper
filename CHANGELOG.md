@@ -1,9 +1,21 @@
 # Changelog
 
-All notable changes to SSH Vault Keeper will be documented in this file.
+All notable changes to SSH Secret Keeper will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Changed
+- **Updated .gitignore**: Enhanced gitignore patterns to better align with project build system
+  - Added coverage file patterns (*.cov, coverage.txt, coverage.xml)
+  - Added go.work.sum pattern
+  - Added project-specific binary name patterns (sshsk, sshsk-*)
+  - Added .cursorrules exclusion for local Cursor AI IDE configuration
+  - Added test artifacts and backup file patterns
+  - Added local configuration override patterns
+  - Better organized sections with clearer comments
 
 ## [1.1.0] - 2025-09-15
 
@@ -138,8 +150,8 @@ Upgrade instructions will be provided with each release.
 ## Support
 
 For questions, issues, or feature requests:
-- **Issues**: [GitHub Issues](https://github.com/rzago/ssh-vault-keeper/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
+- **Issues**: [GitHub Issues](https://github.com/rzago/sshsk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/rzago/sshsk/discussions)
 - **Security**: Please report security issues via GitHub Issues with the "security" label
 
 ## Contributors
