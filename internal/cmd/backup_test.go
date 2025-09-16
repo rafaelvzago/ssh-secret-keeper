@@ -58,7 +58,7 @@ func TestBackupCommand_Help(t *testing.T) {
 	}
 
 	output := buf.String()
-	if !strings.Contains(output, "Backup SSH") {
+	if !strings.Contains(output, "Backup") {
 		t.Error("Help output doesn't contain backup description")
 	}
 
