@@ -61,9 +61,35 @@ run: build
 # Test
 .PHONY: test
 test:
-	@echo "Running tests..."
-	go test -v -race ./...
+	@echo "Running tests with coverage..."
+	go test -v -race -coverprofile=coverage.out ./...
 	@echo "Tests passed"
+
+# Test coverage report
+.PHONY: test-coverage
+test-coverage: test
+	@echo "Generating coverage report..."
+	go tool cover -html=coverage.out -o coverage.html
+	@echo "Coverage report generated: coverage.html"
+
+# Test coverage percentage check
+.PHONY: test-coverage-check
+test-coverage-check: test
+	@echo "Checking coverage percentage..."
+	@go tool cover -func=coverage.out | grep total | awk '{print "Total coverage: " $$3}'
+	@go tool cover -func=coverage.out | grep total | awk '{coverage=$$3; gsub(/%/, "", coverage); if(coverage < 85) {print "❌ Coverage below 85% target: " coverage "%"; exit 1} else {print "✅ Coverage meets 85% target: " coverage "%"}}'
+
+# Test with short flag for quick feedback
+.PHONY: test-short
+test-short:
+	@echo "Running short tests..."
+	go test -short -race ./...
+
+# Benchmark tests
+.PHONY: test-bench
+test-bench:
+	@echo "Running benchmark tests..."
+	go test -bench=. -benchmem ./...
 
 
 # Generate
@@ -263,7 +289,11 @@ help:
 	@echo "  docker             Build Docker images (legacy alias)"
 	@echo ""
 	@echo "Testing:"
-	@echo "  test               Run unit tests"
+	@echo "  test               Run unit tests with coverage"
+	@echo "  test-coverage      Generate HTML coverage report"
+	@echo "  test-coverage-check Verify 85%+ coverage target"
+	@echo "  test-short         Run tests with short flag"
+	@echo "  test-bench         Run benchmark tests"
 	@echo ""
 	@echo "Release:"
 	@echo "  tag-release        Create git tag for release (use VERSION=x.y.z)"
