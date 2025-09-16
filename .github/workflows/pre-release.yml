@@ -1,0 +1,143 @@
+name: Pre-Release Build
+
+on:
+  push:
+    tags:
+      - 'v*.*.*-rc*'
+      - 'v*.*.*-beta*'
+      - 'v*.*.*-alpha*'
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  pre-release-build:
+    name: Pre-Release Build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Extract version from tag
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: make test
+
+    - name: Build all binaries with git tag version
+      run: make build-binaries VERSION=${{ steps.get_version.outputs.version }}
+
+    - name: Create release archives
+      run: |
+        mkdir -p releases
+        cd bin
+
+        # Create tar.gz for Unix systems
+        for binary in sshsk-linux-* sshsk-darwin-*; do
+          if [ -f "$binary" ]; then
+            platform=$(echo $binary | sed 's/sshsk-//' | sed 's/\.exe$//')
+            tar -czf ../releases/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-${platform}.tar.gz \
+              $binary ../README.md ../LICENSE ../CHANGELOG.md ../configs/config.example.yaml
+          fi
+        done
+
+        # Create zip for Windows
+        for binary in sshsk-windows-*.exe; do
+          if [ -f "$binary" ]; then
+            platform=$(echo $binary | sed 's/sshsk-//' | sed 's/\.exe$//')
+            zip -j ../releases/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-${platform}.zip \
+              $binary ../README.md ../LICENSE ../CHANGELOG.md ../configs/config.example.yaml
+          fi
+        done
+
+    - name: Generate checksums
+      run: |
+        cd releases
+        sha256sum * > checksums.txt
+
+    - name: Upload pre-release artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: pre-release-${{ steps.get_version.outputs.version }}
+        path: releases/
+        retention-days: 90
+
+    - name: Create GitHub pre-release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ steps.get_version.outputs.tag }}
+        name: SSH Secret Keeper ${{ steps.get_version.outputs.tag }}
+        prerelease: true
+        files: releases/*
+        body: |
+          ## SSH Secret Keeper ${{ steps.get_version.outputs.tag }}
+
+          This is a pre-release version for testing purposes.
+
+          ### Installation
+
+          Download the appropriate binary for your platform:
+
+          ```bash
+          # Linux amd64
+          curl -L https://github.com/rzago/ssh-vault-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -o sshsk.tar.gz
+          tar -xzf sshsk.tar.gz
+          sudo mv sshsk /usr/local/bin/
+
+          # macOS amd64
+          curl -L https://github.com/rzago/ssh-vault-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-darwin-amd64.tar.gz -o sshsk.tar.gz
+          tar -xzf sshsk.tar.gz
+          sudo mv sshsk /usr/local/bin/
+
+          # Windows amd64
+          curl -L https://github.com/rzago/ssh-vault-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-windows-amd64.zip -o sshsk.zip
+          unzip sshsk.zip
+          # Move sshsk.exe to your PATH
+          ```
+
+          ### Changes
+
+          - Pre-release build from commit ${{ github.sha }}
+          - Built with Go ${{ env.GO_VERSION }}
+          - Version: ${{ steps.get_version.outputs.version }}
+
+          **Note**: This is a pre-release version. Use with caution in production environments.
+
+    - name: Generate pre-release summary
+      run: |
+        echo "## 🧪 Pre-Release ${{ steps.get_version.outputs.tag }} Built" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Pre-release created from git tag**: \`${{ steps.get_version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Generated Artifacts:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Binaries**: Linux, macOS, Windows (amd64 + arm64)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Archives**: tar.gz (Unix) + zip (Windows)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Checksums**: SHA256 verification" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔗 Links:" >> $GITHUB_STEP_SUMMARY
+        echo "- [📋 Pre-Release Page](https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.tag }})" >> $GITHUB_STEP_SUMMARY
