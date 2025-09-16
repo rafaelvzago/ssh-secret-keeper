@@ -134,7 +134,7 @@ func Load() (*Config, error) {
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
 	viper.AddConfigPath("$HOME/.ssh-secret-keeper")
-	viper.AddConfigPath("/etc/ssh-vault-keeper")
+	viper.AddConfigPath("/etc/ssh-secret-keeper")
 
 	// Environment variables
 	viper.SetEnvPrefix("SSH_VAULT")
