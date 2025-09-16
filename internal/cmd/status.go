@@ -212,7 +212,7 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 			if storageProvider, err := factory.CreateStorage(cfg); err == nil {
 				ctx := context.Background()
 				if backups, err := storageProvider.ListBackups(ctx); err == nil && len(backups) == 0 {
-					fmt.Printf("  • No backups found - run 'ssh-vault-keeper backup' to create one\n")
+					fmt.Printf("  • No backups found - run 'sshsk backup' to create one\n")
 				}
 				storageProvider.Close()
 			}
@@ -226,10 +226,10 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 		}
 	}
 
-	fmt.Printf("  • Run 'ssh-vault-keeper analyze' to see detailed SSH file analysis\n")
-	fmt.Printf("  • Run 'ssh-vault-keeper list' to see available backups\n")
+	fmt.Printf("  • Run 'sshsk analyze' to see detailed SSH file analysis\n")
+	fmt.Printf("  • Run 'sshsk list' to see available backups\n")
 	if opts.showChecksums {
-		fmt.Printf("  • Use 'ssh-vault-keeper status --checksums' to view MD5 checksums\n")
+		fmt.Printf("  • Use 'sshsk status --checksums' to view MD5 checksums\n")
 	}
 
 	return nil

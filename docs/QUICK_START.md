@@ -28,8 +28,8 @@ sshsk init --vault-addr https://your-vault-server:8200 --token YOUR_VAULT_TOKEN
 ```
 
 This will:
-- Create configuration at `~/.sshsk/config.yaml`
-- Store your token securely at `~/.sshsk/token`
+- Create configuration at `~/.ssh-secret-keeper/config.yaml`
+- Store your token securely at `~/.ssh-secret-keeper/token`
 - Test Vault connection
 - Create necessary Vault mounts
 
@@ -155,18 +155,18 @@ ssh-add -l
 ### Backup Automation
 ```bash
 # Add to crontab for weekly backups
-0 2 * * 0 /usr/local/bin/sshsk backup weekly-$(date +\%Y\%m\%d) --passphrase-file ~/.sshsk/backup-passphrase
+0 2 * * 0 /usr/local/bin/sshsk backup weekly-$(date +\%Y\%m\%d)
 ```
 
 ## Configuration Examples
 
-Your configuration at `~/.sshsk/config.yaml`:
+Your configuration at `~/.ssh-secret-keeper/config.yaml`:
 
 ```yaml
 version: "1.0"
 vault:
   address: "https://your-vault-server:8200"
-  token_file: "~/.sshsk/token"
+  token_file: "~/.ssh-secret-keeper/token"
   mount_path: "ssh-backups"
 
 backup:
@@ -189,7 +189,7 @@ security:
 sshsk status --vault
 
 # Common issues:
-# - Token expired: Get new token and update ~/.sshsk/token
+# - Token expired: Get new token and update ~/.ssh-secret-keeper/token
 # - Network issues: Check if your Vault server is accessible
 # - Mount issues: Ensure mount_path exists in Vault
 ```
@@ -202,7 +202,7 @@ chmod 600 ~/.ssh/id_rsa ~/.ssh/*_rsa ~/.ssh/config
 chmod 644 ~/.ssh/*.pub
 
 # Fix token file permissions
-chmod 600 ~/.sshsk/token
+chmod 600 ~/.ssh-secret-keeper/token
 ```
 
 ### Backup Issues

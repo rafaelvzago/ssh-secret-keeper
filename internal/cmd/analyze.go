@@ -195,7 +195,7 @@ func outputHuman(result *analyzer.DetectionResult, verbose bool) error {
 		fmt.Printf("  • %d incomplete key pairs found - consider generating missing parts\n", incompletePairs)
 	}
 
-	fmt.Printf("  • Run 'ssh-vault-keeper backup' to create a secure backup\n")
+	fmt.Printf("  • Run 'sshsk backup' to create a secure backup\n")
 
 	return nil
 }

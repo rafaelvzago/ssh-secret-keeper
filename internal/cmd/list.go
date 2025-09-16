@@ -79,7 +79,7 @@ func runList(cfg *config.Config, opts listOptions) error {
 
 	if len(backupNames) == 0 {
 		fmt.Printf("No backups found in %s storage.\n", storageProvider.GetProviderType())
-		fmt.Printf("Use 'ssh-vault-keeper backup' to create your first backup.\n")
+		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
 		return nil
 	}
 
@@ -199,8 +199,8 @@ func outputHumanList(backups []backupInfo, detailed bool) error {
 	}
 
 	fmt.Printf("\n💡 Commands:\n")
-	fmt.Printf("  • ssh-vault-keeper restore <backup-name>  - Restore a specific backup\n")
-	fmt.Printf("  • ssh-vault-keeper restore               - Restore most recent backup\n")
+	fmt.Printf("  • sshsk restore <backup-name>  - Restore a specific backup\n")
+	fmt.Printf("  • sshsk restore               - Restore most recent backup\n")
 
 	return nil
 }

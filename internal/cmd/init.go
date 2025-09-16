@@ -140,8 +140,8 @@ func runInit(cfg *config.Config, opts initOptions) error {
 		fmt.Printf("Authentication: Environment variables\n")
 	}
 	fmt.Printf("\nNext steps:\n")
-	fmt.Printf("  1. Run 'ssh-vault-keeper analyze' to see your SSH files\n")
-	fmt.Printf("  2. Run 'ssh-vault-keeper backup' to create your first backup\n")
+	fmt.Printf("  1. Run 'sshsk analyze' to see your SSH files\n")
+	fmt.Printf("  2. Run 'sshsk backup' to create your first backup\n")
 
 	return nil
 }
