@@ -3,6 +3,7 @@ package vault
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/rzago/ssh-secret-keeper/internal/config"
@@ -313,11 +314,11 @@ func TestGenerateBasePath(t *testing.T) {
 				return
 			}
 
-			if !contains(basePath, tt.wantContains) {
+			if !strings.Contains(basePath, tt.wantContains) {
 				t.Errorf("generateBasePath() = %s, should contain %s", basePath, tt.wantContains)
 			}
 
-			if !contains(basePath, "users/") {
+			if !strings.Contains(basePath, "users/") {
 				t.Errorf("generateBasePath() = %s, should start with users/", basePath)
 			}
 		})
@@ -360,10 +361,4 @@ func TestSanitizePathComponent(t *testing.T) {
 			}
 		})
 	}
-}
-
-// Helper function to check if a string contains a substring
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || len(substr) == 0 ||
-		s[0:len(substr)] == substr || (len(s) > len(substr) && contains(s[1:], substr)))
 }

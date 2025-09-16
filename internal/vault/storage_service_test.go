@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -127,7 +128,7 @@ func (l *MockLogical) ListWithContext(ctx context.Context, path string) (*api.Se
 				key = key[1:]
 			}
 			// Only add direct children, not nested paths
-			if !contains(key, "/") {
+			if !strings.Contains(key, "/") {
 				keys = append(keys, key)
 			}
 		}
