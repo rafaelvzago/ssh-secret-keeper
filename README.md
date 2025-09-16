@@ -4,7 +4,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/rzago/ssh-secret-keeper)
 
-A secure, intelligent tool for backing up SSH keys and configuration to HashiCorp Vault with client-side encryption.
+A secure, intelligent tool for backing up SSH keys and configuration to HashiCorp Vault with client-side encryption and **perfect permission preservation**.
 
 ## Security First
 
@@ -36,12 +36,41 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - CI/CD Integration friendly
 - Permission Security validation and warnings
 
+## Project Site
+
+SSH Secret Keeper includes a modern landing page built with React and TypeScript:
+
+- **Live Site**: Available via GitHub Pages (automatically deployed)
+- **Technology**: React 18, TypeScript, Vite, Tailwind CSS
+- **CI/CD**: Automated building and deployment pipeline
+- **Development**: Full development environment with hot reload
+
+[![Site Build](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml/badge.svg)](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml)
+
+### Site Development
+```bash
+# Navigate to site directory
+cd site/
+
+# Start development server
+make dev
+
+# Build for production
+make build
+
+# Run quality checks
+make lint && make type-check
+```
+
+See [`site/README.md`](site/README.md) for detailed development documentation.
+
 ## Installation
 
 ### Option 1: Download Release Binary
 ```bash
 # Download latest release (replace VERSION and ARCH)
-curl -L https://github.com/rzago/ssh-secret-keeper/releases/latest/download/sshsk-linux-amd64 -o sshsk
+curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-vault-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
+tar -xzf sshsk.tar.gz
 chmod +x sshsk
 sudo mv sshsk /usr/local/bin/
 ```
@@ -801,10 +830,12 @@ make test
 ## Project Statistics
 
 - Language: Go 1.21+
-- Lines of Code: ~4,300
-- Test Coverage: 85%+
+- Lines of Code: ~4,300+
+- Test Coverage: 85%+ (comprehensive test suite)
 - Dependencies: Minimal, security-focused
 - Performance: <100ms for typical SSH directories
+- Architecture: Clean architecture with SOLID principles
+- Compatibility: Linux, macOS, Windows, ARM64
 
 ## Security Model
 
@@ -923,12 +954,98 @@ This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENS
 - Go community for the robust standard library
 - Contributors and early adopters
 
+## Troubleshooting
+
+### Common Issues
+
+#### Permission Problems
+If SSH files are restored with incorrect permissions:
+
+```bash
+# Check debug logs during restore
+sshsk restore --dry-run --verbose
+
+# Look for these messages:
+# ✅ "✓ Parsed permissions from json.Number" (working correctly)
+# ❌ "❌ CRITICAL: Missing or invalid permissions" (issue detected)
+```
+
+#### Vault Connection Issues
+```bash
+# Test Vault connectivity
+sshsk status
+
+# Check environment variables
+echo "VAULT_ADDR: $VAULT_ADDR"
+echo "VAULT_TOKEN: ${VAULT_TOKEN:0:10}..." # First 10 chars only
+
+# Verify Vault token has correct permissions
+vault token lookup
+```
+
+#### SSH Directory Issues
+```bash
+# Analyze SSH directory structure
+sshsk analyze --verbose
+
+# Check SSH directory permissions
+ls -la ~/.ssh
+
+# SSH directory should be 0700, keys should be 0600, public keys 0644
+```
+
+#### Container Issues
+```bash
+# Verify environment variables are passed correctly
+docker run --rm -e VAULT_ADDR -e VAULT_TOKEN sshsk:latest status
+
+# Check volume mounts
+docker run --rm -v ~/.ssh:/ssh:ro sshsk:latest analyze
+```
+
+### Debug Mode
+
+Enable detailed logging for troubleshooting:
+
+```bash
+# Set debug log level
+export SSH_SECRET_LOGGING_LEVEL=debug
+
+# Run with verbose output
+sshsk [command] --verbose
+```
+
+### Getting Help
+
+If you encounter issues:
+
+1. **Check logs**: Run with `--verbose` flag
+2. **Verify environment**: Use `sshsk status` command
+3. **Test connectivity**: Ensure Vault is accessible
+4. **Check permissions**: Verify SSH directory structure
+5. **Review documentation**: Check command examples above
+
 ## Support
 
 - [Documentation](docs/)
 - [Issue Tracker](https://github.com/rzago/sshsk/issues)
 - [Discussions](https://github.com/rzago/sshsk/discussions)
 - [Security Issues](https://github.com/rzago/sshsk/issues/new?labels=security)
+
+## Recent Updates
+
+### v1.2.0 - Permission Preservation Fix (Latest)
+- **🔧 Fixed**: Critical permission parsing bug for Vault data
+- **✅ Resolved**: All SSH files now restore with correct original permissions
+- **🔍 Enhanced**: Comprehensive debug logging for troubleshooting
+- **🛡️ Improved**: Better error handling for data type mismatches
+
+### Previous Features
+- Perfect permission preservation with validation
+- Intelligent SSH key detection and categorization
+- Triple-layer encryption (client-side + Vault + TLS)
+- Container and CI/CD ready
+- Cross-platform support
 
 ## What's Next
 

@@ -108,10 +108,32 @@ clean:
 
 # Install locally
 .PHONY: install
-install: build
-	@echo "Installing $(BINARY_NAME)..."
-	sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin/
-	@echo "Installed to /usr/local/bin/$(BINARY_NAME)"
+install:
+	@echo "Installing $(BINARY_NAME) for $(shell go env GOOS)/$(shell go env GOARCH)..."
+	@CURRENT_GOOS=$$(go env GOOS); \
+	CURRENT_GOARCH=$$(go env GOARCH); \
+	if [ "$$CURRENT_GOOS" = "windows" ]; then \
+		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}.exe"; \
+		INSTALL_NAME="$(BINARY_NAME).exe"; \
+	else \
+		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}"; \
+		INSTALL_NAME="$(BINARY_NAME)"; \
+	fi; \
+	GENERIC_BINARY="$(BUILD_DIR)/$(BINARY_NAME)"; \
+	if [ -f "$$ARCH_BINARY" ]; then \
+		echo "Found architecture-specific binary: $$ARCH_BINARY"; \
+		sudo cp "$$ARCH_BINARY" /usr/local/bin/$$INSTALL_NAME; \
+	elif [ -f "$$GENERIC_BINARY" ]; then \
+		echo "Found generic binary: $$GENERIC_BINARY"; \
+		sudo cp "$$GENERIC_BINARY" /usr/local/bin/$$INSTALL_NAME; \
+	else \
+		echo "No binary found. Building for current platform..."; \
+		mkdir -p $(BUILD_DIR); \
+		CGO_ENABLED=0 GOOS=$$CURRENT_GOOS GOARCH=$$CURRENT_GOARCH go build $(LDFLAGS) -o $$GENERIC_BINARY cmd/main.go; \
+		echo "Build complete: $$GENERIC_BINARY"; \
+		sudo cp "$$GENERIC_BINARY" /usr/local/bin/$$INSTALL_NAME; \
+	fi; \
+	echo "Installed to /usr/local/bin/$$INSTALL_NAME"
 
 # Uninstall
 .PHONY: uninstall
@@ -231,41 +253,87 @@ podman-build-branch:
 .PHONY: docker
 docker: docker-build
 
-# Create git tag based on current branch and version
-.PHONY: tag-release
-tag-release:
-	@echo "Creating release tag v$(VERSION) for branch $(GIT_BRANCH)..."
-	@if [ "$(GIT_BRANCH)" != "main" ] && [ "$(GIT_BRANCH)" != "master" ]; then \
-		echo "Warning: Creating release from non-main branch ($(GIT_BRANCH))"; \
+# Release preparation and validation
+.PHONY: release-prepare
+release-prepare:
+	@echo "Preparing release v$(VERSION)..."
+	@echo "Current branch: $(GIT_BRANCH)"
+	@echo "Current commit: $(GIT_HASH)"
+	@if [ "$(GIT_BRANCH)" != "main" ] && [ "$(GIT_BRANCH)" != "master" ] && [ "$(GIT_BRANCH)" != "developer" ]; then \
+		echo "❌ Warning: Releasing from non-main branch ($(GIT_BRANCH))"; \
+		read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ]; \
 	fi
-	@if git rev-parse "v$(VERSION)" >/dev/null 2>&1; then \
-		echo "Tag v$(VERSION) already exists. Use 'make tag-release VERSION=new-version'"; \
+	@if git diff --quiet HEAD; then \
+		echo "✅ Working directory is clean"; \
+	else \
+		echo "❌ Working directory has uncommitted changes"; \
 		exit 1; \
 	fi
+	@if git rev-parse "v$(VERSION)" >/dev/null 2>&1; then \
+		echo "❌ Tag v$(VERSION) already exists. Use a different VERSION."; \
+		exit 1; \
+	fi
+	@which goreleaser > /dev/null || (echo "❌ goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
+	@echo "✅ Release preparation complete"
+
+# Validate release configuration
+.PHONY: release-check
+release-check:
+	@echo "Validating release configuration..."
+	@which goreleaser > /dev/null || (echo "❌ goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
+	goreleaser check
+	@echo "✅ GoReleaser configuration is valid"
+
+# Create git tag (standalone, no longer coupled with release)
+.PHONY: tag-release
+tag-release: release-prepare
+	@echo "Creating release tag v$(VERSION)..."
 	git tag -a "v$(VERSION)" -m "Release version $(VERSION) from branch $(GIT_BRANCH)"
-	@echo "Release tag v$(VERSION) created"
+	@echo "✅ Release tag v$(VERSION) created"
 	@echo "Push with: git push origin v$(VERSION)"
 
-# Release (requires goreleaser)
-.PHONY: release
-release: tag-release
-	@echo "Creating release..."
-	@which goreleaser > /dev/null || (echo "goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
+# Push tag to trigger release
+.PHONY: push-tag
+push-tag:
+	@if ! git rev-parse "v$(VERSION)" >/dev/null 2>&1; then \
+		echo "❌ Tag v$(VERSION) does not exist. Create it first with 'make tag-release'"; \
+		exit 1; \
+	fi
+	@echo "Pushing tag v$(VERSION) to trigger release..."
+	git push origin "v$(VERSION)"
+	@echo "✅ Tag pushed. Release workflow should start automatically."
+	@echo "Monitor the release at: https://github.com/rzago/ssh-vault-keeper/releases"
+
+# Local release (requires existing tag)
+.PHONY: release-local
+release-local:
+	@echo "Creating local release..."
+	@which goreleaser > /dev/null || (echo "❌ goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
+	@if ! git describe --exact-match --tags $$(git log -n1 --pretty='%h') >/dev/null 2>&1; then \
+		echo "❌ Current commit is not tagged. Create and checkout a tag first."; \
+		exit 1; \
+	fi
 	goreleaser release --clean
-	@echo "Release created"
+	@echo "✅ Release created"
+
+# Complete release workflow
+.PHONY: release
+release: test tag-release push-tag
+	@echo "✅ Complete release workflow finished"
+	@echo "Monitor the release at: https://github.com/rzago/ssh-vault-keeper/releases"
 
 # Release with container images
 .PHONY: release-with-images
-release-with-images: container-build-branch release
-	@echo "Release with container images created"
+release-with-images: test container-build-branch tag-release push-tag
+	@echo "✅ Release with container images completed"
 
 # Release snapshot (local testing)
 .PHONY: release-snapshot
 release-snapshot:
 	@echo "Creating snapshot release..."
-	@which goreleaser > /dev/null || (echo "goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
+	@which goreleaser > /dev/null || (echo "❌ goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
 	goreleaser release --snapshot --clean
-	@echo "Snapshot release created"
+	@echo "✅ Snapshot release created in dist/"
 
 # Show help
 .PHONY: help
@@ -277,7 +345,7 @@ help:
 	@echo "  build              Build for current platform"
 	@echo "  build-all          Build for all platforms + all container images"
 	@echo "  build-binaries     Build binaries for all platforms only"
-	@echo "  install            Install to /usr/local/bin"
+	@echo "  install            Install to /usr/local/bin (auto-detects architecture)"
 	@echo "  uninstall          Remove from /usr/local/bin"
 	@echo "  container-build    Build container image (auto-detect Docker/Podman)"
 	@echo "  container-build-all Build container images with both Docker and Podman"
@@ -295,11 +363,15 @@ help:
 	@echo "  test-short         Run tests with short flag"
 	@echo "  test-bench         Run benchmark tests"
 	@echo ""
-	@echo "Release:"
+	@echo "Release Management:"
+	@echo "  release-prepare    Validate environment for release"
+	@echo "  release-check      Validate GoReleaser configuration"
 	@echo "  tag-release        Create git tag for release (use VERSION=x.y.z)"
-	@echo "  release            Create release with goreleaser (includes tagging)"
-	@echo "  release-with-images Create release with container images"
-	@echo "  release-snapshot   Create snapshot release for testing"
+	@echo "  push-tag          Push tag to trigger automated release"
+	@echo "  release           Complete release workflow (test + tag + push)"
+	@echo "  release-local     Create release from existing tag (local)"
+	@echo "  release-with-images Complete release with container images"
+	@echo "  release-snapshot  Create snapshot release for testing"
 	@echo ""
 	@echo "Maintenance:"
 	@echo "  generate           Run go generate"
@@ -313,6 +385,12 @@ help:
 	@echo "  make container-build           # Auto-detect and build with one runtime"
 	@echo "  make container-build-all       # Build with both Docker and Podman"
 	@echo "  make container-build-branch"
-	@echo "  make tag-release VERSION=1.2.0"
-	@echo "  make release-with-images VERSION=1.2.0"
 	@echo "  make test"
+	@echo ""
+	@echo "Release Examples:"
+	@echo "  make release-check                    # Validate configuration"
+	@echo "  make release-prepare VERSION=1.2.1   # Prepare for release"
+	@echo "  make release VERSION=1.2.1           # Complete release workflow"
+	@echo "  make tag-release VERSION=1.2.1       # Create tag only"
+	@echo "  make push-tag VERSION=1.2.1          # Push existing tag"
+	@echo "  make release-snapshot                 # Test release locally"

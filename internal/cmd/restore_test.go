@@ -178,12 +178,12 @@ func TestRestoreCommand_DefaultValues(t *testing.T) {
 
 func TestParseVaultBackup_MissingPermissions(t *testing.T) {
 	tests := []struct {
-		name              string
-		vaultData         map[string]interface{}
-		expectError       bool
-		expectedPerm      os.FileMode
-		expectedFilename  string
-		description       string
+		name             string
+		vaultData        map[string]interface{}
+		expectError      bool
+		expectedPerm     os.FileMode
+		expectedFilename string
+		description      string
 	}{
 		{
 			name: "missing permissions field",
@@ -300,7 +300,7 @@ func TestParseVaultBackup_MissingPermissions(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			backup, err := parseVaultBackup(tt.vaultData)
-			
+
 			if tt.expectError && err == nil {
 				t.Errorf("Expected error but got none: %s", tt.description)
 				return
@@ -309,20 +309,20 @@ func TestParseVaultBackup_MissingPermissions(t *testing.T) {
 				t.Errorf("Unexpected error: %v (%s)", err, tt.description)
 				return
 			}
-			
+
 			if !tt.expectError && backup != nil {
 				fileData, exists := backup.Files[tt.expectedFilename]
 				if !exists {
 					t.Errorf("Expected file %s not found in backup (%s)", tt.expectedFilename, tt.description)
 					return
 				}
-				
+
 				actualPerm := fileData.Permissions & os.ModePerm
 				if actualPerm != tt.expectedPerm {
-					t.Errorf("Expected permissions %04o, got %04o (%s)", 
+					t.Errorf("Expected permissions %04o, got %04o (%s)",
 						tt.expectedPerm, actualPerm, tt.description)
 				}
-				
+
 				// Verify other fields are preserved
 				if fileData.Filename != tt.expectedFilename {
 					t.Errorf("Expected filename %s, got %s", tt.expectedFilename, fileData.Filename)
