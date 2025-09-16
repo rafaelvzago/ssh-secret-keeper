@@ -36,6 +36,34 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - CI/CD Integration friendly
 - Permission Security validation and warnings
 
+## Project Site
+
+SSH Secret Keeper includes a modern landing page built with React and TypeScript:
+
+- **Live Site**: Available via GitHub Pages (automatically deployed)
+- **Technology**: React 18, TypeScript, Vite, Tailwind CSS
+- **CI/CD**: Automated building and deployment pipeline
+- **Development**: Full development environment with hot reload
+
+[![Site Build](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml/badge.svg)](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml)
+
+### Site Development
+```bash
+# Navigate to site directory
+cd site/
+
+# Start development server
+make dev
+
+# Build for production
+make build
+
+# Run quality checks
+make lint && make type-check
+```
+
+See [`site/README.md`](site/README.md) for detailed development documentation.
+
 ## Installation
 
 ### Option 1: Download Release Binary
