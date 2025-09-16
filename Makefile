@@ -108,10 +108,32 @@ clean:
 
 # Install locally
 .PHONY: install
-install: build
-	@echo "Installing $(BINARY_NAME)..."
-	sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin/
-	@echo "Installed to /usr/local/bin/$(BINARY_NAME)"
+install:
+	@echo "Installing $(BINARY_NAME) for $(shell go env GOOS)/$(shell go env GOARCH)..."
+	@CURRENT_GOOS=$$(go env GOOS); \
+	CURRENT_GOARCH=$$(go env GOARCH); \
+	if [ "$$CURRENT_GOOS" = "windows" ]; then \
+		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}.exe"; \
+		INSTALL_NAME="$(BINARY_NAME).exe"; \
+	else \
+		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}"; \
+		INSTALL_NAME="$(BINARY_NAME)"; \
+	fi; \
+	GENERIC_BINARY="$(BUILD_DIR)/$(BINARY_NAME)"; \
+	if [ -f "$$ARCH_BINARY" ]; then \
+		echo "Found architecture-specific binary: $$ARCH_BINARY"; \
+		sudo cp "$$ARCH_BINARY" /usr/local/bin/$$INSTALL_NAME; \
+	elif [ -f "$$GENERIC_BINARY" ]; then \
+		echo "Found generic binary: $$GENERIC_BINARY"; \
+		sudo cp "$$GENERIC_BINARY" /usr/local/bin/$$INSTALL_NAME; \
+	else \
+		echo "No binary found. Building for current platform..."; \
+		mkdir -p $(BUILD_DIR); \
+		CGO_ENABLED=0 GOOS=$$CURRENT_GOOS GOARCH=$$CURRENT_GOARCH go build $(LDFLAGS) -o $$GENERIC_BINARY cmd/main.go; \
+		echo "Build complete: $$GENERIC_BINARY"; \
+		sudo cp "$$GENERIC_BINARY" /usr/local/bin/$$INSTALL_NAME; \
+	fi; \
+	echo "Installed to /usr/local/bin/$$INSTALL_NAME"
 
 # Uninstall
 .PHONY: uninstall
@@ -277,7 +299,7 @@ help:
 	@echo "  build              Build for current platform"
 	@echo "  build-all          Build for all platforms + all container images"
 	@echo "  build-binaries     Build binaries for all platforms only"
-	@echo "  install            Install to /usr/local/bin"
+	@echo "  install            Install to /usr/local/bin (auto-detects architecture)"
 	@echo "  uninstall          Remove from /usr/local/bin"
 	@echo "  container-build    Build container image (auto-detect Docker/Podman)"
 	@echo "  container-build-all Build container images with both Docker and Podman"
