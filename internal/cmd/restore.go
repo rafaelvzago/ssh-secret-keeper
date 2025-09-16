@@ -135,7 +135,7 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 		return nil
 	}
 
-	// No passphrase needed - Vault provides the security
+	// No passphrase needed - the storage provider is responsible for security
 
 	// Initialize SSH handler
 	sshHandler := ssh.New()

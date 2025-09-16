@@ -96,7 +96,7 @@ func runBackup(cfg *config.Config, opts backupOptions) error {
 		}
 	}
 
-	// No passphrase needed - Vault provides the security
+	// No passphrase needed - the storage provider is responsible for security
 
 	// Backup data is ready for storage (no encryption needed)
 	fmt.Printf("✓ Backup data prepared successfully\n")
