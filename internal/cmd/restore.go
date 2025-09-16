@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"sort"
@@ -292,33 +293,59 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 
 			// Parse file metadata - handle both float64 and int64 from JSON
 			// Note: stored permissions are just the permission bits (e.g., 420 for 0644)
+
+			// DEBUG: Log the raw permission data to diagnose the issue
+			log.Info().
+				Str("file", filename).
+				Interface("raw_permissions_value", fileDataMap["permissions"]).
+				Str("raw_permissions_type", fmt.Sprintf("%T", fileDataMap["permissions"])).
+				Msg("DEBUG: Raw permission data from Vault")
+
 			if perms, ok := fileDataMap["permissions"].(float64); ok {
 				fileData.Permissions = os.FileMode(int(perms))
 				log.Info().
 					Str("file", filename).
 					Float64("raw_perms", perms).
 					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
-					Msg("Parsed permissions from float64")
+					Msg("✓ Parsed permissions from float64")
 			} else if perms, ok := fileDataMap["permissions"].(int64); ok {
 				fileData.Permissions = os.FileMode(perms)
 				log.Info().
 					Str("file", filename).
 					Int64("raw_perms", perms).
 					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
-					Msg("Parsed permissions from int64")
+					Msg("✓ Parsed permissions from int64")
 			} else if perms, ok := fileDataMap["permissions"].(int); ok {
 				fileData.Permissions = os.FileMode(perms)
 				log.Info().
 					Str("file", filename).
 					Int("raw_perms", perms).
 					Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
-					Msg("Parsed permissions from int")
+					Msg("✓ Parsed permissions from int")
+			} else if permsNumber, ok := fileDataMap["permissions"].(json.Number); ok {
+				// Handle json.Number type (what Vault actually returns)
+				if permsInt64, err := permsNumber.Int64(); err == nil {
+					fileData.Permissions = os.FileMode(permsInt64)
+					log.Info().
+						Str("file", filename).
+						Int64("raw_perms", permsInt64).
+						Str("parsed_perms", fmt.Sprintf("%04o", fileData.Permissions&os.ModePerm)).
+						Msg("✓ Parsed permissions from json.Number")
+				} else {
+					log.Error().
+						Str("file", filename).
+						Interface("permissions", permsNumber).
+						Err(err).
+						Msg("❌ CRITICAL: Failed to parse json.Number permissions; using fallback permission 0600")
+					fileData.Permissions = os.FileMode(0600)
+				}
 			} else {
 				// If permissions are missing or invalid, use a safe fallback (0600) and log a warning
-				log.Warn().
+				log.Error().
 					Str("file", filename).
 					Interface("permissions", fileDataMap["permissions"]).
-					Msg("Missing or invalid permissions in backup data; using fallback permission 0600")
+					Str("permissions_type", fmt.Sprintf("%T", fileDataMap["permissions"])).
+					Msg("❌ CRITICAL: Missing or invalid permissions in backup data; using fallback permission 0600")
 				fileData.Permissions = os.FileMode(0600)
 			}
 
