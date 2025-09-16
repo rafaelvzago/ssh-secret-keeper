@@ -13,7 +13,8 @@ import (
 // Config represents the application configuration
 type Config struct {
 	Version   string         `yaml:"version" mapstructure:"version"`
-	Vault     VaultConfig    `yaml:"vault" mapstructure:"vault"`
+	Storage   StorageConfig  `yaml:"storage" mapstructure:"storage"` // New multi-provider storage config
+	Vault     VaultConfig    `yaml:"vault" mapstructure:"vault"`     // Keep for backward compatibility
 	Backup    BackupConfig   `yaml:"backup" mapstructure:"backup"`
 	Security  SecurityConfig `yaml:"security" mapstructure:"security"`
 	Logging   LoggingConfig  `yaml:"logging" mapstructure:"logging"`
@@ -68,6 +69,15 @@ func Default() *Config {
 
 	return &Config{
 		Version: "1.0",
+		Storage: StorageConfig{
+			Provider: "vault", // Default to vault for backward compatibility
+			Vault: &VaultConfig{
+				Address:       "http://localhost:8200",
+				TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
+				MountPath:     "ssh-backups",
+				TLSSkipVerify: false,
+			},
+		},
 		Vault: VaultConfig{
 			Address:       "http://localhost:8200", // Default Vault server address - override with VAULT_ADDR env var
 			TokenFile:     filepath.Join(homeDir, ".ssh-vault-keeper", "token"),
@@ -153,6 +163,11 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("VAULT_ADDR environment variable is required but not set")
 	}
 	cfg.Vault.Address = vaultAddr
+
+	// Override token file path if SSH_SECRET_VAULT_TOKEN_FILE is set
+	if tokenFileEnv := os.Getenv("SSH_SECRET_VAULT_TOKEN_FILE"); tokenFileEnv != "" {
+		cfg.Vault.TokenFile = tokenFileEnv
+	}
 
 	return cfg, nil
 }

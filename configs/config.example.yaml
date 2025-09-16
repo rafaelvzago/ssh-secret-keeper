@@ -1,15 +1,50 @@
-# SSH Vault Keeper Configuration Example
-# Copy this file to ~/.ssh-vault-keeper/config.yaml and customize
+# SSH Secret Keeper Configuration Example
+# Copy this file to ~/.ssh-secret-keeper/config.yaml and customize
 
 version: "1.0"
 
-# Vault connection settings
+# AUTHENTICATION REQUIREMENTS:
+# 1. VAULT_ADDR environment variable is required (Vault server address)
+# 2. Authentication via VAULT_TOKEN environment variable OR token file
+#    - VAULT_TOKEN takes priority if both are set
+#    - Token file path can be overridden with SSH_SECRET_VAULT_TOKEN_FILE env var
+
+# Storage provider configuration
+storage:
+  provider: "vault"  # Options: vault, onepassword (s3 coming soon)
+
+  # Vault configuration (when provider: vault)
+  vault:
+    address: "http://localhost:8200"  # Your Vault server address (override with VAULT_ADDR env var)
+    token_file: "~/.ssh-secret-keeper/token"  # Path to Vault token file
+    mount_path: "ssh-backups"  # KV v2 mount path in Vault
+    namespace: ""  # Vault namespace (Enterprise only)
+    tls_skip_verify: false  # Skip TLS verification (not recommended for production)
+
+  # 1Password configuration (when provider: onepassword) - Coming Soon!
+  # onepassword:
+  #   server_url: "http://localhost:8080"  # 1Password Connect server URL
+  #   token: "${OP_CONNECT_TOKEN}"  # 1Password Connect token (use env var)
+  #   vault_id: "your-vault-id"  # 1Password vault ID to store backups
+  #   item_template: "ssh-backup"  # Template for backup items
+
+  # S3 configuration (when provider: s3) - Coming Soon!
+  # s3:
+  #   endpoint: "s3.amazonaws.com"
+  #   region: "us-west-2"
+  #   bucket: "ssh-backups"
+  #   access_key_id: "${AWS_ACCESS_KEY_ID}"
+  #   secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+  #   prefix: "ssh-secret-keeper"
+
+# Legacy Vault configuration (for backward compatibility)
+# This will be used if storage.provider is not set
 vault:
-  address: "http://localhost:8200"  # Your Vault server address (override with VAULT_ADDR env var)
-  token_file: "~/.ssh-vault-keeper/token"  # Path to Vault token file
-  mount_path: "ssh-backups"  # KV v2 mount path in Vault
-  namespace: ""  # Vault namespace (Enterprise only)
-  tls_skip_verify: false  # Skip TLS verification (not recommended for production)
+  address: "http://localhost:8200"
+    token_file: "~/.ssh-secret-keeper/token"
+  mount_path: "ssh-backups"
+  namespace: ""
+  tls_skip_verify: false
 
 # Backup behavior settings
 backup:
