@@ -1,8 +1,8 @@
-# SSH Vault Keeper - Implementation Summary
+# SSH Secret Keeper - Implementation Summary
 
 ## Project Overview
 
-SSH Vault Keeper is a complete, production-ready solution for securely backing up SSH keys and configuration to HashiCorp Vault. The implementation provides enterprise-grade security with a user-friendly CLI interface.
+SSH Secret Keeper is a complete, production-ready solution for securely backing up SSH keys and configuration to HashiCorp Vault. The implementation provides enterprise-grade security with a user-friendly CLI interface.
 
 ## 🎯 Implementation Status: COMPLETE ✅
 
@@ -50,7 +50,7 @@ All planned features have been implemented and tested successfully.
 ### Architecture Components
 
 ```
-SSH Vault Keeper Architecture
+SSH Secret Keeper Architecture
 ├── CLI Layer (Cobra)
 │   ├── Commands: init, backup, restore, analyze, list, status
 │   └── User Interface: Interactive prompts, progress display
@@ -138,7 +138,7 @@ Key Management:
 make build && make install
 
 # Use directly
-./bin/ssh-vault-keeper --help
+./bin/sshsk --help
 ```
 
 ### Container Deployment
@@ -147,16 +147,16 @@ make build && make install
 make docker
 
 # Run in container
-docker run ssh-vault-keeper:latest analyze
+docker run sshsk:latest analyze
 ```
 
 ### CI/CD Integration
 ```yaml
 # Example GitLab CI
 backup_ssh_keys:
-  image: ssh-vault-keeper:latest
+  image: sshsk:latest
   script:
-    - ssh-vault-keeper backup ci-keys-$CI_COMMIT_SHA
+    - sshsk backup ci-keys-$CI_COMMIT_SHA
   only:
     - main
 ```
@@ -218,7 +218,7 @@ backup_ssh_keys:
 
 ## 🎉 Ready for Production Use
 
-The SSH Vault Keeper implementation is complete and ready for immediate use with your Vault server. Key highlights:
+The SSH Secret Keeper implementation is complete and ready for immediate use with your Vault server. Key highlights:
 
 ### Immediate Benefits
 1. **Secure SSH Key Backup**: Your 25+ SSH files can be backed up securely

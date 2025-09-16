@@ -1,4 +1,4 @@
-# SSH Vault Keeper - Development Context
+# SSH Secret Keeper - Development Context
 
 ## Current User Environment
 - **User**: example-user
