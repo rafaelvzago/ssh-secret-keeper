@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/rzago/ssh-secret-keeper/internal/config"
 	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
@@ -26,10 +25,6 @@ func (f *Factory) CreateStorage(cfg *config.Config) (interfaces.StorageProvider,
 		// This ensures VAULT_ADDR and VAULT_TOKEN environment variables work correctly
 		vaultCfg := &cfg.Vault
 
-		// Additional safety check for environment variables
-		if vaultAddr := os.Getenv("VAULT_ADDR"); vaultAddr != "" {
-			vaultCfg.Address = vaultAddr
-		}
 
 		if vaultCfg.Address == "" {
 			return nil, fmt.Errorf("vault address not configured - set VAULT_ADDR environment variable or configure vault.address")

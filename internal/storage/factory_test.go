@@ -183,50 +183,6 @@ func TestFactory_CreateStorage(t *testing.T) {
 	}
 }
 
-func TestFactory_CreateStorage_EnvironmentOverride(t *testing.T) {
-	factory := NewFactory()
-
-	// Save original environment
-	originalAddr := os.Getenv("VAULT_ADDR")
-	originalToken := os.Getenv("VAULT_TOKEN")
-	defer func() {
-		os.Setenv("VAULT_ADDR", originalAddr)
-		os.Setenv("VAULT_TOKEN", originalToken)
-	}()
-
-	// Test environment variable override
-	configAddr := "http://config-address:8200"
-	envAddr := "http://env-address:8200"
-
-	cfg := &config.Config{
-		Storage: config.StorageConfig{
-			Provider: "vault",
-		},
-		Vault: config.VaultConfig{
-			Address:   configAddr,
-			MountPath: "ssh-backups",
-			TokenFile: "/dev/null",
-		},
-	}
-
-	// Set environment override
-	os.Setenv("VAULT_ADDR", envAddr)
-	os.Setenv("VAULT_TOKEN", "test-token")
-
-	// This will fail because we can't actually create a Vault client,
-	// but we can verify the address was overridden by checking the config
-	_, err := factory.CreateStorage(cfg)
-
-	// The error should occur during vault client creation, not address validation
-	if err == nil {
-		t.Error("Expected error during vault client creation")
-	}
-
-	// Verify that the environment variable override was applied
-	if cfg.Vault.Address != envAddr {
-		t.Errorf("Environment override not applied: got %s, want %s", cfg.Vault.Address, envAddr)
-	}
-}
 
 func TestFactory_CreateStorage_DefaultProvider(t *testing.T) {
 	factory := NewFactory()
