@@ -8,7 +8,6 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 
 ## Security First
 
-- **Triple-layer encryption**: Client-side AES-256-GCM + Vault encryption + TLS
 - **Zero-knowledge**: Vault server never sees your SSH keys in plaintext
 - **Strong key derivation**: PBKDF2 with 100,000 iterations
 - **Integrity verification**: MD5 checksums for all files
