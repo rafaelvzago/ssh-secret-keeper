@@ -28,6 +28,11 @@ type VaultConfig struct {
 	MountPath     string `yaml:"mount_path" mapstructure:"mount_path"`
 	Namespace     string `yaml:"namespace,omitempty" mapstructure:"namespace"`
 	TLSSkipVerify bool   `yaml:"tls_skip_verify" mapstructure:"tls_skip_verify"`
+
+	// New storage strategy options
+	StorageStrategy string `yaml:"storage_strategy" mapstructure:"storage_strategy"`           // "universal", "user", "machine-user", "custom"
+	CustomPrefix    string `yaml:"custom_prefix,omitempty" mapstructure:"custom_prefix"`       // For custom strategy
+	BackupNamespace string `yaml:"backup_namespace,omitempty" mapstructure:"backup_namespace"` // Optional namespace for universal strategy
 }
 
 // BackupConfig holds backup behavior settings
@@ -38,6 +43,10 @@ type BackupConfig struct {
 	IncludePatterns []string            `yaml:"include_patterns" mapstructure:"include_patterns"`
 	ExcludePatterns []string            `yaml:"exclude_patterns" mapstructure:"exclude_patterns"`
 	Categories      map[string][]string `yaml:"categories" mapstructure:"categories"`
+
+	// New path normalization and cross-machine compatibility options
+	NormalizePaths      bool `yaml:"normalize_paths" mapstructure:"normalize_paths"`             // Enable path normalization (~/ssh vs /home/user/.ssh)
+	CrossMachineRestore bool `yaml:"cross_machine_restore" mapstructure:"cross_machine_restore"` // Allow restoring backups across different machines
 }
 
 // SecurityConfig holds encryption and security settings
@@ -69,10 +78,13 @@ func Default() *Config {
 
 	// Create a single vault configuration to avoid duplication
 	vaultConfig := &VaultConfig{
-		Address:       "http://localhost:8200",
-		TokenFile:     filepath.Join(homeDir, ".ssh-secret-keeper", "token"),
-		MountPath:     "ssh-backups",
-		TLSSkipVerify: false,
+		Address:         "http://localhost:8200",
+		TokenFile:       filepath.Join(homeDir, ".ssh-secret-keeper", "token"),
+		MountPath:       "ssh-backups",
+		TLSSkipVerify:   false,
+		StorageStrategy: "universal", // New default - enables cross-machine restore
+		BackupNamespace: "",          // Optional namespace for organization
+		CustomPrefix:    "",          // For custom strategy
 	}
 
 	return &Config{
@@ -83,9 +95,11 @@ func Default() *Config {
 		},
 		Vault: *vaultConfig, // Copy for backward compatibility
 		Backup: BackupConfig{
-			SSHDir:         filepath.Join(homeDir, ".ssh"),
-			HostnamePrefix: true,
-			RetentionCount: 10,
+			SSHDir:              "~/.ssh", // Use relative path for cross-user compatibility
+			HostnamePrefix:      false,    // Not needed with universal storage strategy
+			RetentionCount:      10,
+			NormalizePaths:      true, // Enable path normalization
+			CrossMachineRestore: true, // Enable cross-machine restore
 			IncludePatterns: []string{
 				"*.rsa", "*.pem", "*.pub", "id_rsa*",
 				"config", "known_hosts*", "authorized_keys",

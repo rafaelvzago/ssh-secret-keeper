@@ -48,6 +48,8 @@ flexible backup/restore operations.`,
 		newDeleteCommand(cfg),
 		newAnalyzeCommand(cfg),
 		newStatusCommand(cfg),
+		newMigrateCommand(cfg),
+		newMigrateStatusCommand(cfg),
 		newVersionCommand(),
 	)
 

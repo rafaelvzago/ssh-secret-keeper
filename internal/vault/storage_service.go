@@ -25,8 +25,22 @@ func NewStorageService(cfg *config.VaultConfig) (*StorageService, error) {
 		return nil, fmt.Errorf("failed to create Vault client: %w", err)
 	}
 
-	// Generate base path for this client
-	basePath, err := generateBasePath()
+	// Generate base path using the new path strategy system
+	strategy, err := ParseStrategy(cfg.StorageStrategy)
+	if err != nil {
+		// Fall back to legacy behavior if strategy is invalid
+		log.Warn().
+			Str("invalid_strategy", cfg.StorageStrategy).
+			Msg("Invalid storage strategy, falling back to machine-user strategy")
+		strategy = StrategyMachineUser
+	}
+
+	pathGenerator := NewPathGenerator(strategy, cfg.CustomPrefix, cfg.BackupNamespace)
+	if err := pathGenerator.ValidateStrategy(); err != nil {
+		return nil, fmt.Errorf("invalid path strategy configuration: %w", err)
+	}
+
+	basePath, err := pathGenerator.GenerateBasePath()
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate base path: %w", err)
 	}
@@ -41,6 +55,8 @@ func NewStorageService(cfg *config.VaultConfig) (*StorageService, error) {
 		Str("address", cfg.Address).
 		Str("mount", cfg.MountPath).
 		Str("base_path", basePath).
+		Str("storage_strategy", string(strategy)).
+		Str("strategy_description", pathGenerator.GetStrategyDescription()).
 		Msg("Vault storage service initialized")
 
 	return service, nil

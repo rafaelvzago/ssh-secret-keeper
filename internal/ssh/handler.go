@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
 	"github.com/rzago/ssh-secret-keeper/internal/crypto"
+	"github.com/rzago/ssh-secret-keeper/internal/utils"
 )
 
 // FileData represents SSH file data with metadata
@@ -27,14 +28,17 @@ type FileData struct {
 
 // BackupData represents a complete SSH backup
 type BackupData struct {
-	Version   string                    `json:"version"`
-	Timestamp time.Time                 `json:"timestamp"`
-	Hostname  string                    `json:"hostname"`
-	Username  string                    `json:"username"`
-	SSHDir    string                    `json:"ssh_dir"`
-	Files     map[string]*FileData      `json:"files"`
-	Analysis  *analyzer.DetectionResult `json:"analysis"`
-	Metadata  map[string]interface{}    `json:"metadata"`
+	Version      string                    `json:"version"`
+	Timestamp    time.Time                 `json:"timestamp"`
+	Hostname     string                    `json:"hostname"`
+	Username     string                    `json:"username"`
+	SSHDir       string                    `json:"ssh_dir"`                      // Keep for backward compatibility
+	SSHDirNorm   string                    `json:"ssh_dir_normalized,omitempty"` // New normalized path for cross-user compatibility
+	OriginalUser string                    `json:"original_user,omitempty"`      // For informational purposes
+	PathVersion  string                    `json:"path_version,omitempty"`       // Track path normalization version
+	Files        map[string]*FileData      `json:"files"`
+	Analysis     *analyzer.DetectionResult `json:"analysis"`
+	Metadata     map[string]interface{}    `json:"metadata"`
 }
 
 // Handler manages SSH file operations
@@ -79,19 +83,35 @@ func (h *Handler) ReadDirectory(sshDir string) (*BackupData, error) {
 		username = "unknown"
 	}
 
+	// Normalize SSH directory path for cross-user compatibility
+	pathNormalizer := utils.NewPathNormalizer()
+	normalizedSSHDir, err := pathNormalizer.NormalizePath(sshDir)
+	if err != nil {
+		log.Warn().
+			Err(err).
+			Str("original_path", sshDir).
+			Msg("Failed to normalize SSH directory path, using original")
+		normalizedSSHDir = sshDir
+	}
+
 	backup := &BackupData{
-		Version:   "1.0",
-		Timestamp: time.Now(),
-		Hostname:  hostname,
-		Username:  username,
-		SSHDir:    sshDir,
-		Files:     files,
-		Analysis:  analysis,
+		Version:      "1.0",
+		Timestamp:    time.Now(),
+		Hostname:     hostname,
+		Username:     username,
+		SSHDir:       sshDir,           // Keep original for backward compatibility
+		SSHDirNorm:   normalizedSSHDir, // New normalized path
+		OriginalUser: username,         // Store original user for reference
+		PathVersion:  "2.0",            // Version indicating path normalization support
+		Files:        files,
+		Analysis:     analysis,
 		Metadata: map[string]interface{}{
-			"total_files":    len(files),
-			"total_size":     h.calculateTotalSize(files),
-			"key_pair_count": len(analysis.KeyPairs),
-			"service_count":  len(analysis.Categories["service"]),
+			"total_files":           len(files),
+			"total_size":            h.calculateTotalSize(files),
+			"key_pair_count":        len(analysis.KeyPairs),
+			"service_count":         len(analysis.Categories["service"]),
+			"normalized_path":       normalizedSSHDir,
+			"cross_user_compatible": true,
 		},
 	}
 

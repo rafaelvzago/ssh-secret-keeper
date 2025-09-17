@@ -10,6 +10,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
 	"github.com/rzago/ssh-secret-keeper/internal/ssh"
+	"github.com/rzago/ssh-secret-keeper/internal/utils"
 )
 
 // RestoreService provides file restoration functionality following SRP
@@ -26,19 +27,26 @@ func (s *RestoreService) RestoreFiles(backup *ssh.BackupData, targetDir string, 
 		return fmt.Errorf("backup data is nil")
 	}
 
-	if err := s.ValidateRestoreTarget(targetDir); err != nil {
+	// Resolve target directory, preferring normalized paths for cross-user compatibility
+	resolvedTargetDir, err := s.resolveTargetDirectory(backup, targetDir, options)
+	if err != nil {
+		return fmt.Errorf("failed to resolve target directory: %w", err)
+	}
+
+	if err := s.ValidateRestoreTarget(resolvedTargetDir); err != nil {
 		return fmt.Errorf("target validation failed: %w", err)
 	}
 
 	log.Info().
-		Str("target", targetDir).
+		Str("target", resolvedTargetDir).
+		Str("original_target", targetDir).
 		Bool("dry_run", options.DryRun).
 		Int("total_files", len(backup.Files)).
 		Msg("Starting file restoration")
 
 	// Create SSH directory if it doesn't exist
 	if !options.DryRun {
-		if err := s.CreateSSHDirectory(targetDir); err != nil {
+		if err := s.CreateSSHDirectory(resolvedTargetDir); err != nil {
 			return fmt.Errorf("failed to create SSH directory: %w", err)
 		}
 	}
@@ -53,7 +61,7 @@ func (s *RestoreService) RestoreFiles(backup *ssh.BackupData, targetDir string, 
 			continue
 		}
 
-		targetPath := filepath.Join(targetDir, filename)
+		targetPath := filepath.Join(resolvedTargetDir, filename)
 
 		if options.DryRun {
 			s.logDryRunRestore(filename, targetPath, fileData)
@@ -194,18 +202,24 @@ func (s *RestoreService) VerifyRestorePermissions(backup *ssh.BackupData, target
 		Str("target", targetDir).
 		Msg("Verifying restored file permissions")
 
+	// Resolve target directory using the same logic as restore
+	resolvedTargetDir, err := s.resolveTargetDirectory(backup, targetDir, ssh.RestoreOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to resolve target directory for verification: %w", err)
+	}
+
 	issues := 0
 	warnings := 0
 
 	// Verify SSH directory permissions
-	if err := s.verifySSHDirectoryPermissions(targetDir); err != nil {
+	if err := s.verifySSHDirectoryPermissions(resolvedTargetDir); err != nil {
 		log.Error().Err(err).Msg("SSH directory permission issue")
 		issues++
 	}
 
 	// Verify each restored file
 	for filename, fileData := range backup.Files {
-		targetPath := filepath.Join(targetDir, filename)
+		targetPath := filepath.Join(resolvedTargetDir, filename)
 
 		if err := s.verifyFilePermissions(targetPath, fileData); err != nil {
 			if s.isCriticalPermissionError(err, fileData) {
@@ -437,6 +451,100 @@ func (s *RestoreService) verifySSHDirectoryPermissions(sshDir string) error {
 	}
 
 	return nil
+}
+
+// resolveTargetDirectory resolves the target directory for restoration, handling cross-user scenarios
+func (s *RestoreService) resolveTargetDirectory(backup *ssh.BackupData, targetDir string, options ssh.RestoreOptions) (string, error) {
+	pathNormalizer := utils.NewPathNormalizer()
+
+	// If target directory is explicitly provided and not empty, use it
+	if targetDir != "" {
+		if !pathNormalizer.IsRelativePath(targetDir) {
+			log.Info().
+				Str("target", targetDir).
+				Msg("Using explicitly provided target directory")
+			return targetDir, nil
+		}
+
+		// It's a relative path, resolve it
+		resolvedPath, err := pathNormalizer.ResolvePath(targetDir)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve target directory: %w", err)
+		}
+
+		log.Info().
+			Str("target", targetDir).
+			Str("resolved", resolvedPath).
+			Msg("Using explicitly provided relative target directory")
+
+		return resolvedPath, nil
+	}
+
+	// Check if backup has normalized path information (v2.0+)
+	if backup.SSHDirNorm != "" && backup.PathVersion != "" {
+		log.Info().
+			Str("normalized_path", backup.SSHDirNorm).
+			Str("original_path", backup.SSHDir).
+			Str("original_user", backup.OriginalUser).
+			Msg("Using normalized path from backup for cross-user compatibility")
+
+		// Resolve normalized path to current user's context
+		resolvedPath, err := pathNormalizer.ResolvePath(backup.SSHDirNorm)
+		if err != nil {
+			log.Warn().
+				Err(err).
+				Str("normalized_path", backup.SSHDirNorm).
+				Msg("Failed to resolve normalized path, falling back to target directory")
+
+			if targetDir != "" {
+				return pathNormalizer.ResolvePath(targetDir)
+			}
+			return pathNormalizer.ResolvePath("~/.ssh") // Default fallback
+		}
+
+		// Warn if restoring across different users
+		currentUser := os.Getenv("USER")
+		if currentUser == "" {
+			currentUser = "unknown"
+		}
+
+		if backup.OriginalUser != "" && backup.OriginalUser != currentUser {
+			log.Warn().
+				Str("original_user", backup.OriginalUser).
+				Str("current_user", currentUser).
+				Str("target_path", resolvedPath).
+				Msg("Cross-user restore detected - ensure proper permissions")
+		}
+
+		return resolvedPath, nil
+	}
+
+	// Legacy backup without normalized paths - use target directory or default
+	if targetDir != "" {
+		resolvedPath, err := pathNormalizer.ResolvePath(targetDir)
+		if err != nil {
+			return "", fmt.Errorf("failed to resolve target directory: %w", err)
+		}
+
+		log.Info().
+			Str("target", targetDir).
+			Str("resolved", resolvedPath).
+			Msg("Using target directory for legacy backup")
+
+		return resolvedPath, nil
+	}
+
+	// Default to current user's SSH directory
+	defaultPath, err := pathNormalizer.ResolvePath("~/.ssh")
+	if err != nil {
+		return "", fmt.Errorf("failed to resolve default SSH directory: %w", err)
+	}
+
+	log.Info().
+		Str("default_path", defaultPath).
+		Msg("Using default SSH directory for restore")
+
+	return defaultPath, nil
 }
 
 func (s *RestoreService) verifyFilePermissions(targetPath string, fileData *ssh.FileData) error {
