@@ -68,7 +68,7 @@ const ASCIIBorder: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 function App() {
   const [activeTab, setActiveTab] = useState('installation');
 
-  const installCommand = "curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/install.sh | bash";
+  const installCommand = "curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash";
 
   const features = [
     {
