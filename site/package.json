@@ -1,8 +1,8 @@
 {
   "name": "ssh-secret-keeper-site",
   "private": true,
-  "version": "0.0.0",
-  "description": "Landing page for SSH Secret Keeper (in development)",
+  "version": "1.0.0",
+  "description": "Landing page for SSH Secret Keeper - Open-source SSH key backup tool",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

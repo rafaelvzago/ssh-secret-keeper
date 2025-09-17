@@ -1,22 +1,26 @@
-// Development configuration for SSH Secret Keeper Site
-// No versioning during development phase
+// Configuration for SSH Secret Keeper Site
+// Open-source community project
 
 export const config = {
   app: {
     name: 'SSH Secret Keeper',
-    status: 'Development',
+    status: 'Open Source',
   },
   github: {
     repo: 'rafaelvzago/ssh-secret-keeper',
     url: 'https://github.com/rafaelvzago/ssh-secret-keeper',
   },
   install: {
-    // Placeholder URLs for development - will be updated when ready
-    scriptUrl: '#',
-    downloadBase: '#',
+    scriptUrl: 'https://github.com/rafaelvzago/ssh-secret-keeper/install.sh',
+    rawScriptUrl: 'https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/main/install.sh',
+    downloadBase: 'https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/',
+  },
+  docker: {
+    repository: 'rafaelvzago/ssh-secret-keeper',
+    registry: 'docker.io',
   },
 } as const;
 
 // Development helpers
-export const isDevelopment = true;
-export const showPlaceholders = true;
+export const isDevelopment = false;
+export const showPlaceholders = false;

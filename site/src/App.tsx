@@ -67,28 +67,28 @@ const ASCIIBorder: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 function App() {
   const [activeTab, setActiveTab] = useState('installation');
 
-  const installCommand = "curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz && tar -xzf sshsk.tar.gz && sudo mv sshsk /usr/local/bin/";
+  const installCommand = "curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/install.sh | bash";
 
   const features = [
     {
       icon: <Shield className="w-8 h-8 text-green-400" />,
-      title: "Secure Vault Storage",
-      description: "Leverages HashiCorp Vault's enterprise-grade security with TLS transport encryption. Your SSH keys are protected by Vault's proven security architecture."
+      title: "Backup SSH Directory",
+      description: "Complete backup of your ~/.ssh folder with permissions preserved. Securely stores keys, config files, and authorized_keys to HashiCorp Vault."
     },
     {
       icon: <Server className="w-8 h-8 text-amber-400" />,
-      title: "Complete SSH Backup",
-      description: "Full SSH directory backup including keys, config files, known_hosts, and authorized_keys with perfect permission preservation and MD5 integrity verification."
+      title: "Restore Anywhere",
+      description: "Restore your SSH keys on any machine with Vault access. Perfect for setting up new workstations or recovering from system failures."
     },
     {
       icon: <Key className="w-8 h-8 text-cyan-400" />,
-      title: "Flexible Restore Operations",
-      description: "Interactive restore with selective file recovery, multiple backup versions, dry-run mode, and intelligent backup selection from your Vault storage."
+      title: "Analyze & Validate",
+      description: "Check SSH key structure and permissions before backup. Detects key types, validates permissions, and categorizes your SSH setup."
     },
     {
       icon: <Zap className="w-8 h-8 text-red-400" />,
-      title: "Intelligent SSH Analysis",
-      description: "Automatic detection of RSA, Ed25519, ECDSA formats with smart service categorization for GitHub, GitLab, AWS, Azure, ArgoCD, Kubernetes, and 10+ more platforms."
+      title: "List & Manage",
+      description: "View and manage your stored backups with ease. List available backups, check status, and delete old backups when needed."
     }
   ];
 
@@ -121,9 +121,9 @@ function App() {
                 <TypewriterText text="SSH Secret Keeper" delay={100} />
               </h2>
               <p className="text-xl text-cyan-400 leading-relaxed">
-                Enterprise-grade SSH key backup with secure Vault storage,<br />
-                intelligent analysis, perfect permission preservation, flexible restore operations,<br />
-                and automated CI/CD deployment.
+                Securely backup your ~/.ssh folder to HashiCorp Vault and restore it anywhere.<br />
+                Perfect for developers, system administrators, and DevOps teams<br />
+                who need reliable SSH key management.
               </p>
               <div className="flex justify-center gap-4 mt-8">
                 <button className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded border border-green-500 transition-colors">
@@ -153,23 +153,23 @@ function App() {
                 <CopyButton text={installCommand} />
               </div>
               <div className="text-gray-400 text-sm">
-                # Downloads and installs SSH Secret Keeper to /usr/local/bin
+                # Quick installation script - detects your OS and installs automatically
               </div>
             </div>
           </TerminalWindow>
 
           <div className="mt-8 grid md:grid-cols-3 gap-6">
             <div className="bg-gray-900 border border-gray-700 rounded p-4">
-              <h4 className="text-cyan-400 font-bold mb-2">Binary Release</h4>
-              <p className="text-gray-300 text-sm">Pre-built binaries for all platforms</p>
+              <h4 className="text-cyan-400 font-bold mb-2">Quick Install</h4>
+              <p className="text-gray-300 text-sm">Single command installation script</p>
+            </div>
+            <div className="bg-gray-900 border border-gray-700 rounded p-4">
+              <h4 className="text-cyan-400 font-bold mb-2">Container Ready</h4>
+              <p className="text-gray-300 text-sm">Docker and Podman support</p>
             </div>
             <div className="bg-gray-900 border border-gray-700 rounded p-4">
               <h4 className="text-cyan-400 font-bold mb-2">Build from Source</h4>
-              <p className="text-gray-300 text-sm">Complete Make target integration</p>
-            </div>
-            <div className="bg-gray-900 border border-gray-700 rounded p-4">
-              <h4 className="text-cyan-400 font-bold mb-2">Container</h4>
-              <p className="text-gray-300 text-sm">Docker and Podman support</p>
+              <p className="text-gray-300 text-sm">See documentation for details</p>
             </div>
           </div>
         </div>
@@ -210,6 +210,7 @@ function App() {
               {[
                 { id: 'installation', label: 'Installation' },
                 { id: 'build', label: 'Build from Source' },
+                { id: 'docker', label: 'Docker Usage' },
                 { id: 'backup', label: 'Backup Guide' },
                 { id: 'restore', label: 'Restore Guide' },
                 { id: 'commands', label: 'All Commands' },
@@ -233,30 +234,25 @@ function App() {
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               {activeTab === 'installation' && (
-                <TerminalWindow title="Installation Options">
+                <TerminalWindow title="Manual Installation">
                   <div className="space-y-4 text-sm">
-                    <div className="text-yellow-400 font-bold">## Option 1: Binary Release</div>
-                    <div className="text-gray-400"># Linux amd64</div>
+                    <div className="text-yellow-400 font-bold">## Manual Binary Download</div>
+                    <div className="text-gray-400"># Download for your platform</div>
                     <div>
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</span>
                     </div>
                     <div>
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">tar -xzf sshsk.tar.gz && sudo mv sshsk /usr/local/bin/</span>
+                      <span className="ml-2 text-white">tar -xzf sshsk.tar.gz</span>
                     </div>
-
-                    <div className="text-yellow-400 font-bold">## Option 2: Container</div>
-                    <div className="text-gray-400"># Docker</div>
                     <div>
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm ssh-secret-keeper:latest --help</span>
+                      <span className="ml-2 text-white">chmod +x sshsk</span>
                     </div>
-
-                    <div className="text-gray-400"># Podman</div>
                     <div>
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">podman run --rm ssh-secret-keeper:latest --help</span>
+                      <span className="ml-2 text-white">sudo mv sshsk /usr/local/bin/</span>
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Verify Installation</div>
@@ -264,7 +260,13 @@ function App() {
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">sshsk --version</span>
                     </div>
-                    <div className="text-cyan-400">SSH Secret Keeper v1.0.0</div>
+                    <div className="text-cyan-400">SSH Secret Keeper v1.2.3</div>
+
+                    <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
+                      <div className="text-blue-400 text-xs">
+                        💡 For easier installation, use the quick install script above
+                      </div>
+                    </div>
                   </div>
                 </TerminalWindow>
               )}
@@ -272,7 +274,26 @@ function App() {
               {activeTab === 'build' && (
                 <TerminalWindow title="Build from Source">
                   <div className="space-y-4 text-sm">
-                    <div className="text-gray-400"># Prerequisites: Go 1.21+, Make</div>
+                    <div className="text-yellow-400 font-bold">## Install Dependencies</div>
+                    <div className="text-gray-400"># Arch Linux</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sudo pacman -S go make git</span>
+                    </div>
+
+                    <div className="text-gray-400"># Ubuntu/Debian</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sudo apt-get install golang-go make git</span>
+                    </div>
+
+                    <div className="text-gray-400"># Fedora/RHEL</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sudo dnf install golang make git</span>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Clone and Build</div>
                     <div>
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">git clone https://github.com/rafaelvzago/ssh-secret-keeper.git</span>
@@ -282,45 +303,98 @@ function App() {
                       <span className="ml-2 text-white">cd ssh-secret-keeper</span>
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Build Options</div>
                     <div className="text-gray-400"># Build for current platform</div>
                     <div>
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">make build</span>
                     </div>
 
-                    <div className="text-gray-400"># Build for all platforms</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make build-all</span>
-                    </div>
-
-                    <div className="text-gray-400"># Build binaries only (no containers)</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make build-binaries</span>
-                    </div>
-
-                    <div className="text-yellow-400 font-bold">## Container Builds</div>
-                    <div className="text-gray-400"># Auto-detect Docker/Podman</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make container-build</span>
-                    </div>
-
-                    <div className="text-gray-400"># Build with both runtimes</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make container-build-all</span>
-                    </div>
-
-                    <div className="text-yellow-400 font-bold">## Install</div>
                     <div className="text-gray-400"># Install to /usr/local/bin</div>
                     <div>
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make install</span>
+                      <span className="ml-2 text-white">sudo make install</span>
                     </div>
-                    <div className="text-cyan-400">✓ Installed to /usr/local/bin/sshsk</div>
+
+                    <div className="text-gray-400"># Verify installation</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk --version</span>
+                    </div>
+                    <div className="text-cyan-400">✓ SSH Secret Keeper v1.2.3</div>
+                  </div>
+                </TerminalWindow>
+              )}
+
+              {activeTab === 'docker' && (
+                <TerminalWindow title="Docker Usage">
+                  <div className="space-y-4 text-sm">
+                    <div className="text-yellow-400 font-bold">## Pull from Docker Hub</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker pull rafaelvzago/ssh-secret-keeper:latest</span>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Basic Usage</div>
+                    <div className="text-gray-400"># Analyze SSH directory</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
+                    </div>
+
+                    <div className="text-gray-400"># Backup SSH keys</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "my-backup"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Restore SSH keys</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest restore</span>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Using Podman</div>
+                    <div className="text-gray-400"># Same commands, just replace 'docker' with 'podman'</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">podman run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
+                    </div>
                   </div>
                 </TerminalWindow>
               )}
@@ -603,32 +677,32 @@ security:
               <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
                 <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2">
                   <Lock className="w-5 h-5" />
-                  Security Features
+                  Information
                 </h4>
                 <ul className="space-y-2 text-gray-300 text-sm">
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    HashiCorp Vault enterprise security
+                    Requires HashiCorp Vault installation
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    TLS transport encryption
+                    MD5 checksums verify backup integrity
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    Perfect permission preservation (0600/0644)
+                    List and manage multiple backup versions
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    MD5 checksum integrity verification
+                    Future: Support for other secret stores
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    Secure token-based authentication
+                    Open-source community project
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="text-green-400">✓</span>
-                    Interactive backup/restore operations
+                    Production-ready security features
                   </li>
                 </ul>
               </div>
@@ -667,12 +741,12 @@ security:
           <div className="text-center">
             <div className="font-mono text-cyan-400 text-sm mb-4">
               ┌─────────────────────────────────────────────────────────────┐<br />
-              │                   SSH Secret Keeper v1.0.0                 │<br />
-              │              Enterprise SSH Key Backup Solution             │<br />
+              │                   SSH Secret Keeper v1.2.3                 │<br />
+              │              Open-Source SSH Key Backup Tool               │<br />
               └─────────────────────────────────────────────────────────────┘
             </div>
             <p className="text-gray-400 text-sm">
-              Built with ❤️ for security professionals • Licensed under Apache 2.0
+              Built with ❤️ for the community • Licensed under Apache 2.0
             </p>
           </div>
         </div>
