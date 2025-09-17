@@ -80,6 +80,23 @@ func (p *PathNormalizer) normalizeUnixPath(absolutePath string) (string, error) 
 		}
 	}
 
+	// Check for macOS home directory patterns
+	if strings.HasPrefix(absolutePath, "/Users/") {
+		parts := strings.Split(strings.TrimPrefix(absolutePath, "/Users/"), "/")
+		if len(parts) >= 1 && parts[0] != "" {
+			if len(parts) == 1 {
+				// Just /Users/username -> ~
+				return "~", nil
+			}
+			// Convert /Users/username/... to ~/...
+			userPath := strings.Join(parts[1:], "/")
+			if userPath == "" {
+				return "~", nil
+			}
+			return filepath.Clean("~/" + userPath), nil
+		}
+	}
+
 	// Handle root user
 	if absolutePath == "/root" {
 		return "~", nil
