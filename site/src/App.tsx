@@ -67,7 +67,7 @@ const ASCIIBorder: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 function App() {
   const [activeTab, setActiveTab] = useState('installation');
 
-  const installCommand = "curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-vault-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz && tar -xzf sshsk.tar.gz && sudo mv sshsk /usr/local/bin/";
+  const installCommand = "curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz && tar -xzf sshsk.tar.gz && sudo mv sshsk /usr/local/bin/";
 
   const features = [
     {
@@ -239,7 +239,7 @@ function App() {
                     <div className="text-gray-400"># Linux amd64</div>
                     <div>
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-vault-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</span>
+                      <span className="ml-2 text-white">curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</span>
                     </div>
                     <div>
                       <span className="text-green-400">$</span>

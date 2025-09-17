@@ -1,5 +1,7 @@
 # GoReleaser configuration for SSH Secret Keeper
 
+project_name: ssh-secret-keeper
+
 before:
   hooks:
     - go mod tidy
@@ -69,8 +71,8 @@ release:
     ### Container Images
 
     Container images are available at:
-    - `ssh-secret-keeper:{{ .Version }}`
-    - `ssh-secret-keeper:latest` (for stable releases)
+    - `rafaelvzago/ssh-secret-keeper:{{ .Version }}`
+    - `rafaelvzago/ssh-secret-keeper:latest` (for stable releases)
 
 changelog:
   sort: asc
