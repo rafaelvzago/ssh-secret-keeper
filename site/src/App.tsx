@@ -355,7 +355,7 @@ function App() {
                       <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
                     </div>
 
-                    <div className="text-gray-400"># Backup SSH keys</div>
+                    <div className="text-gray-400"># Quick backup (auto-generated name)</div>
                     <div>
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
@@ -367,7 +367,31 @@ function App() {
                       <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
                     </div>
                     <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "my-backup"</span>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup</span>
+                    </div>
+
+                    <div className="text-gray-400"># Named backup</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "container-$(date +%Y%m%d)"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Dry run mode</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup --dry-run</span>
                     </div>
 
                     <div className="text-gray-400"># Restore SSH keys</div>
@@ -469,36 +493,105 @@ function App() {
                       <span className="ml-2 text-white">sshsk analyze --verbose</span>
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Step 3: Backup Options</div>
-                    <div className="text-gray-400"># Simple backup</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup</span>
+                    <div className="text-yellow-400 font-bold">## Step 3: Backup Modes</div>
+                    
+                    <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+                      <div className="text-green-400 font-bold">🚀 Quick Backup Mode</div>
+                      <div className="text-gray-300 text-xs mb-2">Backup everything with auto-generated name</div>
+                      <div>
+                        <span className="text-green-400">$</span>
+                        <span className="ml-2 text-white">sshsk backup</span>
+                      </div>
+                      <div className="text-gray-400 text-xs mt-1">Creates: backup-YYYYMMDD-HHMMSS</div>
                     </div>
 
-                    <div className="text-gray-400"># Named backup</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup "laptop-$(date +%Y%m%d)"</span>
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded p-3">
+                      <div className="text-blue-400 font-bold">📝 Named Backup Mode</div>
+                      <div className="text-gray-300 text-xs mb-2">Backup with custom name for organization</div>
+                      <div>
+                        <span className="text-green-400">$</span>
+                        <span className="ml-2 text-white">sshsk backup "laptop-$(date +%Y%m%d)"</span>
+                      </div>
+                      <div>
+                        <span className="text-green-400">$</span>
+                        <span className="ml-2 text-white">sshsk backup "dev-environment-keys"</span>
+                      </div>
                     </div>
 
-                    <div className="text-gray-400"># Interactive file selection</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup --interactive</span>
+                    <div className="bg-purple-900/20 border border-purple-500/30 rounded p-3">
+                      <div className="text-purple-400 font-bold">🎯 Interactive Selection Mode</div>
+                      <div className="text-gray-300 text-xs mb-2">Choose specific files to backup</div>
+                      <div>
+                        <span className="text-green-400">$</span>
+                        <span className="ml-2 text-white">sshsk backup --interactive "selective-backup"</span>
+                      </div>
+                      <div className="text-gray-400 text-xs mt-1">Prompts for each file to include/exclude</div>
                     </div>
 
-                    <div className="text-gray-400"># Dry run (preview only)</div>
+                    <div className="bg-yellow-900/20 border border-yellow-500/30 rounded p-3">
+                      <div className="text-yellow-400 font-bold">👁️ Preview Mode (Dry Run)</div>
+                      <div className="text-gray-300 text-xs mb-2">See what would be backed up without doing it</div>
+                      <div>
+                        <span className="text-green-400">$</span>
+                        <span className="ml-2 text-white">sshsk backup --dry-run</span>
+                      </div>
+                      <div>
+                        <span className="text-green-400">$</span>
+                        <span className="ml-2 text-white">sshsk backup --dry-run "test-backup"</span>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Step 4: Advanced Options</div>
+                    <div className="text-gray-400"># Custom SSH directory</div>
                     <div>
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup --dry-run</span>
+                      <span className="ml-2 text-white">sshsk backup --ssh-dir "/custom/ssh/path"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Combine options</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk backup --interactive --dry-run "preview-selective"</span>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Step 5: File Filtering & Categories</div>
+                    
+                    <div className="bg-amber-900/20 border border-amber-500/30 rounded p-3">
+                      <div className="text-amber-400 font-bold mb-2">📁 Include/Exclude Patterns</div>
+                      <div className="text-gray-300 text-xs mb-2">Configure which files to backup (config.yaml)</div>
+                      <div className="text-white text-xs">
+                        <div className="text-cyan-400">include_patterns:</div>
+                        <div className="ml-2">- "*.rsa"        # RSA private keys</div>
+                        <div className="ml-2">- "*.pub"        # Public keys</div>
+                        <div className="ml-2">- "config"       # SSH config file</div>
+                        <div className="ml-2">- "known_hosts*" # Known hosts</div>
+                        <div className="ml-2">- "*work*"       # Work-related keys</div>
+                        <br/>
+                        <div className="text-cyan-400">exclude_patterns:</div>
+                        <div className="ml-2">- "*.tmp"        # Temporary files</div>
+                        <div className="ml-2">- "*.bak"        # Backup files</div>
+                        <div className="ml-2">- "*.old"        # Old files</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-indigo-900/20 border border-indigo-500/30 rounded p-3">
+                      <div className="text-indigo-400 font-bold mb-2">🏷️ File Categories</div>
+                      <div className="text-gray-300 text-xs mb-2">Organize keys by purpose for better management</div>
+                      <div className="text-white text-xs">
+                        <div className="text-cyan-400">categories:</div>
+                        <div className="ml-2">services: ["github_rsa", "gitlab_rsa"]</div>
+                        <div className="ml-2">personal: ["id_rsa", "local_rsa"]</div>
+                        <div className="ml-2">work: ["*work*", "*corp*", "*office*"]</div>
+                        <div className="ml-2">cloud: ["*aws*", "*gcp*", "*azure*"]</div>
+                      </div>
                     </div>
 
                     <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
                       <div className="text-blue-400 text-xs">
                         ✓ Preserves exact permissions (0600/0644)<br/>
                         ✓ Includes MD5 checksums for integrity<br/>
-                        ✓ Stores metadata (timestamps, file sizes)
+                        ✓ Stores metadata (timestamps, file sizes)<br/>
+                        ✓ <span className="text-green-400">NEW:</span> Cross-machine compatible paths
                       </div>
                     </div>
                   </div>
@@ -854,8 +947,76 @@ backup:
   hostname_prefix: true`}
                     </pre>
 
+                    <div className="text-gray-400"># Complete backup configuration:</div>
+                    <pre className="text-white">
+{`backup:
+  ssh_dir: "~/.ssh"
+  hostname_prefix: false          # Use with machine-user strategy
+  retention_count: 10             # Keep 10 backup versions
+  normalize_paths: true           # Enable cross-user compatibility
+  cross_machine_restore: true     # Enable cross-machine restore
+  
+  # File filtering patterns
+  include_patterns:
+    - "*.rsa"
+    - "*.pem" 
+    - "*.pub"
+    - "id_rsa*"
+    - "config"
+    - "known_hosts*"
+    - "authorized_keys"
+    - "*_rsa"
+    - "*.ed25519"
+    - "*.ecdsa"
+  
+  exclude_patterns:
+    - "*.tmp"
+    - "*.bak"
+    - "*.old"
+    - "*.orig"
+    - "*.swp"
+  
+  # File categorization for organization
+  categories:
+    services: ["service1_rsa", "service2_rsa"]
+    personal: ["id_rsa", "local_rsa"]
+    work: ["*work*", "*corp*", "*office*"]
+    cloud: ["*cloud*", "*aws*", "*gcp*", "*azure*"]`}
+                    </pre>
+
+                    <div className="text-yellow-400 font-bold">## Backup Modes & Options</div>
+                    <div className="text-gray-400"># Basic backup</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk backup "my-backup"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Interactive file selection</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk backup --interactive</span>
+                    </div>
+
+                    <div className="text-gray-400"># Dry run (preview only)</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk backup --dry-run</span>
+                    </div>
+
+                    <div className="text-gray-400"># Custom SSH directory</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk backup --ssh-dir "/custom/ssh/path"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Auto-generated backup name</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk backup  # Creates backup-YYYYMMDD-HHMMSS</span>
+                    </div>
+
                     <div className="text-yellow-400 font-bold">## Environment Variables</div>
-                    <div className="text-gray-400"># Storage strategy via environment</div>
+                    <div className="text-gray-400"># Storage strategy configuration</div>
                     <div>
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">export SSH_VAULT_STORAGE_STRATEGY="universal"</span>
@@ -863,6 +1024,20 @@ backup:
                     <div>
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">export SSH_VAULT_BACKUP_NAMESPACE="team-devops"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Backup behavior overrides</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh"</span>
+                    </div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">export SSH_VAULT_BACKUP_RETENTION_COUNT="20"</span>
+                    </div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">export SSH_VAULT_BACKUP_NORMALIZE_PATHS="true"</span>
                     </div>
                   </div>
                 </TerminalWindow>
