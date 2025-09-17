@@ -1,12 +1,7 @@
-name: Site Build Pipeline
+name: Site Build Pipeline (Main Branch Only)
 
 on:
   push:
-    branches: [ main, developer ]
-    paths:
-      - 'site/**'
-      - '.github/workflows/site.yml'
-  pull_request:
     branches: [ main ]
     paths:
       - 'site/**'
@@ -25,7 +20,7 @@ env:
 
 jobs:
   site-quality:
-    name: Quality Assurance
+    name: Quality Assurance (Main Branch)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -60,7 +55,7 @@ jobs:
           ${{ runner.os }}-node-${{ env.NODE_VERSION }}-
 
   site-build:
-    name: Build Site
+    name: Build Site (Main Branch)
     runs-on: ubuntu-latest
     needs: site-quality
     defaults:
@@ -101,15 +96,16 @@ jobs:
 
     - name: Generate build summary
       run: |
-        echo "## 🏗️ Site Build Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 🏗️ Site Build Summary (Main Branch)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "✅ **Build completed successfully**" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Build completed successfully from main branch**" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Build Details:" >> $GITHUB_STEP_SUMMARY
         echo "- **Node.js Version**: ${{ env.NODE_VERSION }}" >> $GITHUB_STEP_SUMMARY
         echo "- **Build Directory**: \`site/dist/\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
         echo "- **Branch**: \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Trigger**: Main branch merge/push" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### Artifacts:" >> $GITHUB_STEP_SUMMARY
         echo "- Build artifacts uploaded as: \`site-build-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
