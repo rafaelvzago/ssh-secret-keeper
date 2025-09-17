@@ -312,7 +312,7 @@ push-tag:
 	@echo "Pushing tag v$(V) to trigger release..."
 	git push origin "v$(V)"
 	@echo "✅ Tag pushed. Release workflow should start automatically."
-	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-vault-keeper/releases"
+	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-secret-keeper/releases"
 
 # Local release (requires existing tag)
 .PHONY: release-local
@@ -338,7 +338,7 @@ release:
 	make tag-release V=$(V)
 	make push-tag V=$(V)
 	@echo "✅ Complete release workflow finished"
-	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-vault-keeper/releases"
+	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-secret-keeper/releases"
 
 # Release with container images
 .PHONY: release-with-images

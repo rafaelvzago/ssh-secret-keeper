@@ -61,7 +61,7 @@ jobs:
         for binary in sshsk-linux-* sshsk-darwin-*; do
           if [ -f "$binary" ]; then
             platform=$(echo $binary | sed 's/sshsk-//' | sed 's/\.exe$//')
-            tar -czf ../releases/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-${platform}.tar.gz \
+            tar -czf ../releases/ssh-secret-keeper-${{ steps.get_version.outputs.version }}-${platform}.tar.gz \
               $binary ../README.md ../LICENSE ../CHANGELOG.md ../configs/config.example.yaml
           fi
         done
@@ -97,12 +97,12 @@ jobs:
 
           ```bash
           # Linux amd64
-          curl -L https://github.com/rafaelvzago/ssh-vault-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -o sshsk.tar.gz
+          curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-secret-keeper-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -o sshsk.tar.gz
           tar -xzf sshsk.tar.gz
           sudo mv sshsk /usr/local/bin/
 
           # macOS amd64
-          curl -L https://github.com/rafaelvzago/ssh-vault-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-darwin-amd64.tar.gz -o sshsk.tar.gz
+          curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/download/${{ steps.get_version.outputs.tag }}/ssh-secret-keeper-${{ steps.get_version.outputs.version }}-darwin-amd64.tar.gz -o sshsk.tar.gz
           tar -xzf sshsk.tar.gz
           sudo mv sshsk /usr/local/bin/
 

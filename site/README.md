@@ -1,6 +1,6 @@
-# SSH Vault Keeper Site (Development)
+# SSH Secret Keeper Site (Development)
 
-Landing page for SSH Vault Keeper - currently in active development.
+Landing page for SSH Secret Keeper - currently in active development.
 
 ## Quick Start
 
@@ -127,7 +127,7 @@ The site has automated building and deployment through GitHub Actions:
 - Manual workflow dispatch with optional deployment
 
 ### Build Status
-[![Site Build](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml/badge.svg)](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml)
+[![Site Build](https://github.com/rafaelvzago/ssh-secret-keeper/actions/workflows/site.yml/badge.svg)](https://github.com/rafaelvzago/ssh-secret-keeper/actions/workflows/site.yml)
 
 ### Deployment
 - **Production**: Automatically deployed to GitHub Pages on main branch pushes

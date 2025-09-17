@@ -1,4 +1,4 @@
-# SSH Vault Keeper Site - Development Makefile
+# SSH Secret Keeper Site - Development Makefile
 .DEFAULT_GOAL := dev
 
 # Node/npm commands
@@ -60,7 +60,7 @@ clean-build:
 # Help
 .PHONY: help
 help:
-	@echo "SSH Vault Keeper Site - Development Commands"
+	@echo "SSH Secret Keeper Site - Development Commands"
 	@echo "==========================================="
 	@echo ""
 	@echo "Development:"
