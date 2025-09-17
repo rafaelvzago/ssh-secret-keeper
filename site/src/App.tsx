@@ -74,22 +74,22 @@ function App() {
     {
       icon: <Shield className="w-8 h-8 text-green-400" />,
       title: "Backup SSH Directory",
-      description: "Complete backup of your ~/.ssh folder with permissions preserved. Securely stores keys, config files, and authorized_keys to HashiCorp Vault."
+      description: "Complete backup of your ~/.ssh folder with permissions preserved. Securely stores keys, config files, and authorized_keys to HashiCorp Vault with client-side encryption."
     },
     {
       icon: <Server className="w-8 h-8 text-amber-400" />,
-      title: "Restore Anywhere",
-      description: "Restore your SSH keys on any machine with Vault access. Perfect for setting up new workstations or recovering from system failures."
+      title: "Cross-Machine Restore",
+      description: "NEW: Backup on laptop, restore on desktop! Universal storage enables cross-machine and cross-user restore. Perfect for developers working across multiple machines."
     },
     {
       icon: <Key className="w-8 h-8 text-cyan-400" />,
-      title: "Analyze & Validate",
-      description: "Check SSH key structure and permissions before backup. Detects key types, validates permissions, and categorizes your SSH setup."
+      title: "Flexible Storage Strategies",
+      description: "Choose from universal (shared), user-scoped, machine-user (legacy), or custom storage strategies. Migration tools help upgrade existing installations."
     },
     {
       icon: <Zap className="w-8 h-8 text-red-400" />,
-      title: "List & Manage",
-      description: "View and manage your stored backups with ease. List available backups, check status, and delete old backups when needed."
+      title: "Smart Analysis & Management",
+      description: "Intelligent SSH analysis with service categorization. List, analyze, and manage backups with comprehensive CLI tools and validation."
     }
   ];
 
@@ -125,9 +125,9 @@ function App() {
                 <TypewriterText text="SSH Secret Keeper" delay={100} />
               </h2>
               <p className="text-xl text-cyan-400 leading-relaxed">
-                Securely backup your ~/.ssh folder to HashiCorp Vault and restore it anywhere.<br />
-                Perfect for developers, system administrators, and DevOps teams<br />
-                who need reliable SSH key management.
+                Securely backup your ~/.ssh folder to HashiCorp Vault with <span className="text-green-400 font-semibold">cross-machine restore</span>.<br />
+                Backup on laptop, restore on desktop! Perfect for developers, system administrators,<br />
+                and DevOps teams who work across multiple machines and environments.
               </p>
               <div className="flex justify-center gap-4 mt-8">
                 <button className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded border border-green-500 transition-colors">
@@ -217,6 +217,7 @@ function App() {
                 { id: 'docker', label: 'Docker Usage' },
                 { id: 'backup', label: 'Backup Guide' },
                 { id: 'restore', label: 'Restore Guide' },
+                { id: 'storage', label: 'Storage Strategies' },
                 { id: 'commands', label: 'All Commands' },
                 { id: 'config', label: 'Configuration' }
               ].map((tab) => (
@@ -384,6 +385,37 @@ function App() {
                       <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest restore</span>
                     </div>
 
+                    <div className="text-yellow-400 font-bold">## NEW: Storage Strategy Configuration</div>
+                    <div className="text-gray-400"># Use universal storage (default - cross-machine)</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Use legacy machine-user storage</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e SSH_VAULT_STORAGE_STRATEGY="machine-user" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"</span>
+                    </div>
+
                     <div className="text-yellow-400 font-bold">## Using Podman</div>
                     <div className="text-gray-400"># Same commands, just replace 'docker' with 'podman'</div>
                     <div>
@@ -395,6 +427,9 @@ function App() {
                     </div>
                     <div>
                       <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
+                    </div>
+                    <div>
+                      <span className="ml-4 text-white">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</span>
                     </div>
                     <div>
                       <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
@@ -409,7 +444,7 @@ function App() {
                     <div className="bg-green-900/30 border border-green-500/30 rounded p-3">
                       <div className="text-green-400 font-bold mb-2">📋 Complete Backup Workflow</div>
                       <div className="text-gray-300 text-xs">
-                        Securely backup your entire SSH directory to HashiCorp Vault
+                        Securely backup your entire SSH directory to HashiCorp Vault with cross-machine restore capability
                       </div>
                     </div>
 
@@ -474,9 +509,9 @@ function App() {
                 <TerminalWindow title="🔄 SSH Restore Guide">
                   <div className="space-y-4 text-sm">
                     <div className="bg-cyan-900/30 border border-cyan-500/30 rounded p-3">
-                      <div className="text-cyan-400 font-bold mb-2">📥 Complete Restore Workflow</div>
+                      <div className="text-cyan-400 font-bold mb-2">📥 Cross-Machine Restore Workflow</div>
                       <div className="text-gray-300 text-xs">
-                        Restore SSH keys from Vault with flexible options
+                        Restore SSH keys from Vault on any machine or user account with universal storage
                       </div>
                     </div>
 
@@ -540,12 +575,136 @@ function App() {
                       <span className="ml-2 text-white">sshsk restore --overwrite</span>
                     </div>
 
+                    <div className="text-yellow-400 font-bold">## NEW: Cross-Machine Restore</div>
+                    <div className="text-gray-400"># Backup on laptop</div>
+                    <div>
+                      <span className="text-green-400">laptop$</span>
+                      <span className="ml-2 text-white">sshsk backup "my-dev-keys"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Restore on desktop (different machine/user!)</div>
+                    <div>
+                      <span className="text-green-400">desktop$</span>
+                      <span className="ml-2 text-white">sshsk restore "my-dev-keys"</span>
+                    </div>
+
+                    <div className="text-gray-400"># Works across different users too</div>
+                    <div>
+                      <span className="text-green-400">server$</span>
+                      <span className="ml-2 text-white">sshsk restore "my-dev-keys" --target-dir ~/.ssh</span>
+                    </div>
+
                     <div className="bg-green-900/30 border border-green-500/30 rounded p-2 mt-4">
                       <div className="text-green-400 text-xs">
                         ✓ Preserves original permissions exactly<br/>
                         ✓ Verifies MD5 checksums during restore<br/>
-                        ✓ Interactive confirmation for overwrites
+                        ✓ Interactive confirmation for overwrites<br/>
+                        ✓ <span className="text-yellow-400">NEW:</span> Cross-machine and cross-user restore
                       </div>
+                    </div>
+                  </div>
+                </TerminalWindow>
+              )}
+
+              {activeTab === 'storage' && (
+                <TerminalWindow title="🗂️ Storage Strategies Guide">
+                  <div className="space-y-4 text-sm">
+                    <div className="bg-purple-900/30 border border-purple-500/30 rounded p-3">
+                      <div className="text-purple-400 font-bold mb-2">🎯 Cross-Machine Restore</div>
+                      <div className="text-gray-300 text-xs">
+                        Choose the right storage strategy for your use case
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Available Storage Strategies</div>
+                    
+                    <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+                      <div className="text-green-400 font-bold">✅ Universal Storage (Default)</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: shared/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Cross-machine restore: backup on laptop, restore on desktop<br/>
+                        • ✅ Cross-user restore: backup as user1, restore as user2<br/>
+                        • ✅ Team sharing: shared backup namespace<br/>
+                        • ✅ Container friendly: perfect for CI/CD
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded p-3">
+                      <div className="text-blue-400 font-bold">👤 User-Scoped Storage</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: users/username/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Cross-machine restore for same user<br/>
+                        • ✅ User isolation in shared Vault<br/>
+                        • ⚠️ Limited to same username
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-900/20 border border-yellow-500/30 rounded p-3">
+                      <div className="text-yellow-400 font-bold">🔒 Machine-User Storage (Legacy)</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: users/hostname-username/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Maximum isolation per machine-user<br/>
+                        • ❌ No cross-machine restore<br/>
+                        • ❌ No cross-user restore<br/>
+                        • 📦 Existing installations (until migrated)
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-900/20 border border-purple-500/30 rounded p-3">
+                      <div className="text-purple-400 font-bold">🎨 Custom Storage</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: custom-prefix/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Team/project organization<br/>
+                        • ✅ Flexible prefix configuration<br/>
+                        • ⚙️ Requires custom_prefix setting
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Migration for Existing Users</div>
+                    <div className="text-gray-400"># Check current storage strategy</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk migrate-status</span>
+                    </div>
+
+                    <div className="text-gray-400"># Migrate to universal storage (dry run)</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk migrate --from machine-user --to universal --dry-run</span>
+                    </div>
+
+                    <div className="text-gray-400"># Perform actual migration with cleanup</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">sshsk migrate --from machine-user --to universal --cleanup</span>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Configuration Examples</div>
+                    
+                    <div className="text-gray-400"># Universal storage (default)</div>
+                    <div className="text-cyan-400">vault:</div>
+                    <div className="text-white ml-2">storage_strategy: "universal"</div>
+                    <div className="text-white ml-2">backup_namespace: "personal"  # Optional</div>
+
+                    <div className="text-gray-400"># User-scoped storage</div>
+                    <div className="text-cyan-400">vault:</div>
+                    <div className="text-white ml-2">storage_strategy: "user"</div>
+
+                    <div className="text-gray-400"># Legacy machine-user storage</div>
+                    <div className="text-cyan-400">vault:</div>
+                    <div className="text-white ml-2">storage_strategy: "machine-user"</div>
+
+                    <div className="text-gray-400"># Custom team storage</div>
+                    <div className="text-cyan-400">vault:</div>
+                    <div className="text-white ml-2">storage_strategy: "custom"</div>
+                    <div className="text-white ml-2">custom_prefix: "team-devops"</div>
+
+                    <div className="text-yellow-400 font-bold">## Use Cases</div>
+                    <div className="text-white">
+                      <div className="text-green-400">📱 Personal Use:</div> Universal storage for laptop ↔ desktop<br/>
+                      <div className="text-blue-400">👥 Team Environment:</div> Custom prefix for team organization<br/>
+                      <div className="text-yellow-400">🏢 Shared Vault:</div> User-scoped for multi-user isolation<br/>
+                      <div className="text-gray-400">🔒 Maximum Security:</div> Machine-user for strict isolation
                     </div>
                   </div>
                 </TerminalWindow>
@@ -583,6 +742,18 @@ function App() {
                       <div className="flex justify-between">
                         <span className="text-cyan-400">sshsk delete</span>
                         <span className="text-gray-400">Delete backup</span>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## NEW: Storage Management</div>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-green-400">sshsk migrate-status</span>
+                        <span className="text-gray-400">Show storage strategy info</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-green-400">sshsk migrate</span>
+                        <span className="text-gray-400">Migrate between strategies</span>
                       </div>
                     </div>
 
@@ -661,17 +832,38 @@ function App() {
                     <div className="text-yellow-400 font-bold">## Config File</div>
                     <div className="text-gray-400"># Config file location:</div>
                     <div className="text-cyan-400">~/.ssh-secret-keeper/config.yaml</div>
-                    <div className="text-gray-400"># Example configuration:</div>
+                    <div className="text-gray-400"># Universal storage configuration (default):</div>
                     <pre className="text-white">
 {`vault:
   address: "https://vault.company.com:8200"
-  mount_path: "ssh-backups"
+  storage_strategy: "universal"
+  backup_namespace: "personal"  # Optional
 backup:
   ssh_dir: "~/.ssh"
-  retention_count: 10
-security:
-  verify_integrity: true`}
+  normalize_paths: true
+  cross_machine_restore: true`}
                     </pre>
+
+                    <div className="text-gray-400"># Legacy machine-user configuration:</div>
+                    <pre className="text-white">
+{`vault:
+  address: "https://vault.company.com:8200"
+  storage_strategy: "machine-user"
+backup:
+  ssh_dir: "~/.ssh"
+  hostname_prefix: true`}
+                    </pre>
+
+                    <div className="text-yellow-400 font-bold">## Environment Variables</div>
+                    <div className="text-gray-400"># Storage strategy via environment</div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">export SSH_VAULT_STORAGE_STRATEGY="universal"</span>
+                    </div>
+                    <div>
+                      <span className="text-green-400">$</span>
+                      <span className="ml-2 text-white">export SSH_VAULT_BACKUP_NAMESPACE="team-devops"</span>
+                    </div>
                   </div>
                 </TerminalWindow>
               )}
