@@ -175,8 +175,8 @@ Upgrade instructions will be provided with each release.
 ## Support
 
 For questions, issues, or feature requests:
-- **Issues**: [GitHub Issues](https://github.com/rzago/ssh-vault-keeper/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
+- **Issues**: [GitHub Issues](https://github.com/rafaelvzago/ssh-secret-keeper/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/rafaelvzago/ssh-secret-keeper/discussions)
 - **Security**: Please report security issues via GitHub Issues with the "security" label
 
 ## Contributors

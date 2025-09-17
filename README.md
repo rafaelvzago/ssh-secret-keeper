@@ -45,7 +45,7 @@ SSH Secret Keeper includes a modern landing page built with React and TypeScript
 - **CI/CD**: Automated building and deployment pipeline
 - **Development**: Full development environment with hot reload
 
-[![Site Build](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml/badge.svg)](https://github.com/rzago/ssh-vault-keeper/actions/workflows/site.yml)
+[![Site Build](https://github.com/rafaelvzago/ssh-secret-keeper/actions/workflows/site.yml/badge.svg)](https://github.com/rafaelvzago/ssh-secret-keeper/actions/workflows/site.yml)
 
 ### Site Development
 ```bash
@@ -69,7 +69,7 @@ See [`site/README.md`](site/README.md) for detailed development documentation.
 ### Option 1: Download Release Binary
 ```bash
 # Download latest release (replace VERSION and ARCH)
-curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
+curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
 tar -xzf sshsk.tar.gz
 chmod +x sshsk
 sudo mv sshsk /usr/local/bin/
@@ -77,7 +77,7 @@ sudo mv sshsk /usr/local/bin/
 
 ### Option 2: Build from Source
 ```bash
-git clone https://github.com/rzago/ssh-vault-keeper
+git clone https://github.com/rafaelvzago/ssh-secret-keeper
 cd sshsk
 make build
 sudo make install
@@ -460,7 +460,7 @@ jobs:
         VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       run: |
-        curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
+        curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
         tar -xzf sshsk.tar.gz
         chmod +x sshsk
         ./sshsk init
@@ -475,7 +475,7 @@ jobs:
         VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       run: |
-        curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
+        curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
         tar -xzf sshsk.tar.gz
         chmod +x sshsk
         ./sshsk init
@@ -496,7 +496,7 @@ pipeline {
         stage('Backup SSH Keys') {
             steps {
                 sh '''
-                    curl -L https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
+                    curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
         tar -xzf sshsk.tar.gz
                     chmod +x sshsk
                     ./sshsk init
@@ -548,7 +548,7 @@ echo "Setting up SSH keys from Vault..."
 # Download sshsk if not available
 if ! command -v sshsk &> /dev/null; then
     echo "Downloading sshsk..."
-    curl -L "https://github.com/rzago/ssh-vault-keeper/releases/latest/download/ssh-secret-keeper-VERSION-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/').tar.gz" -o /tmp/sshsk.tar.gz
+    curl -L "https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/').tar.gz" -o /tmp/sshsk.tar.gz
     tar -xzf /tmp/sshsk.tar.gz -C /tmp
     chmod +x /tmp/sshsk
     SSH_SECRET_KEEPER="/tmp/sshsk"
@@ -812,7 +812,7 @@ This project follows SOLID principles and clean architecture patterns for mainta
 
 ### Build Instructions
 ```bash
-git clone https://github.com/rzago/ssh-vault-keeper
+git clone https://github.com/rafaelvzago/ssh-secret-keeper
 cd sshsk
 
 # Build for current platform
@@ -1032,9 +1032,9 @@ If you encounter issues:
 ## Support
 
 - [Documentation](docs/)
-- [Issue Tracker](https://github.com/rzago/ssh-vault-keeper/issues)
-- [Discussions](https://github.com/rzago/ssh-vault-keeper/discussions)
-- [Security Issues](https://github.com/rzago/ssh-vault-keeper/issues/new?labels=security)
+- [Issue Tracker](https://github.com/rafaelvzago/ssh-secret-keeper/issues)
+- [Discussions](https://github.com/rafaelvzago/ssh-secret-keeper/discussions)
+- [Security Issues](https://github.com/rafaelvzago/ssh-secret-keeper/issues/new?labels=security)
 
 ## Recent Updates
 

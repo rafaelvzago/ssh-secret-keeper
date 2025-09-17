@@ -68,8 +68,8 @@ make release VERSION=x.y.z
 
 After pushing the tag:
 1. GitHub Actions will automatically start the release workflow
-2. Monitor progress at: https://github.com/rzago/ssh-vault-keeper/actions
-3. Release will be published at: https://github.com/rzago/ssh-vault-keeper/releases
+2. Monitor progress at: https://github.com/rafaelvzago/ssh-secret-keeper/actions
+3. Release will be published at: https://github.com/rafaelvzago/ssh-secret-keeper/releases
 
 ## Manual/Local Release Process
 
@@ -159,8 +159,8 @@ Container images are built locally during the release process. To publish contai
 2. Tag and push to registry (manual step):
    ```bash
    # Example for GitHub Container Registry
-   docker tag ssh-secret-keeper:latest ghcr.io/rzago/ssh-secret-keeper:latest
-   docker push ghcr.io/rzago/ssh-secret-keeper:latest
+   docker tag ssh-secret-keeper:latest ghcr.io/rafaelvzago/ssh-secret-keeper:latest
+   docker push ghcr.io/rafaelvzago/ssh-secret-keeper:latest
    ```
 
 ## Troubleshooting

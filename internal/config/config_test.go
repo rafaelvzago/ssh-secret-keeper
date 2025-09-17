@@ -45,7 +45,7 @@ func TestDefault(t *testing.T) {
 
 func TestConfig_Save(t *testing.T) {
 	// Create temporary directory
-	tmpDir, err := os.MkdirTemp("", "ssh-vault-config-test")
+	tmpDir, err := os.MkdirTemp("", "ssh-secret-config-test")
 	if err != nil {
 		t.Fatalf("Failed to create temp directory: %v", err)
 	}

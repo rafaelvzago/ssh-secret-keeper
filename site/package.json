@@ -1,8 +1,8 @@
 {
-  "name": "ssh-vault-keeper-site",
+  "name": "ssh-secret-keeper-site",
   "private": true,
   "version": "0.0.0",
-  "description": "Landing page for SSH Vault Keeper (in development)",
+  "description": "Landing page for SSH Secret Keeper (in development)",
   "type": "module",
   "scripts": {
     "dev": "vite --host",

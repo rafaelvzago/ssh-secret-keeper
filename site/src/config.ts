@@ -1,14 +1,14 @@
-// Development configuration for SSH Vault Keeper Site
+// Development configuration for SSH Secret Keeper Site
 // No versioning during development phase
 
 export const config = {
   app: {
-    name: 'SSH Vault Keeper',
+    name: 'SSH Secret Keeper',
     status: 'Development',
   },
   github: {
-    repo: 'rzago/ssh-vault-keeper',
-    url: 'https://github.com/rzago/ssh-vault-keeper',
+    repo: 'rafaelvzago/ssh-secret-keeper',
+    url: 'https://github.com/rafaelvzago/ssh-secret-keeper',
   },
   install: {
     // Placeholder URLs for development - will be updated when ready

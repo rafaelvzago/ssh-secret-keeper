@@ -41,7 +41,7 @@ checksum:
 release:
   github:
     owner: rafaelvzago
-    name: ssh-vault-keeper
+    name: ssh-secret-keeper
   draft: false
   prerelease: auto
   mode: replace
@@ -50,7 +50,7 @@ release:
 
     ### Changes
   footer: |
-    **Full Changelog**: https://github.com/rafaelvzago/ssh-vault-keeper/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/rafaelvzago/ssh-secret-keeper/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     ### Installation
 
@@ -58,12 +58,12 @@ release:
 
     ```bash
     # Linux amd64
-    curl -L https://github.com/rafaelvzago/ssh-vault-keeper/releases/download/{{ .Tag }}/ssh-vault-keeper-{{ .Version }}-linux-amd64.tar.gz -o sshsk.tar.gz
+    curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/download/{{ .Tag }}/ssh-secret-keeper-{{ .Version }}-linux-amd64.tar.gz -o sshsk.tar.gz
     tar -xzf sshsk.tar.gz
     sudo mv sshsk /usr/local/bin/
 
     # macOS amd64
-    curl -L https://github.com/rafaelvzago/ssh-vault-keeper/releases/download/{{ .Tag }}/ssh-vault-keeper-{{ .Version }}-darwin-amd64.tar.gz -o sshsk.tar.gz
+    curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/download/{{ .Tag }}/ssh-secret-keeper-{{ .Version }}-darwin-amd64.tar.gz -o sshsk.tar.gz
     tar -xzf sshsk.tar.gz
     sudo mv sshsk /usr/local/bin/
     ```
