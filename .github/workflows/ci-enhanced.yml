@@ -54,6 +54,8 @@ jobs:
         else
           ./bin/sshsk --version
         fi
+      env:
+        VAULT_ADDR: "http://localhost:8200"
 
   # Coverage and quality checks (Linux only)
   quality-checks:
