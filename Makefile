@@ -314,6 +314,46 @@ push-tag:
 	@echo "✅ Tag pushed. Release workflow should start automatically."
 	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-secret-keeper/releases"
 
+# Delete tag (both local and remote)
+.PHONY: delete-tag
+delete-tag:
+	@if [ -z "$(V)" ]; then \
+		echo "❌ Please specify version: make delete-tag V=1.0.0"; \
+		exit 1; \
+	fi
+	@echo "Deleting tag v$(V) (both local and remote)..."
+	@if git rev-parse "v$(V)" >/dev/null 2>&1; then \
+		echo "🗑️  Deleting local tag v$(V)..."; \
+		git tag -d "v$(V)"; \
+	else \
+		echo "ℹ️  Local tag v$(V) does not exist"; \
+	fi
+	@echo "🗑️  Deleting remote tag v$(V)..."
+	@if git ls-remote --exit-code --tags origin "v$(V)" >/dev/null 2>&1; then \
+		git push origin --delete "v$(V)"; \
+		echo "✅ Remote tag v$(V) deleted"; \
+	else \
+		echo "ℹ️  Remote tag v$(V) does not exist"; \
+	fi
+	@echo "✅ Tag deletion complete"
+
+# Force push tag (deletes existing tag first)
+.PHONY: force-push-tag
+force-push-tag:
+	@if [ -z "$(V)" ]; then \
+		echo "❌ Please specify version: make force-push-tag V=1.0.0"; \
+		exit 1; \
+	fi
+	@echo "Force pushing tag v$(V) (will delete existing tag first)..."
+	make delete-tag V=$(V)
+	@if ! git rev-parse "v$(V)" >/dev/null 2>&1; then \
+		echo "❌ Tag v$(V) does not exist locally. Create it first with 'make tag-release V=$(V)'"; \
+		exit 1; \
+	fi
+	git push origin "v$(V)"
+	@echo "✅ Tag v$(V) force pushed. Release workflow should start automatically."
+	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-secret-keeper/releases"
+
 # Local release (requires existing tag)
 .PHONY: release-local
 release-local:
@@ -395,6 +435,8 @@ help:
 	@echo "  release-check      Validate GoReleaser configuration"
 	@echo "  tag-release        Create git tag for release (use VERSION=x.y.z)"
 	@echo "  push-tag          Push tag to trigger automated release"
+	@echo "  delete-tag        Delete git tag (both local and remote)"
+	@echo "  force-push-tag    Force push tag (deletes existing tag first)"
 	@echo "  release           Complete release workflow (test + tag + push)"
 	@echo "  release-local     Create release from existing tag (local)"
 	@echo "  release-with-images Complete release with container images"
@@ -420,4 +462,6 @@ help:
 	@echo "  make release V=1.2.1                 # Complete release workflow"
 	@echo "  make tag-release V=1.2.1             # Create tag only"
 	@echo "  make push-tag V=1.2.1                # Push existing tag"
+	@echo "  make delete-tag V=1.0.0              # Delete existing tag (local + remote)"
+	@echo "  make force-push-tag V=1.0.0          # Force push tag (deletes existing first)"
 	@echo "  make release-snapshot                 # Test release locally"
