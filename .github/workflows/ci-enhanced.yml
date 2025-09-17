@@ -113,5 +113,8 @@ jobs:
           exit 1
         fi
 
+    - name: Install GoReleaser
+      run: go install github.com/goreleaser/goreleaser@latest
+
     - name: Validate GoReleaser config
       run: make release-check
