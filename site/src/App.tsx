@@ -243,27 +243,32 @@ function App() {
                   <div className="space-y-4 text-sm">
                     <div className="text-yellow-400 font-bold">## Manual Binary Download</div>
                     <div className="text-gray-400"># Download for your platform</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</span>
+                      <code className="ml-2 text-white flex-1">curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</code>
+                      <CopyButton text="curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">tar -xzf sshsk.tar.gz</span>
+                      <code className="ml-2 text-white flex-1">tar -xzf sshsk.tar.gz</code>
+                      <CopyButton text="tar -xzf sshsk.tar.gz" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">chmod +x sshsk</span>
+                      <code className="ml-2 text-white flex-1">chmod +x sshsk</code>
+                      <CopyButton text="chmod +x sshsk" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo mv sshsk /usr/local/bin/</span>
+                      <code className="ml-2 text-white flex-1">sudo mv sshsk /usr/local/bin/</code>
+                      <CopyButton text="sudo mv sshsk /usr/local/bin/" />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Verify Installation</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk --version</span>
+                      <code className="ml-2 text-white flex-1">sshsk --version</code>
+                      <CopyButton text="sshsk --version" />
                     </div>
                     <div className="text-cyan-400">SSH Secret Keeper v{config.app.version}</div>
 
@@ -281,49 +286,57 @@ function App() {
                   <div className="space-y-4 text-sm">
                     <div className="text-yellow-400 font-bold">## Install Dependencies</div>
                     <div className="text-gray-400"># Arch Linux</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo pacman -S go make git</span>
+                      <code className="ml-2 text-white flex-1">sudo pacman -S go make git</code>
+                      <CopyButton text="sudo pacman -S go make git" />
                     </div>
 
                     <div className="text-gray-400"># Ubuntu/Debian</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo apt-get install golang-go make git</span>
+                      <code className="ml-2 text-white flex-1">sudo apt-get install golang-go make git</code>
+                      <CopyButton text="sudo apt-get install golang-go make git" />
                     </div>
 
                     <div className="text-gray-400"># Fedora/RHEL</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo dnf install golang make git</span>
+                      <code className="ml-2 text-white flex-1">sudo dnf install golang make git</code>
+                      <CopyButton text="sudo dnf install golang make git" />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Clone and Build</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">git clone https://github.com/rafaelvzago/ssh-secret-keeper.git</span>
+                      <code className="ml-2 text-white flex-1">git clone https://github.com/rafaelvzago/ssh-secret-keeper.git</code>
+                      <CopyButton text="git clone https://github.com/rafaelvzago/ssh-secret-keeper.git" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">cd ssh-secret-keeper</span>
+                      <code className="ml-2 text-white flex-1">cd ssh-secret-keeper</code>
+                      <CopyButton text="cd ssh-secret-keeper" />
                     </div>
 
                     <div className="text-gray-400"># Build for current platform</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make build</span>
+                      <code className="ml-2 text-white flex-1">make build</code>
+                      <CopyButton text="make build" />
                     </div>
 
                     <div className="text-gray-400"># Install to /usr/local/bin</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo make install</span>
+                      <code className="ml-2 text-white flex-1">sudo make install</code>
+                      <CopyButton text="sudo make install" />
                     </div>
 
                     <div className="text-gray-400"># Verify installation</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk --version</span>
+                      <code className="ml-2 text-white flex-1">sshsk --version</code>
+                      <CopyButton text="sshsk --version" />
                     </div>
                     <div className="text-cyan-400">✓ SSH Secret Keeper v{config.app.version}</div>
                   </div>
@@ -334,129 +347,124 @@ function App() {
                 <TerminalWindow title="Docker Usage">
                   <div className="space-y-4 text-sm">
                     <div className="text-yellow-400 font-bold">## Pull from Docker Hub</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker pull rafaelvzago/ssh-secret-keeper:latest</span>
+                      <code className="ml-2 text-white flex-1">docker pull rafaelvzago/ssh-secret-keeper:latest</code>
+                      <CopyButton text="docker pull rafaelvzago/ssh-secret-keeper:latest" />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Basic Usage</div>
                     <div className="text-gray-400"># Analyze SSH directory</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest analyze</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest analyze' />
+                      </div>
                     </div>
 
                     <div className="text-gray-400"># Quick backup (auto-generated name)</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest backup' />
+                      </div>
                     </div>
 
                     <div className="text-gray-400"># Named backup</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "container-$(date +%Y%m%d)"</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "container-$(date +%Y%m%d)"</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest backup "container-$(date +%Y%m%d)"' />
+                      </div>
                     </div>
 
                     <div className="text-gray-400"># Dry run mode</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup --dry-run</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup --dry-run</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro rafaelvzago/ssh-secret-keeper:latest backup --dry-run' />
+                      </div>
                     </div>
 
                     <div className="text-gray-400"># Restore SSH keys</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest restore</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest restore</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest restore' />
+                      </div>
                     </div>
 
                     <div className="text-yellow-400 font-bold">## NEW: Storage Strategy Configuration</div>
                     <div className="text-gray-400"># Use universal storage (default - cross-machine)</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSH_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"' />
+                      </div>
                     </div>
 
                     <div className="text-gray-400"># Use legacy machine-user storage</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e SSH_VAULT_STORAGE_STRATEGY="machine-user" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="machine-user" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e SSH_VAULT_STORAGE_STRATEGY="machine-user" rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"' />
+                      </div>
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Using Podman</div>
                     <div className="text-gray-400"># Same commands, just replace 'docker' with 'podman'</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">podman run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>podman run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest analyze</div>
+                        </div>
+                        <CopyButton text='podman run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSH_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest analyze' />
+                      </div>
                     </div>
                   </div>
                 </TerminalWindow>
