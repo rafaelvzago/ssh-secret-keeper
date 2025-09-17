@@ -32,6 +32,40 @@ This will:
 - Store your token securely at `~/.ssh-secret-keeper/token`
 - Test Vault connection
 - Create necessary Vault mounts
+- Use universal storage strategy by default (enables cross-machine restore)
+
+## Step 2.5: Choose Storage Strategy (Optional)
+
+SSH Secret Keeper now supports multiple storage strategies. The default is **universal storage** which enables cross-machine restore:
+
+### Universal Storage (Default - Recommended)
+```bash
+# Already configured by default - no action needed
+# Enables: backup on laptop, restore on desktop
+```
+
+### For Existing Users (Legacy Machine-User Storage)
+```bash
+# Check your current storage strategy
+sshsk migrate-status
+
+# Migrate to universal storage for cross-machine restore
+sshsk migrate --from machine-user --to universal --dry-run  # Preview
+sshsk migrate --from machine-user --to universal --cleanup  # Execute
+```
+
+### Other Storage Options
+```bash
+# User-scoped storage (shared Vault with user isolation)
+export SSH_VAULT_STORAGE_STRATEGY="user"
+
+# Custom team storage
+export SSH_VAULT_STORAGE_STRATEGY="custom"
+export SSH_VAULT_CUSTOM_PREFIX="team-devops"
+
+# Legacy machine-user storage (maximum isolation)
+export SSH_VAULT_STORAGE_STRATEGY="machine-user"
+```
 
 ## Step 3: Analyze Your SSH Directory
 
@@ -91,19 +125,26 @@ Example output for your SSH directory:
 ## Step 4: Create Your First Backup
 
 ```bash
-# Backup everything (you'll be prompted for encryption passphrase)
+# Quick backup with auto-generated name
 sshsk backup
 
-# Or with a custom name
-sshsk backup pre-migration
+# Named backup for organization
+sshsk backup "my-laptop-keys"
+
+# Interactive mode - select specific files
+sshsk backup --interactive "selective-backup"
+
+# Preview mode - see what would be backed up
+sshsk backup --dry-run
 ```
 
 The backup process:
 1. Analyzes your SSH directory
 2. Shows summary of what will be backed up
-3. Prompts for encryption passphrase
+3. Applies file filtering patterns
 4. Encrypts all files client-side
-5. Stores in Vault with your hostname/username namespace
+5. Stores in Vault using configured storage strategy (universal by default)
+6. Enables cross-machine restore capability
 
 ## Step 5: Test Restore (Dry Run)
 
@@ -115,6 +156,28 @@ sshsk restore --dry-run
 mkdir ~/test-restore
 sshsk restore --target-dir ~/test-restore
 ```
+
+## Step 5.5: Cross-Machine Restore (NEW!)
+
+With universal storage (default), you can now restore backups across different machines and users:
+
+```bash
+# On your laptop
+laptop$ sshsk backup "dev-environment"
+
+# On your desktop (different machine/user)
+desktop$ sshsk list                    # Shows "dev-environment"
+desktop$ sshsk restore "dev-environment"  # Restores to ~/.ssh
+
+# On a server (different user)
+server$ sshsk restore "dev-environment" --target-dir ~/.ssh
+```
+
+**Benefits of Universal Storage:**
+- ✅ Backup on laptop, restore on desktop
+- ✅ Works across different user accounts
+- ✅ Perfect for team environments
+- ✅ Container and CI/CD friendly
 
 ## Step 6: List and Manage Backups
 
@@ -128,9 +191,57 @@ sshsk status
 
 ## Common Use Cases
 
-### Backup Before System Changes
+### Different Backup Modes
+
+#### Quick Daily Backup
 ```bash
-sshsk backup pre-upgrade-$(date +%Y%m%d)
+# Auto-generated name with timestamp
+sshsk backup
+```
+
+#### Organized Named Backups
+```bash
+# Before system changes
+sshsk backup "pre-upgrade-$(date +%Y%m%d)"
+
+# Project-specific backups
+sshsk backup "project-alpha-keys"
+
+# Environment-specific backups
+sshsk backup "dev-environment"
+```
+
+#### Selective Backup (Interactive Mode)
+```bash
+# Choose specific files to backup
+sshsk backup --interactive "selective-backup"
+```
+
+#### Preview Mode (Dry Run)
+```bash
+# See what would be backed up without doing it
+sshsk backup --dry-run
+sshsk backup --dry-run "test-backup"
+```
+
+### Cross-Machine Restore Workflows
+
+#### Developer Laptop → Desktop
+```bash
+# On laptop
+laptop$ sshsk backup "dev-keys-$(date +%Y%m%d)"
+
+# On desktop
+desktop$ sshsk restore "dev-keys-$(date +%Y%m%d)"
+```
+
+#### Team Key Sharing
+```bash
+# Team member creates backup
+team-member$ sshsk backup "team-project-keys"
+
+# Other team members can restore
+other-member$ sshsk restore "team-project-keys"
 ```
 
 ### Selective Restore
