@@ -66,7 +66,36 @@ See [`site/README.md`](site/README.md) for detailed development documentation.
 
 ## Installation
 
-### Option 1: Download Release Binary
+### Option 1: Quick Installation Script (Recommended)
+```bash
+# Quick installation - detects your OS and installs automatically
+curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+```
+
+**Installation Options:**
+```bash
+# Install to user directory (no sudo required)
+curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --user
+
+# Install specific version
+curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --version 1.2.0
+
+# Install to custom directory
+curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --install-dir /opt/bin
+
+# View all options
+curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --help
+```
+
+The installation script:
+- ✅ **Auto-detects** your OS and architecture (Linux/macOS, amd64/arm64)
+- ✅ **Downloads** the appropriate binary from GitHub releases
+- ✅ **Verifies** checksums for security
+- ✅ **Installs** to system (`/usr/local/bin`) or user directory (`~/.local/bin`)
+- ✅ **Handles** existing installations and updates
+- ✅ **Fallback** to building from source if needed
+
+### Option 2: Manual Download
 ```bash
 # Download latest release (replace VERSION and ARCH)
 curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
@@ -75,15 +104,15 @@ chmod +x sshsk
 sudo mv sshsk /usr/local/bin/
 ```
 
-### Option 2: Build from Source
+### Option 3: Build from Source
 ```bash
 git clone https://github.com/rafaelvzago/ssh-secret-keeper
-cd sshsk
+cd ssh-secret-keeper
 make build
 sudo make install
 ```
 
-### Option 3: Container (Docker/Podman)
+### Option 4: Container (Docker/Podman)
 ```bash
 # Using Docker
 docker pull rafaelvzago/ssh-secret-keeper:latest
@@ -460,11 +489,9 @@ jobs:
         VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       run: |
-        curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
-        tar -xzf sshsk.tar.gz
-        chmod +x sshsk
-        ./sshsk init
-        ./sshsk backup "github-${GITHUB_SHA}-${GITHUB_RUN_ID}"
+        curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+        sshsk init
+        sshsk backup "github-${GITHUB_SHA}-${GITHUB_RUN_ID}"
 
   restore:
     runs-on: ubuntu-latest
@@ -475,11 +502,9 @@ jobs:
         VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       run: |
-        curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
-        tar -xzf sshsk.tar.gz
-        chmod +x sshsk
-        ./sshsk init
-        ./sshsk restore --target-dir /tmp/ssh-keys
+        curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+        sshsk init
+        sshsk restore --target-dir /tmp/ssh-keys
 ```
 
 #### Jenkins Pipeline
@@ -496,11 +521,9 @@ pipeline {
         stage('Backup SSH Keys') {
             steps {
                 sh '''
-                    curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz
-        tar -xzf sshsk.tar.gz
-                    chmod +x sshsk
-                    ./sshsk init
-                    ./sshsk backup "jenkins-${BUILD_NUMBER}-${GIT_COMMIT}"
+                    curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+                    sshsk init
+                    sshsk backup "jenkins-${BUILD_NUMBER}-${GIT_COMMIT}"
                 '''
             }
         }
@@ -545,13 +568,11 @@ fi
 
 echo "Setting up SSH keys from Vault..."
 
-# Download sshsk if not available
+# Install sshsk if not available
 if ! command -v sshsk &> /dev/null; then
-    echo "Downloading sshsk..."
-    curl -L "https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m | sed 's/x86_64/amd64/').tar.gz" -o /tmp/sshsk.tar.gz
-    tar -xzf /tmp/sshsk.tar.gz -C /tmp
-    chmod +x /tmp/sshsk
-    SSH_SECRET_KEEPER="/tmp/sshsk"
+    echo "Installing sshsk..."
+    curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+    SSH_SECRET_KEEPER="sshsk"
 else
     SSH_SECRET_KEEPER="sshsk"
 fi
