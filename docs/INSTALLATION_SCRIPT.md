@@ -21,23 +21,23 @@ The installation script provides an automated, cross-platform way to install SSH
 
 ```bash
 # Install latest version (system-wide, requires sudo)
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
 ```
 
 ### Installation Options
 
 ```bash
 # Install to user directory (no sudo required)
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --user
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --user
 
 # Install specific version
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --version 1.2.0
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --version 1.2.0
 
 # Install to custom directory
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --install-dir /opt/bin
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --install-dir /opt/bin
 
 # View help
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --help
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --help
 ```
 
 ### Local Installation
@@ -140,7 +140,7 @@ The script provides comprehensive error handling with clear messages:
 Enable debug mode for troubleshooting:
 
 ```bash
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --debug
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --debug
 ```
 
 Debug mode provides:
@@ -188,18 +188,18 @@ The installation script is perfect for CI/CD environments:
 ### GitHub Actions
 ```yaml
 - name: Install SSH Secret Keeper
-  run: curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+  run: curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
 ```
 
 ### GitLab CI
 ```yaml
 before_script:
-  - curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+  - curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
 ```
 
 ### Jenkins
 ```groovy
-sh 'curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash'
+sh 'curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash'
 ```
 
 ## Testing
@@ -224,7 +224,7 @@ Run tests:
 1. **Permission denied**:
    ```bash
    # Try user installation
-   curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --user
+   curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --user
    ```
 
 2. **Network issues**:
@@ -236,7 +236,7 @@ Run tests:
 3. **Checksum failures**:
    ```bash
    # Retry installation (might be temporary network issue)
-   curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+   curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
    ```
 
 4. **Platform not supported**:

@@ -69,22 +69,22 @@ See [`site/README.md`](site/README.md) for detailed development documentation.
 ### Option 1: Quick Installation Script (Recommended)
 ```bash
 # Quick installation - detects your OS and installs automatically
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
 ```
 
 **Installation Options:**
 ```bash
 # Install to user directory (no sudo required)
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --user
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --user
 
 # Install specific version
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --version 1.2.0
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --version 1.2.0
 
 # Install to custom directory
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --install-dir /opt/bin
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --install-dir /opt/bin
 
 # View all options
-curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash -s -- --help
+curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash -s -- --help
 ```
 
 The installation script:
@@ -489,7 +489,7 @@ jobs:
         VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       run: |
-        curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+        curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
         sshsk init
         sshsk backup "github-${GITHUB_SHA}-${GITHUB_RUN_ID}"
 
@@ -502,7 +502,7 @@ jobs:
         VAULT_ADDR: ${{ vars.VAULT_ADDR }}
         VAULT_TOKEN: ${{ secrets.VAULT_TOKEN }}
       run: |
-        curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+        curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
         sshsk init
         sshsk restore --target-dir /tmp/ssh-keys
 ```
@@ -521,7 +521,7 @@ pipeline {
         stage('Backup SSH Keys') {
             steps {
                 sh '''
-                    curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+                    curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
                     sshsk init
                     sshsk backup "jenkins-${BUILD_NUMBER}-${GIT_COMMIT}"
                 '''
@@ -571,7 +571,7 @@ echo "Setting up SSH keys from Vault..."
 # Install sshsk if not available
 if ! command -v sshsk &> /dev/null; then
     echo "Installing sshsk..."
-    curl -sSL https://github.com/rafaelvzago/ssh-secret-keeper/raw/main/install.sh | bash
+    curl -sSL https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh | bash
     SSH_SECRET_KEEPER="sshsk"
 else
     SSH_SECRET_KEEPER="sshsk"

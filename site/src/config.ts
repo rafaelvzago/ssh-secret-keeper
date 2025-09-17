@@ -12,8 +12,8 @@ export const config = {
     url: 'https://github.com/rafaelvzago/ssh-secret-keeper',
   },
   install: {
-    scriptUrl: 'https://github.com/rafaelvzago/ssh-secret-keeper/install.sh',
-    rawScriptUrl: 'https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/main/install.sh',
+    scriptUrl: 'https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh',
+    rawScriptUrl: 'https://raw.githubusercontent.com/rafaelvzago/ssh-secret-keeper/refs/heads/main/install.sh',
     downloadBase: 'https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/',
   },
   docker: {
