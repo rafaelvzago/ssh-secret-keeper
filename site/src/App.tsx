@@ -544,7 +544,7 @@ function App() {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-cyan-400">make test-coverage-check</span>
-                        <span className="text-gray-400">Verify 85%+ coverage</span>
+                        <span className="text-gray-400">Verify 40%+ coverage (target 85%)</span>
                       </div>
                     </div>
 

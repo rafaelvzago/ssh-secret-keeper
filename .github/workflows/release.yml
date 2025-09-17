@@ -1,12 +1,17 @@
-name: Release
+name: Production Release
 
 on:
   push:
     tags:
       - 'v*.*.*'
+      - '!v*.*.*-rc*'
+      - '!v*.*.*-beta*'
+      - '!v*.*.*-alpha*'
 
 env:
   GO_VERSION: '1.21'
+  REGISTRY: docker.io
+  IMAGE_NAME: rafaelvzago/ssh-vault-keeper
 
 jobs:
   release:
@@ -16,11 +21,23 @@ jobs:
       contents: write
       packages: write
 
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag: ${{ steps.get_version.outputs.tag }}
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
+    - name: Extract version from git tag
+      id: get_version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        TAG=${GITHUB_REF#refs/tags/}
+        echo "version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "tag=${TAG}" >> $GITHUB_OUTPUT
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -28,20 +45,20 @@ jobs:
         go-version: ${{ env.GO_VERSION }}
 
     - name: Cache Go modules
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
         key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-${{ env.GO_VERSION }}-
 
     - name: Download dependencies
       run: go mod download
 
     - name: Run tests
       run: make test
+      env:
+        VAULT_ADDR: "http://localhost:8200"
 
     - name: Run GoReleaser
       uses: goreleaser/goreleaser-action@v5
@@ -52,45 +69,65 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build container images (informational)
-      run: |
-        echo "Container images can be built with:"
-        echo "  make container-build-branch"
-        echo ""
-        echo "To publish container images, add your registry configuration"
-        echo "and uncomment the container publishing steps below."
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    # Optional: Uncomment and configure for container registry publishing
-    # - name: Set up Docker Buildx
-    #   uses: docker/setup-buildx-action@v3
-    #
-    # - name: Log in to Container Registry
-    #   uses: docker/login-action@v3
-    #   with:
-    #     registry: ghcr.io
-    #     username: ${{ github.actor }}
-    #     password: ${{ secrets.GITHUB_TOKEN }}
-    #
-    # - name: Build and push container images
-    #   run: |
-    #     make container-build-branch
-    #     # Add your container push commands here
-    #     # docker push ghcr.io/rzago/ssh-secret-keeper:${{ github.ref_name }}
-    #     # docker push ghcr.io/rzago/ssh-secret-keeper:latest
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_SECRET }}
 
-    - name: Upload release artifacts summary
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.IMAGE_NAME }}
+        tags: |
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=raw,value=latest
+
+    - name: Build and push container images
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          VERSION=${{ steps.get_version.outputs.version }}
+          BUILD_TIME=${{ github.event.head_commit.timestamp }}
+          GIT_HASH=${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Generate release summary
       run: |
-        echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "## 🚀 Release ${{ steps.get_version.outputs.tag }} Complete" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "✅ **Release created successfully**" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Production release created from git tag**: \`${{ steps.get_version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Artifacts Generated:" >> $GITHUB_STEP_SUMMARY
-        echo "- Cross-platform binaries (Linux, macOS, Windows)" >> $GITHUB_STEP_SUMMARY
-        echo "- Architecture support: amd64, arm64" >> $GITHUB_STEP_SUMMARY
-        echo "- Checksums and signatures" >> $GITHUB_STEP_SUMMARY
-        echo "- Release notes with changelog" >> $GITHUB_STEP_SUMMARY
+        echo "### 📦 Generated Artifacts:" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Binaries**: Linux, macOS (amd64 + arm64)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Archives**: tar.gz format" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Checksums**: SHA256 verification" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Container Images**: Multi-arch (linux/amd64, linux/arm64)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-        echo "- Container images can be built locally with \`make container-build-branch\`" >> $GITHUB_STEP_SUMMARY
-        echo "- Update documentation if needed" >> $GITHUB_STEP_SUMMARY
-        echo "- Announce the release to users" >> $GITHUB_STEP_SUMMARY
+        echo "### 🐳 Docker Hub Images:" >> $GITHUB_STEP_SUMMARY
+        echo "- \`${{ env.IMAGE_NAME }}:${{ steps.get_version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- \`${{ env.IMAGE_NAME }}:latest\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 🔗 Release Links:" >> $GITHUB_STEP_SUMMARY
+        echo "- [📋 Release Page](https://github.com/${{ github.repository }}/releases/tag/${{ steps.get_version.outputs.tag }})" >> $GITHUB_STEP_SUMMARY
+        echo "- [🐳 Docker Hub](https://hub.docker.com/r/rafaelvzago/ssh-vault-keeper)" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📥 Quick Install:" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "# Linux amd64" >> $GITHUB_STEP_SUMMARY
+        echo "curl -L https://github.com/${{ github.repository }}/releases/download/${{ steps.get_version.outputs.tag }}/ssh-vault-keeper-${{ steps.get_version.outputs.version }}-linux-amd64.tar.gz -o sshsk.tar.gz" >> $GITHUB_STEP_SUMMARY
+        echo "tar -xzf sshsk.tar.gz && sudo mv sshsk /usr/local/bin/" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY

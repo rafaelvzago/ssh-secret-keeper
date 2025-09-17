@@ -102,13 +102,12 @@ make release-local
    - Git state verification
 
 2. **Building**:
-   - Cross-platform binaries (Linux, macOS, Windows)
+   - Cross-platform binaries (Linux, macOS)
    - Architecture support (amd64, arm64)
    - Static binaries with version information
 
 3. **Packaging**:
    - tar.gz archives for Unix systems
-   - zip archives for Windows
    - Checksums for all artifacts
 
 4. **Publishing**:
@@ -119,7 +118,7 @@ make release-local
 ### Included Files in Release
 
 Each release archive contains:
-- `sshsk` binary (or `sshsk.exe` for Windows)
+- `sshsk` binary
 - `README.md`
 - `LICENSE`
 - `CHANGELOG.md`

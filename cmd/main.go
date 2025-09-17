@@ -15,6 +15,14 @@ func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
+	// Check for version flags early (before config loading)
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v" || os.Args[1] == "version") {
+		fmt.Printf("SSH Secret Keeper %s\n", cmd.Version)
+		fmt.Printf("Built at: %s\n", cmd.BuildTime)
+		fmt.Printf("Git hash: %s\n", cmd.GitHash)
+		return
+	}
+
 	// Load configuration
 	cfg, err := config.Load()
 	if err != nil {

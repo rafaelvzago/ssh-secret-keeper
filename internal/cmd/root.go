@@ -37,6 +37,7 @@ flexible backup/restore operations.`,
 	rootCmd.PersistentFlags().Bool("verbose", false, "Enable verbose logging")
 	rootCmd.PersistentFlags().Bool("quiet", false, "Suppress all output except errors")
 	rootCmd.PersistentFlags().String("config", "", "Configuration file path")
+	rootCmd.PersistentFlags().BoolP("version", "v", false, "Show version information")
 
 	// Add subcommands
 	rootCmd.AddCommand(

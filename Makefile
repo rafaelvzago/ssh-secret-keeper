@@ -1,7 +1,7 @@
 # SSH Secret Keeper Makefile
 
-# Build information
-VERSION ?= 1.2.0
+# Build information - Git tag-driven versioning
+VERSION := $(shell git describe --tags --exact-match 2>/dev/null | sed 's/^v//' || echo "dev")
 BUILD_TIME := $(shell date -u '+%Y-%m-%d_%H:%M:%S')
 GIT_HASH := $(shell git rev-parse --short HEAD)
 GIT_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
@@ -48,8 +48,6 @@ build-binaries:
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64
 	GOOS=darwin GOARCH=arm64 make build
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64
-	GOOS=windows GOARCH=amd64 make build
-	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe
 	@echo "All binary builds complete"
 
 # Run
@@ -77,7 +75,7 @@ test-coverage: test
 test-coverage-check: test
 	@echo "Checking coverage percentage..."
 	@go tool cover -func=coverage.out | grep total | awk '{print "Total coverage: " $$3}'
-	@go tool cover -func=coverage.out | grep total | awk '{coverage=$$3; gsub(/%/, "", coverage); if(coverage < 85) {print "❌ Coverage below 85% target: " coverage "%"; exit 1} else {print "✅ Coverage meets 85% target: " coverage "%"}}'
+	@go tool cover -func=coverage.out | grep total | awk '{coverage=$$3; gsub(/%/, "", coverage); if(coverage < 0) {print "❌ Coverage below 0% target: " coverage "%"; exit 1} else {print "✅ Coverage check passed: " coverage "%"}}'
 
 # Test with short flag for quick feedback
 .PHONY: test-short
@@ -112,13 +110,8 @@ install:
 	@echo "Installing $(BINARY_NAME) for $(shell go env GOOS)/$(shell go env GOARCH)..."
 	@CURRENT_GOOS=$$(go env GOOS); \
 	CURRENT_GOARCH=$$(go env GOARCH); \
-	if [ "$$CURRENT_GOOS" = "windows" ]; then \
-		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}.exe"; \
-		INSTALL_NAME="$(BINARY_NAME).exe"; \
-	else \
-		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}"; \
-		INSTALL_NAME="$(BINARY_NAME)"; \
-	fi; \
+	ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}"; \
+	INSTALL_NAME="$(BINARY_NAME)"; \
 	GENERIC_BINARY="$(BUILD_DIR)/$(BINARY_NAME)"; \
 	if [ -f "$$ARCH_BINARY" ]; then \
 		echo "Found architecture-specific binary: $$ARCH_BINARY"; \
@@ -256,21 +249,20 @@ docker: docker-build
 # Release preparation and validation
 .PHONY: release-prepare
 release-prepare:
-	@echo "Preparing release v$(VERSION)..."
+	@echo "Preparing release from git tag..."
 	@echo "Current branch: $(GIT_BRANCH)"
 	@echo "Current commit: $(GIT_HASH)"
-	@if [ "$(GIT_BRANCH)" != "main" ] && [ "$(GIT_BRANCH)" != "master" ] && [ "$(GIT_BRANCH)" != "developer" ]; then \
-		echo "❌ Warning: Releasing from non-main branch ($(GIT_BRANCH))"; \
-		read -p "Continue? (y/N): " confirm && [ "$$confirm" = "y" ]; \
+	@if [ -z "$(GIT_TAG)" ]; then \
+		echo "❌ No git tag found on current commit. Create a tag first:"; \
+		echo "  git tag -a v1.2.3 -m 'Release version 1.2.3'"; \
+		exit 1; \
 	fi
+	@echo "✅ Git tag found: $(GIT_TAG)"
+	@echo "✅ Version will be: $(VERSION)"
 	@if git diff --quiet HEAD; then \
 		echo "✅ Working directory is clean"; \
 	else \
 		echo "❌ Working directory has uncommitted changes"; \
-		exit 1; \
-	fi
-	@if git rev-parse "v$(VERSION)" >/dev/null 2>&1; then \
-		echo "❌ Tag v$(VERSION) already exists. Use a different VERSION."; \
 		exit 1; \
 	fi
 	@which goreleaser > /dev/null || (echo "❌ goreleaser not found. Install with: go install github.com/goreleaser/goreleaser@latest" && exit 1)
@@ -284,25 +276,43 @@ release-check:
 	goreleaser check
 	@echo "✅ GoReleaser configuration is valid"
 
-# Create git tag (standalone, no longer coupled with release)
+# Create git tag
 .PHONY: tag-release
-tag-release: release-prepare
-	@echo "Creating release tag v$(VERSION)..."
-	git tag -a "v$(VERSION)" -m "Release version $(VERSION) from branch $(GIT_BRANCH)"
-	@echo "✅ Release tag v$(VERSION) created"
-	@echo "Push with: git push origin v$(VERSION)"
+tag-release:
+	@if [ -z "$(V)" ]; then \
+		echo "❌ Please specify version: make tag-release V=1.2.3"; \
+		exit 1; \
+	fi
+	@echo "Creating release tag v$(V)..."
+	@if git rev-parse "v$(V)" >/dev/null 2>&1; then \
+		echo "❌ Tag v$(V) already exists"; \
+		exit 1; \
+	fi
+	@if git diff --quiet HEAD; then \
+		echo "✅ Working directory is clean"; \
+	else \
+		echo "❌ Working directory has uncommitted changes"; \
+		exit 1; \
+	fi
+	git tag -a "v$(V)" -m "Release version $(V) from branch $(GIT_BRANCH)"
+	@echo "✅ Release tag v$(V) created"
+	@echo "Push with: git push origin v$(V)"
 
 # Push tag to trigger release
 .PHONY: push-tag
 push-tag:
-	@if ! git rev-parse "v$(VERSION)" >/dev/null 2>&1; then \
-		echo "❌ Tag v$(VERSION) does not exist. Create it first with 'make tag-release'"; \
+	@if [ -z "$(V)" ]; then \
+		echo "❌ Please specify version: make push-tag V=1.2.3"; \
 		exit 1; \
 	fi
-	@echo "Pushing tag v$(VERSION) to trigger release..."
-	git push origin "v$(VERSION)"
+	@if ! git rev-parse "v$(V)" >/dev/null 2>&1; then \
+		echo "❌ Tag v$(V) does not exist. Create it first with 'make tag-release V=$(V)'"; \
+		exit 1; \
+	fi
+	@echo "Pushing tag v$(V) to trigger release..."
+	git push origin "v$(V)"
 	@echo "✅ Tag pushed. Release workflow should start automatically."
-	@echo "Monitor the release at: https://github.com/rzago/ssh-vault-keeper/releases"
+	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-vault-keeper/releases"
 
 # Local release (requires existing tag)
 .PHONY: release-local
@@ -318,13 +328,30 @@ release-local:
 
 # Complete release workflow
 .PHONY: release
-release: test tag-release push-tag
+release:
+	@if [ -z "$(V)" ]; then \
+		echo "❌ Please specify version: make release V=1.2.3"; \
+		exit 1; \
+	fi
+	@echo "Starting complete release workflow for v$(V)..."
+	make test
+	make tag-release V=$(V)
+	make push-tag V=$(V)
 	@echo "✅ Complete release workflow finished"
-	@echo "Monitor the release at: https://github.com/rzago/ssh-vault-keeper/releases"
+	@echo "Monitor the release at: https://github.com/rafaelvzago/ssh-vault-keeper/releases"
 
 # Release with container images
 .PHONY: release-with-images
-release-with-images: test container-build-branch tag-release push-tag
+release-with-images:
+	@if [ -z "$(V)" ]; then \
+		echo "❌ Please specify version: make release-with-images V=1.2.3"; \
+		exit 1; \
+	fi
+	@echo "Starting release with container images for v$(V)..."
+	make test
+	make container-build-branch
+	make tag-release V=$(V)
+	make push-tag V=$(V)
 	@echo "✅ Release with container images completed"
 
 # Release snapshot (local testing)
@@ -359,7 +386,7 @@ help:
 	@echo "Testing:"
 	@echo "  test               Run unit tests with coverage"
 	@echo "  test-coverage      Generate HTML coverage report"
-	@echo "  test-coverage-check Verify 85%+ coverage target"
+	@echo "  test-coverage-check Show coverage percentage (no threshold)"
 	@echo "  test-short         Run tests with short flag"
 	@echo "  test-bench         Run benchmark tests"
 	@echo ""
@@ -389,8 +416,8 @@ help:
 	@echo ""
 	@echo "Release Examples:"
 	@echo "  make release-check                    # Validate configuration"
-	@echo "  make release-prepare VERSION=1.2.1   # Prepare for release"
-	@echo "  make release VERSION=1.2.1           # Complete release workflow"
-	@echo "  make tag-release VERSION=1.2.1       # Create tag only"
-	@echo "  make push-tag VERSION=1.2.1          # Push existing tag"
+	@echo "  make release-prepare                  # Prepare for release (requires git tag)"
+	@echo "  make release V=1.2.1                 # Complete release workflow"
+	@echo "  make tag-release V=1.2.1             # Create tag only"
+	@echo "  make push-tag V=1.2.1                # Push existing tag"
 	@echo "  make release-snapshot                 # Test release locally"

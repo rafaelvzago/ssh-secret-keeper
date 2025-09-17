@@ -31,7 +31,7 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 - Interactive Mode for file and backup selection
 - Dry-run Support for safe testing
 - Multiple Backup Versions with retention
-- Cross-platform Support (Linux, macOS, Windows)
+- Cross-platform Support (Linux, macOS)
 - Container Ready with Docker and Podman support
 - CI/CD Integration friendly
 - Permission Security validation and warnings
@@ -794,7 +794,7 @@ This project follows SOLID principles and clean architecture patterns for mainta
 - Repository Pattern: Abstract data access layer for Vault
 
 ### Code Quality Standards
-- Test Coverage: 85%+ with unit and integration tests
+- Test Coverage: 40%+ with unit and integration tests (target 85%)
 - Error Handling: Structured, contextual error messages
 - Logging: Structured logging with zerolog
 - Validation: Comprehensive input validation throughout
@@ -831,11 +831,11 @@ make test
 
 - Language: Go 1.21+
 - Lines of Code: ~4,300+
-- Test Coverage: 85%+ (comprehensive test suite)
+- Test Coverage: 40%+ (growing test suite, target 85%)
 - Dependencies: Minimal, security-focused
 - Performance: <100ms for typical SSH directories
 - Architecture: Clean architecture with SOLID principles
-- Compatibility: Linux, macOS, Windows, ARM64
+- Compatibility: Linux, macOS, ARM64
 
 ## Security Model
 

@@ -2,10 +2,16 @@
 
 All notable changes to SSH Secret Keeper will be documented in this file.
 
+## [Unreleased]
+
+### Breaking Changes
+- **REMOVED**: Windows platform support - SSH Secret Keeper now supports only Linux and macOS
+  - Windows binaries are no longer built or distributed
+  - Windows-specific code paths have been removed
+  - Users on Windows should migrate to WSL2 (Windows Subsystem for Linux) or use alternative solutions
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
-## [Unreleased]
 
 ## [1.2.0] - 2025-09-16
 
@@ -75,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Interactive modes**: User-guided file selection for backup/restore
 - **Dry-run support**: Preview operations without executing
 - **Docker containerization** with multi-stage builds
-- **Cross-platform support**: Linux, macOS, Windows binaries
+- **Cross-platform support**: Linux, macOS binaries
 - **Comprehensive testing**: Unit tests for crypto, analyzer, config modules
 - **Complete documentation**: User guides, configuration reference, quick start
 
@@ -148,7 +154,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Compatibility
 - **Go version**: Requires Go 1.21 or later
 - **Vault version**: Compatible with HashiCorp Vault 1.10.0+
-- **Operating systems**: Linux, macOS, Windows
+- **Operating systems**: Linux, macOS
 - **Architectures**: amd64, arm64
 
 ---

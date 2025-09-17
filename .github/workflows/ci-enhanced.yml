@@ -1,0 +1,120 @@
+name: Enhanced CI Pipeline
+
+on:
+  push:
+    branches: [ main, developer ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  # Multi-platform testing (no binary uploads)
+  test-matrix:
+    name: Test & Validate
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        go-version: ['1.21']
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ matrix.go-version }}-${{ hashFiles('**/go.sum') }}
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: make test
+
+    - name: Test build for current platform
+      run: make build
+
+    - name: Verify binary works
+      shell: bash
+      run: |
+        ./bin/sshsk --version
+      env:
+        VAULT_ADDR: "http://localhost:8200"
+
+  # Coverage and quality checks (Linux only)
+  quality-checks:
+    name: Quality Assurance
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: Cache Go modules
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ env.GO_VERSION }}-${{ hashFiles('**/go.sum') }}
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests with coverage
+      run: make test-coverage-check
+
+    - name: Test cross-compilation
+      run: make build-binaries
+
+    - name: Verify all binaries built
+      run: |
+        echo "Built binaries:" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        ls -la bin/ >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+
+        # Verify expected binaries exist
+        expected_binaries=(
+          "sshsk-linux-amd64"
+          "sshsk-linux-arm64"
+          "sshsk-darwin-amd64"
+          "sshsk-darwin-arm64"
+        )
+
+        missing_binaries=()
+        for binary in "${expected_binaries[@]}"; do
+          if [ ! -f "bin/$binary" ]; then
+            missing_binaries+=("$binary")
+          fi
+        done
+
+        if [ ${#missing_binaries[@]} -eq 0 ]; then
+          echo "✅ All expected binaries built successfully" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "❌ Missing binaries: ${missing_binaries[*]}" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        fi
+
+    - name: Install GoReleaser
+      run: go install github.com/goreleaser/goreleaser@latest
+
+    - name: Validate GoReleaser config
+      run: make release-check

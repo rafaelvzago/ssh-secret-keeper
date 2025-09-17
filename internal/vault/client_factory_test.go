@@ -275,12 +275,6 @@ func TestGenerateBasePath(t *testing.T) {
 			wantContains: "testuser",
 		},
 		{
-			name:         "with USERNAME env var (Windows)",
-			user:         "",
-			username:     "windowsuser",
-			wantContains: "windowsuser",
-		},
-		{
 			name:         "no user env vars",
 			user:         "",
 			username:     "",
