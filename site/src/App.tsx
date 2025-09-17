@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Terminal, Shield, Key, Server, Copy, Check, Github, Book, Zap, Lock } from 'lucide-react';
+import { config } from './config';
 
 const TypewriterText: React.FC<{ text: string; delay?: number }> = ({ text, delay = 50 }) => {
   const [displayText, setDisplayText] = useState('');
@@ -99,13 +100,16 @@ function App() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Terminal className="w-8 h-8 text-green-400" />
-            <h1 className="text-xl font-bold text-green-400">SSH Secret Keeper</h1>
+            <div>
+              <h1 className="text-xl font-bold text-green-400">SSH Secret Keeper</h1>
+              <div className="text-xs text-gray-400">v{config.app.version}</div>
+            </div>
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-cyan-400 hover:text-cyan-300 transition-colors">Features</a>
             <a href="#installation" className="text-cyan-400 hover:text-cyan-300 transition-colors">Install</a>
             <a href="#docs" className="text-cyan-400 hover:text-cyan-300 transition-colors">Documentation</a>
-            <a href="#" className="text-gray-400 hover:text-gray-300 transition-colors">
+            <a href={config.github.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-300 transition-colors">
               <Github className="w-5 h-5" />
             </a>
           </nav>
@@ -260,7 +264,7 @@ function App() {
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">sshsk --version</span>
                     </div>
-                    <div className="text-cyan-400">SSH Secret Keeper v1.2.3</div>
+                    <div className="text-cyan-400">SSH Secret Keeper v{config.app.version}</div>
 
                     <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
                       <div className="text-blue-400 text-xs">
@@ -320,7 +324,7 @@ function App() {
                       <span className="text-green-400">$</span>
                       <span className="ml-2 text-white">sshsk --version</span>
                     </div>
-                    <div className="text-cyan-400">✓ SSH Secret Keeper v1.2.3</div>
+                    <div className="text-cyan-400">✓ SSH Secret Keeper v{config.app.version}</div>
                   </div>
                 </TerminalWindow>
               )}
@@ -741,12 +745,12 @@ security:
           <div className="text-center">
             <div className="font-mono text-cyan-400 text-sm mb-4">
               ┌─────────────────────────────────────────────────────────────┐<br />
-              │                   SSH Secret Keeper v1.2.3                 │<br />
+              │                   SSH Secret Keeper v{config.app.version}                 │<br />
               │              Open-Source SSH Key Backup Tool               │<br />
               └─────────────────────────────────────────────────────────────┘
             </div>
             <p className="text-gray-400 text-sm">
-              Built with ❤️ for the community • Licensed under Apache 2.0
+              Built with ❤️ for the community • By Rafeal Zago • Licensed under Apache 2.0
             </p>
           </div>
         </div>
