@@ -16,7 +16,7 @@ jobs:
     name: Test & Validate
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
         go-version: ['1.21']
     runs-on: ${{ matrix.os }}
 
@@ -49,11 +49,7 @@ jobs:
     - name: Verify binary works
       shell: bash
       run: |
-        if [[ "${{ runner.os }}" == "Windows" ]]; then
-          ./bin/sshsk.exe --version || ./bin/sshsk --version
-        else
-          ./bin/sshsk --version
-        fi
+        ./bin/sshsk --version
       env:
         VAULT_ADDR: "http://localhost:8200"
 
@@ -101,7 +97,6 @@ jobs:
           "sshsk-linux-arm64"
           "sshsk-darwin-amd64"
           "sshsk-darwin-arm64"
-          "sshsk-windows-amd64.exe"
         )
 
         missing_binaries=()

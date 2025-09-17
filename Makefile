@@ -48,8 +48,6 @@ build-binaries:
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64
 	GOOS=darwin GOARCH=arm64 make build
 	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-darwin-arm64
-	GOOS=windows GOARCH=amd64 make build
-	@mv $(BUILD_DIR)/$(BINARY_NAME) $(BUILD_DIR)/$(BINARY_NAME)-windows-amd64.exe
 	@echo "All binary builds complete"
 
 # Run
@@ -112,13 +110,8 @@ install:
 	@echo "Installing $(BINARY_NAME) for $(shell go env GOOS)/$(shell go env GOARCH)..."
 	@CURRENT_GOOS=$$(go env GOOS); \
 	CURRENT_GOARCH=$$(go env GOARCH); \
-	if [ "$$CURRENT_GOOS" = "windows" ]; then \
-		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}.exe"; \
-		INSTALL_NAME="$(BINARY_NAME).exe"; \
-	else \
-		ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}"; \
-		INSTALL_NAME="$(BINARY_NAME)"; \
-	fi; \
+	ARCH_BINARY="$(BUILD_DIR)/$(BINARY_NAME)-$${CURRENT_GOOS}-$${CURRENT_GOARCH}"; \
+	INSTALL_NAME="$(BINARY_NAME)"; \
 	GENERIC_BINARY="$(BUILD_DIR)/$(BINARY_NAME)"; \
 	if [ -f "$$ARCH_BINARY" ]; then \
 		echo "Found architecture-specific binary: $$ARCH_BINARY"; \

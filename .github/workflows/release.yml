@@ -112,8 +112,8 @@ jobs:
         echo "✅ **Production release created from git tag**: \`${{ steps.get_version.outputs.tag }}\`" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📦 Generated Artifacts:" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **Binaries**: Linux, macOS, Windows (amd64 + arm64)" >> $GITHUB_STEP_SUMMARY
-        echo "- ✅ **Archives**: tar.gz (Unix) + zip (Windows)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Binaries**: Linux, macOS (amd64 + arm64)" >> $GITHUB_STEP_SUMMARY
+        echo "- ✅ **Archives**: tar.gz format" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ **Checksums**: SHA256 verification" >> $GITHUB_STEP_SUMMARY
         echo "- ✅ **Container Images**: Multi-arch (linux/amd64, linux/arm64)" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY

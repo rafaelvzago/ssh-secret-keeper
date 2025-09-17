@@ -14,7 +14,6 @@ builds:
     goos:
       - linux
       - darwin
-      - windows
     goarch:
       - amd64
       - arm64
@@ -27,9 +26,6 @@ builds:
 archives:
   - id: sshsk-archive
     format: tar.gz
-    format_overrides:
-      - goos: windows
-        format: zip
     name_template: "{{ .ProjectName }}-{{ .Version }}-{{ .Os }}-{{ .Arch }}"
     files:
       - README.md
@@ -68,11 +64,6 @@ release:
     curl -L https://github.com/rafaelvzago/ssh-vault-keeper/releases/download/{{ .Tag }}/ssh-vault-keeper-{{ .Version }}-darwin-amd64.tar.gz -o sshsk.tar.gz
     tar -xzf sshsk.tar.gz
     sudo mv sshsk /usr/local/bin/
-
-    # Windows amd64
-    curl -L https://github.com/rafaelvzago/ssh-vault-keeper/releases/download/{{ .Tag }}/ssh-vault-keeper-{{ .Version }}-windows-amd64.zip -o sshsk.zip
-    unzip sshsk.zip
-    # Move sshsk.exe to your PATH
     ```
 
     ### Container Images

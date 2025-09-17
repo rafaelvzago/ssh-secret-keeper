@@ -108,9 +108,6 @@ func generateBasePath() (string, error) {
 
 	username := os.Getenv("USER")
 	if username == "" {
-		username = os.Getenv("USERNAME") // Windows compatibility
-	}
-	if username == "" {
 		username = "unknown-user"
 	}
 
