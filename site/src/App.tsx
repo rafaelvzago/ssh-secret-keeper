@@ -204,7 +204,7 @@ function App() {
 
       {/* Documentation Section */}
       <section id="docs" className="py-16 px-4 bg-gray-800/30">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h3 className="text-3xl font-bold text-center mb-12 text-green-400">
             ┌─[ Documentation ]─┐
           </h3>
@@ -236,8 +236,8 @@ function App() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
+          {/* Full Width Documentation Content */}
+          <div className="w-full mb-12">
               {activeTab === 'installation' && (
                 <TerminalWindow title="Manual Installation">
                   <div className="space-y-4 text-sm">
@@ -867,64 +867,68 @@ backup:
                   </div>
                 </TerminalWindow>
               )}
+          </div>
+
+          {/* Information and Quick Links moved below documentation */}
+          <div className="grid md:grid-cols-2 gap-8 mt-12">
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2">
+                <Lock className="w-5 h-5" />
+                Information
+              </h4>
+              <ul className="space-y-2 text-gray-300 text-sm">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Requires HashiCorp Vault installation
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  MD5 checksums verify backup integrity
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  List and manage multiple backup versions
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Cross-machine and cross-user restore support
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Migration tools for existing installations
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Open-source community project
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Production-ready security features
+                </li>
+              </ul>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Information
-                </h4>
-                <ul className="space-y-2 text-gray-300 text-sm">
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Requires HashiCorp Vault installation
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    MD5 checksums verify backup integrity
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    List and manage multiple backup versions
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Future: Support for other secret stores
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Open-source community project
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Production-ready security features
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-                  <Book className="w-5 h-5" />
-                  Quick Links
-                </h4>
-                <div className="space-y-2">
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Complete Make Target Reference
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Backup/Restore Best Practices
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Vault Security Configuration
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Container Deployment Guide
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → GitHub Repository
-                  </a>
-                </div>
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <h4 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+                <Book className="w-5 h-5" />
+                Quick Links
+              </h4>
+              <div className="space-y-2">
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/STORAGE_STRATEGIES.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Storage Strategies Guide
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/CONFIGURATION.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Complete Configuration Reference
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/Makefile" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Make Target Reference
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/QUICK_START.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Quick Start Guide
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → GitHub Repository
+                </a>
               </div>
             </div>
           </div>
