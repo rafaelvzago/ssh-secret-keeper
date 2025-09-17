@@ -24,13 +24,30 @@ func (p *PathNormalizer) NormalizePath(absolutePath string) (string, error) {
 		return absolutePath, nil
 	}
 
-	// Handle Windows home directory patterns
-	if runtime.GOOS == "windows" {
+	// Detect Windows paths by pattern and handle them regardless of current OS
+	if p.isWindowsPath(absolutePath) {
 		return p.normalizeWindowsPath(absolutePath)
 	}
 
 	// Handle Unix-like systems (Linux, macOS)
 	return p.normalizeUnixPath(absolutePath)
+}
+
+// isWindowsPath detects if a path follows Windows conventions
+func (p *PathNormalizer) isWindowsPath(path string) bool {
+	// Check for drive letter pattern (C:\, D:\, etc.)
+	if len(path) >= 3 && path[1] == ':' && (path[2] == '\\' || path[2] == '/') {
+		return true
+	}
+	// Check for UNC path (\\server\share)
+	if strings.HasPrefix(path, "\\\\") {
+		return true
+	}
+	// Check for paths with backslashes (most common indicator)
+	if strings.Contains(path, "\\") {
+		return true
+	}
+	return false
 }
 
 // normalizeUnixPath handles Unix-like path normalization
@@ -105,7 +122,7 @@ func (p *PathNormalizer) normalizeWindowsPath(absolutePath string) (string, erro
 				// Skip the username part and create relative path
 				if i+2 < len(parts) {
 					userPath := strings.Join(parts[i+2:], "\\")
-					return filepath.Clean("~/" + userPath), nil
+					return "~\\" + userPath, nil
 				} else {
 					return "~", nil
 				}
