@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
@@ -19,6 +20,7 @@ type Config struct {
 	Security  SecurityConfig `yaml:"security" mapstructure:"security"`
 	Logging   LoggingConfig  `yaml:"logging" mapstructure:"logging"`
 	Detectors DetectorConfig `yaml:"detectors" mapstructure:"detectors"`
+	Update    *UpdateConfig  `yaml:"update,omitempty" mapstructure:"update"`
 }
 
 // VaultConfig holds Vault connection settings
@@ -70,6 +72,15 @@ type DetectorConfig struct {
 	CustomPatterns string            `yaml:"custom_patterns_file" mapstructure:"custom_patterns_file"`
 	ServiceMapping map[string]string `yaml:"service_mapping" mapstructure:"service_mapping"`
 	PurposeRules   map[string]string `yaml:"purpose_rules" mapstructure:"purpose_rules"`
+}
+
+// UpdateConfig holds update configuration
+type UpdateConfig struct {
+	CheckOnStartup bool          `yaml:"check_on_startup" mapstructure:"check_on_startup"`
+	AutoUpdate     bool          `yaml:"auto_update" mapstructure:"auto_update"`
+	Channel        string        `yaml:"channel" mapstructure:"channel"`
+	CheckInterval  time.Duration `yaml:"check_interval" mapstructure:"check_interval"`
+	GitHubRepo     string        `yaml:"github_repo" mapstructure:"github_repo"`
 }
 
 // Default returns a configuration with default values
