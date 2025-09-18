@@ -125,9 +125,7 @@ function App() {
                 <TypewriterText text="SSH Secret Keeper" delay={100} />
               </h2>
               <p className="text-xl text-cyan-400 leading-relaxed">
-                Securely backup your ~/.ssh folder to HashiCorp Vault with <span className="text-green-400 font-semibold">cross-machine restore</span>.<br />
-                Backup on laptop, restore on desktop! Perfect for developers, system administrators,<br />
-                and DevOps teams who work across multiple machines and environments.
+                Securely backup your ~/.ssh folder to HashiCorp Vault with <span className="text-green-400 font-semibold">cross-machine restore</span>. Backup on laptop, restore on desktop! <br />Perfect for developers, system administrators and DevOps teams who work across multiple machines and environments.
               </p>
               <div className="flex justify-center gap-4 mt-8">
                 <button className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded border border-green-500 transition-colors">
@@ -1212,7 +1210,7 @@ function App() {
               └─────────────────────────────────────────────────────────────┘
             </div>
             <p className="text-gray-400 text-sm">
-              Built with ❤️ for the community • By Rafeal Zago • Licensed under Apache 2.0
+              Built with ❤️ for the community • By Rafael Zago • Licensed under Apache 2.0
             </p>
           </div>
         </div>
