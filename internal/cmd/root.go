@@ -10,7 +10,7 @@ import (
 
 // Version information
 var (
-	Version   = "1.0.0"
+	Version   = "1.0.5"
 	BuildTime = "unknown"
 	GitHash   = "unknown"
 )
