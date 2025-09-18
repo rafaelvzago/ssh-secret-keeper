@@ -23,11 +23,39 @@ func main() {
 		return
 	}
 
-	// Load configuration
-	cfg, err := config.Load()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
-		os.Exit(1)
+	// Check if this is a command that doesn't need Vault configuration
+	skipConfigCommands := map[string]bool{
+		"version":    true,
+		"update":     true,
+		"help":       true,
+		"completion": true,
+	}
+
+	var cfg *config.Config
+
+	// Check for help flags
+	isHelpCommand := false
+	if len(os.Args) > 1 {
+		for _, arg := range os.Args[1:] {
+			if arg == "--help" || arg == "-h" || arg == "help" {
+				isHelpCommand = true
+				break
+			}
+		}
+	}
+
+	// Only load full configuration if not a skip-config command or help
+	if isHelpCommand || (len(os.Args) > 1 && skipConfigCommands[os.Args[1]]) {
+		// Use default config for commands that don't need Vault
+		cfg = config.Default()
+	} else {
+		// Load full configuration including Vault validation
+		var err error
+		cfg, err = config.Load()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error loading configuration: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	// Set log level from config
