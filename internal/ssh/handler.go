@@ -449,9 +449,22 @@ func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, ke
 	// Define expected permissions for different file types
 	var expectedPerms []os.FileMode
 	var fileType string
+	var actualKeyType analyzer.KeyType
 
 	if keyInfo != nil {
-		switch keyInfo.Type {
+		// CRITICAL FIX FOR ISSUE #17: Defensive check for .pub files
+		// If stored KeyInfo says "private" but filename ends with .pub, override to public
+		// This handles backups created before the detector fix
+		actualKeyType = keyInfo.Type
+		if strings.HasSuffix(strings.ToLower(filename), ".pub") && keyInfo.Type == analyzer.KeyTypePrivate {
+			log.Debug().
+				Str("file", filename).
+				Str("stored_type", string(keyInfo.Type)).
+				Msg("Overriding stored key type: .pub files are always public keys")
+			actualKeyType = analyzer.KeyTypePublic
+		}
+
+		switch actualKeyType {
 		case analyzer.KeyTypePrivate:
 			expectedPerms = []os.FileMode{0600}
 			fileType = "private key"
@@ -496,7 +509,8 @@ func (h *Handler) validateFilePermissions(filename string, perms os.FileMode, ke
 			Msg("File permissions may be insecure")
 
 		// Special warning for overly permissive private keys
-		if keyInfo != nil && keyInfo.Type == analyzer.KeyTypePrivate && (perm&0077) != 0 {
+		// Use actualKeyType to ensure .pub files are not treated as private keys
+		if keyInfo != nil && actualKeyType == analyzer.KeyTypePrivate && (perm&0077) != 0 {
 			return fmt.Errorf("CRITICAL: Private key %s has world/group readable permissions (%04o) - SSH will reject this key",
 				filename, perm)
 		}
