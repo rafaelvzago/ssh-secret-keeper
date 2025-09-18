@@ -107,6 +107,7 @@ function App() {
           </div>
           <nav className="hidden md:flex items-center gap-6">
             <a href="#features" className="text-cyan-400 hover:text-cyan-300 transition-colors">Features</a>
+            <a href="#motivation" className="text-cyan-400 hover:text-cyan-300 transition-colors">Motivation</a>
             <a href="#installation" className="text-cyan-400 hover:text-cyan-300 transition-colors">Install</a>
             <a href="#docs" className="text-cyan-400 hover:text-cyan-300 transition-colors">Documentation</a>
             <a href={config.github.url} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-gray-300 transition-colors">
@@ -128,15 +129,65 @@ function App() {
                 Securely backup your ~/.ssh folder to HashiCorp Vault with <span className="text-green-400 font-semibold">cross-machine restore</span>. Backup on laptop, restore on desktop! <br />Perfect for developers, system administrators and DevOps teams who work across multiple machines and environments.
               </p>
               <div className="flex justify-center gap-4 mt-8">
-                <button className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded border border-green-500 transition-colors">
+                <a href="#installation" className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded border border-green-500 transition-colors">
                   Get Started
-                </button>
-                <button className="border border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 px-6 py-3 rounded transition-colors">
+                </a>
+                <a href="#docs" className="border border-cyan-500 text-cyan-400 hover:bg-cyan-900/20 px-6 py-3 rounded transition-colors">
                   View Documentation
-                </button>
+                </a>
               </div>
             </div>
           </ASCIIBorder>
+        </div>
+      </section>
+
+      {/* Motivation Section */}
+      <section id="motivation" className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <h3 className="text-3xl font-bold text-center mb-12 text-green-400">
+            ┌─[ Why SSH Secret Keeper? ]─┐
+          </h3>
+
+          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-8">
+            <div className="text-gray-300 space-y-6 leading-relaxed">
+              <p className="text-lg">
+                As a tech guy for more than 25 years, I've faced the same recurring problem every time I switch laptops or try out a new Linux distro like the amazing <a href="https://omarchy.org/" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 transition-colors underline">Omarchy</a>: how do I securely handle my SSH keys?
+              </p>
+
+              <p>
+                I know the common workarounds—flash drives, NFS servers, even scp—but I was tempted by the usual over-engineering approach. Why not deploy a Kubernetes cluster and a HashiCorp Vault solution just for my keys? Well, I did it.
+              </p>
+
+              <p>
+                The brand new problem I created for myself was even more complex: <span className="text-amber-400 font-semibold">how do I handle the backup and restore process for all of that?</span> This cycle of creating complexity to solve a simple problem is exactly why I built SSH Secret Keeper.
+              </p>
+
+              <div className="bg-green-900/20 border border-green-500/30 rounded p-4 my-6">
+                <p className="text-green-400 font-semibold mb-2">The Solution</p>
+                <p className="text-sm">
+                  It's my straightforward, open-source solution to securely back up your <code className="bg-gray-800 px-2 py-1 rounded text-cyan-400">~/.ssh</code> folder to an existing HashiCorp Vault instance and restore it anywhere. You can back up on your laptop and restore on your desktop, with the flexibility to create multiple backups and choose if they are open to any machine or tied to a specific user and hostname.
+                </p>
+              </div>
+
+              <p>
+                This tool simply relies on your Vault's own proven security; I barely touch it. I'm sharing this in the same spirit as other great community projects.
+              </p>
+
+              <div className="bg-blue-900/20 border border-blue-500/30 rounded p-4 mt-6">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-blue-400 font-semibold">Connect with me:</span>
+                </div>
+                <div className="flex flex-wrap gap-4 text-sm">
+                  <a href="https://rafaelvzago.com" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    🌐 rafaelvzago.com
+                  </a>
+                  <a href="https://github.com/rafaelvzago/ssh-secret-keeper" target="_blank" rel="noopener noreferrer" className="text-cyan-400 hover:text-cyan-300 transition-colors">
+                    📦 GitHub Project
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

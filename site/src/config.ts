@@ -4,7 +4,7 @@
 export const config = {
   app: {
     name: 'SSH Secret Keeper',
-    version: '1.0.1',
+    version: '1.0.4',
     status: 'Open Source',
   },
   github: {
