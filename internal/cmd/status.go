@@ -371,7 +371,7 @@ func checkCrossMachineCompatibility(cfg *config.Config) error {
 	case vault.StrategyMachineUser:
 		fmt.Printf("  ❌ Machine-user storage - backups tied to this specific machine\n")
 		fmt.Printf("  💡 Recommendation: Migrate to 'universal' for cross-machine restore\n")
-		fmt.Printf("     Quick fix: export SSH_VAULT_STORAGE_STRATEGY=\"universal\"\n")
+		fmt.Printf("     Quick fix: export SSHSK_VAULT_STORAGE_STRATEGY=\"universal\"\n")
 		fmt.Printf("     Migration: sshsk migrate --from machine-user --to universal --dry-run\n")
 	case vault.StrategyCustom:
 		fmt.Printf("  ⚠️  Custom storage - compatibility depends on configuration\n")

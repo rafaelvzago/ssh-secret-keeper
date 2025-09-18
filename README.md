@@ -359,26 +359,26 @@ All other configuration can be overridden with environment variables:
 
 ```bash
 # Vault settings (optional overrides)
-export SSH_SECRET_VAULT_ADDRESS="https://vault.company.com:8200"  # Alternative to VAULT_ADDR
-export SSH_SECRET_VAULT_TOKEN_FILE="/path/to/token"               # Token file path (if not using VAULT_TOKEN)
-export SSH_SECRET_VAULT_MOUNT_PATH="ssh-backups"                  # Vault mount path
-export SSH_SECRET_VAULT_NAMESPACE="your-namespace"                # Vault namespace (Enterprise)
-export SSH_SECRET_VAULT_TLS_SKIP_VERIFY="false"                   # Skip TLS verification (not recommended)
+export SSHSK_VAULT_ADDRESS="https://vault.company.com:8200"  # Alternative to VAULT_ADDR
+export SSHSK_VAULT_TOKEN_FILE="/path/to/token"               # Token file path (if not using VAULT_TOKEN)
+export SSHSK_VAULT_MOUNT_PATH="ssh-backups"                  # Vault mount path
+export SSHSK_VAULT_NAMESPACE="your-namespace"                # Vault namespace (Enterprise)
+export SSHSK_VAULT_TLS_SKIP_VERIFY="false"                   # Skip TLS verification (not recommended)
 
 # Backup settings
-export SSH_SECRET_BACKUP_SSH_DIR="/custom/ssh/path"               # Custom SSH directory
-export SSH_SECRET_BACKUP_RETENTION_COUNT="20"                     # Number of backups to keep
-export SSH_SECRET_BACKUP_HOSTNAME_PREFIX="true"                   # Include hostname in paths
+export SSHSK_BACKUP_SSH_DIR="/custom/ssh/path"               # Custom SSH directory
+export SSHSK_BACKUP_RETENTION_COUNT="20"                     # Number of backups to keep
+export SSHSK_BACKUP_HOSTNAME_PREFIX="true"                   # Include hostname in paths
 
 # Security settings
-export SSH_SECRET_SECURITY_ALGORITHM="AES-256-GCM"                # Encryption algorithm
-export SSH_SECRET_SECURITY_ITERATIONS="150000"                    # PBKDF2 iterations
-export SSH_SECRET_SECURITY_PER_FILE_ENCRYPT="true"                # Encrypt each file separately
-export SSH_SECRET_SECURITY_VERIFY_INTEGRITY="true"                # Verify checksums
+export SSHSK_SECURITY_ALGORITHM="AES-256-GCM"                # Encryption algorithm
+export SSHSK_SECURITY_ITERATIONS="150000"                    # PBKDF2 iterations
+export SSHSK_SECURITY_PER_FILE_ENCRYPT="true"                # Encrypt each file separately
+export SSHSK_SECURITY_VERIFY_INTEGRITY="true"                # Verify checksums
 
 # Logging settings
-export SSH_SECRET_LOGGING_LEVEL="info"                            # Log level: debug, info, warn, error
-export SSH_SECRET_LOGGING_FORMAT="console"                        # Log format: console, json
+export SSHSK_LOGGING_LEVEL="info"                            # Log level: debug, info, warn, error
+export SSHSK_LOGGING_FORMAT="console"                        # Log format: console, json
 ```
 
 #### Authentication Priority

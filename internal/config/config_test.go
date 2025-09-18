@@ -281,10 +281,10 @@ func TestConfig_EnvironmentVariableOverrides(t *testing.T) {
 			},
 		},
 		{
-			name: "SSH_SECRET_VAULT_TOKEN_FILE override",
+			name: "SSHSK_VAULT_TOKEN_FILE override",
 			envVars: map[string]string{
-				"VAULT_ADDR":                  "http://localhost:8200",
-				"SSH_SECRET_VAULT_TOKEN_FILE": "/custom/token/path",
+				"VAULT_ADDR":             "http://localhost:8200",
+				"SSHSK_VAULT_TOKEN_FILE": "/custom/token/path",
 			},
 			expected: func(cfg *Config) bool {
 				return cfg.Vault.TokenFile == "/custom/token/path"
@@ -293,8 +293,8 @@ func TestConfig_EnvironmentVariableOverrides(t *testing.T) {
 		{
 			name: "Multiple environment variables",
 			envVars: map[string]string{
-				"VAULT_ADDR":                  "https://prod-vault.company.com:8200",
-				"SSH_SECRET_VAULT_TOKEN_FILE": "/etc/vault/token",
+				"VAULT_ADDR":             "https://prod-vault.company.com:8200",
+				"SSHSK_VAULT_TOKEN_FILE": "/etc/vault/token",
 			},
 			expected: func(cfg *Config) bool {
 				return cfg.Vault.Address == "https://prod-vault.company.com:8200" &&

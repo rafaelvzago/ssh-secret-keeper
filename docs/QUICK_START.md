@@ -57,14 +57,14 @@ sshsk migrate --from machine-user --to universal --cleanup  # Execute
 ### Other Storage Options
 ```bash
 # User-scoped storage (shared Vault with user isolation)
-export SSH_VAULT_STORAGE_STRATEGY="user"
+export SSHSK_VAULT_STORAGE_STRATEGY="user"
 
 # Custom team storage
-export SSH_VAULT_STORAGE_STRATEGY="custom"
-export SSH_VAULT_CUSTOM_PREFIX="team-devops"
+export SSHSK_VAULT_STORAGE_STRATEGY="custom"
+export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"
 
 # Legacy machine-user storage (maximum isolation)
-export SSH_VAULT_STORAGE_STRATEGY="machine-user"
+export SSHSK_VAULT_STORAGE_STRATEGY="machine-user"
 ```
 
 ## Step 3: Analyze Your SSH Directory
