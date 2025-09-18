@@ -549,14 +549,14 @@ func TestRestoreService_ErrorHandling(t *testing.T) {
 		}
 	})
 
-	t.Run("invalid target directory", func(t *testing.T) {
+	t.Run("empty target directory defaults to user SSH dir", func(t *testing.T) {
 		backup := &ssh.BackupData{
 			Files: map[string]*ssh.FileData{},
 		}
 
 		err := service.RestoreFiles(backup, "", ssh.RestoreOptions{})
-		if err == nil {
-			t.Error("RestoreFiles() should fail with empty target directory")
+		if err != nil {
+			t.Errorf("RestoreFiles() should succeed with empty target directory (defaults to ~/.ssh): %v", err)
 		}
 	})
 

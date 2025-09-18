@@ -38,16 +38,25 @@ vault:
   # Skip TLS verification (not recommended for production)
   tls_skip_verify: false
 
+  # NEW: Storage strategy configuration
+  storage_strategy: "universal"    # Options: "universal", "user", "machine-user", "custom"
+  backup_namespace: ""             # Optional namespace for universal strategy
+  custom_prefix: ""                # Required for custom strategy
+
 # Backup behavior settings
 backup:
   # SSH directory to backup
   ssh_dir: "~/.ssh"
 
-  # Include hostname in Vault storage path
-  hostname_prefix: true
+  # Include hostname in Vault storage path (legacy, disabled by default with universal storage)
+  hostname_prefix: false
 
   # Number of backup versions to retain
   retention_count: 10
+
+  # NEW: Path normalization and cross-machine compatibility
+  normalize_paths: true            # Enable cross-user compatibility
+  cross_machine_restore: true      # Enable cross-machine restore
 
   # Files to include in backup (glob patterns)
   include_patterns:
@@ -156,9 +165,151 @@ detectors:
     "*gcp*": "cloud"
 ```
 
+## Storage Strategies (NEW)
+
+SSH Secret Keeper supports multiple storage strategies for different use cases:
+
+### Universal Storage (Default)
+**Path**: `shared/{namespace}/backups/{backup-name}`
+
+```yaml
+vault:
+  storage_strategy: "universal"
+  backup_namespace: "personal"  # Optional namespace
+```
+
+**Benefits**: Cross-machine restore, cross-user restore, team sharing, container friendly
+
+### User-Scoped Storage
+**Path**: `users/{username}/backups/{backup-name}`
+
+```yaml
+vault:
+  storage_strategy: "user"
+```
+
+**Benefits**: Cross-machine restore for same user, user isolation in shared Vault
+
+### Machine-User Storage (Legacy)
+**Path**: `users/{hostname-username}/backups/{backup-name}`
+
+```yaml
+vault:
+  storage_strategy: "machine-user"
+backup:
+  hostname_prefix: true  # Optional with this strategy
+```
+
+**Benefits**: Maximum isolation per machine-user (no cross-machine restore)
+
+### Custom Storage
+**Path**: `{custom-prefix}/backups/{backup-name}`
+
+```yaml
+vault:
+  storage_strategy: "custom"
+  custom_prefix: "team-devops"  # Required
+```
+
+**Benefits**: Team/project organization, flexible prefix configuration
+
+## Migration Between Strategies
+
+### Check Current Strategy
+```bash
+sshsk migrate-status
+```
+
+### Migrate to Universal Storage
+```bash
+# Preview migration
+sshsk migrate --from machine-user --to universal --dry-run
+
+# Perform migration with cleanup
+sshsk migrate --from machine-user --to universal --cleanup
+```
+
+## Backup Modes and Options
+
+### Command Line Options
+
+#### Basic Backup Modes
+```bash
+# Quick backup with auto-generated name
+sshsk backup
+
+# Named backup for organization
+sshsk backup "my-backup-name"
+
+# Interactive file selection
+sshsk backup --interactive "selective-backup"
+
+# Preview mode (dry run)
+sshsk backup --dry-run
+sshsk backup --dry-run "test-backup"
+
+# Custom SSH directory
+sshsk backup --ssh-dir "/custom/ssh/path"
+
+# Combined options
+sshsk backup --interactive --dry-run "preview-selective"
+```
+
+#### Restore Options
+```bash
+# Basic restore
+sshsk restore
+sshsk restore "backup-name"
+
+# Cross-machine restore (works with universal storage)
+sshsk restore "laptop-backup" --target-dir "~/.ssh"
+
+# File filtering
+sshsk restore --files "github*,gitlab*"
+sshsk restore --interactive
+
+# Safety options
+sshsk restore --dry-run
+sshsk restore --overwrite
+sshsk restore --select
+```
+
 ## Environment Variables
 
-All configuration options can be overridden with environment variables using the prefix `SSH_SECRET_` and replacing dots with underscores:
+All configuration options can be overridden with environment variables using the prefix `SSH_VAULT_` and replacing dots with underscores:
+
+### Vault Configuration
+```bash
+export SSH_VAULT_ADDRESS="https://vault.company.com:8200"
+export SSH_VAULT_TOKEN_FILE="/path/to/token"
+export SSH_VAULT_MOUNT_PATH="ssh-backups"
+export SSH_VAULT_STORAGE_STRATEGY="universal"
+export SSH_VAULT_BACKUP_NAMESPACE="team-devops"
+export SSH_VAULT_CUSTOM_PREFIX="my-team"
+```
+
+### Backup Configuration
+```bash
+export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh/path"
+export SSH_VAULT_BACKUP_RETENTION_COUNT="20"
+export SSH_VAULT_BACKUP_NORMALIZE_PATHS="true"
+export SSH_VAULT_BACKUP_CROSS_MACHINE_RESTORE="true"
+export SSH_VAULT_BACKUP_HOSTNAME_PREFIX="false"
+```
+
+### Security Configuration
+```bash
+export SSH_VAULT_SECURITY_ALGORITHM="AES-256-GCM"
+export SSH_VAULT_SECURITY_ITERATIONS="100000"
+export SSH_VAULT_SECURITY_PER_FILE_ENCRYPT="true"
+export SSH_VAULT_SECURITY_VERIFY_INTEGRITY="true"
+```
+
+### Logging Configuration
+```bash
+export SSH_VAULT_LOGGING_LEVEL="debug"
+export SSH_VAULT_LOGGING_FORMAT="json"
+```
 
 ### Vault Configuration
 ```bash

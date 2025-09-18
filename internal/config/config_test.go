@@ -129,12 +129,21 @@ func TestBackupConfig_Fields(t *testing.T) {
 		t.Error("SSH directory is empty")
 	}
 
-	if !cfg.Backup.HostnamePrefix {
-		t.Error("Hostname prefix should be enabled by default")
+	if cfg.Backup.HostnamePrefix {
+		t.Error("Hostname prefix should be disabled by default with universal storage strategy")
 	}
 
 	if cfg.Backup.RetentionCount <= 0 {
 		t.Error("Retention count should be positive")
+	}
+
+	// Test new path normalization fields
+	if !cfg.Backup.NormalizePaths {
+		t.Error("Path normalization should be enabled by default")
+	}
+
+	if !cfg.Backup.CrossMachineRestore {
+		t.Error("Cross-machine restore should be enabled by default")
 	}
 
 	if len(cfg.Backup.IncludePatterns) == 0 {
@@ -160,6 +169,23 @@ func TestBackupConfig_Fields(t *testing.T) {
 		if !found {
 			t.Errorf("Expected include pattern %s not found", expected)
 		}
+	}
+}
+
+func TestVaultConfig_StorageStrategy(t *testing.T) {
+	cfg := Default()
+
+	// Test new storage strategy fields
+	if cfg.Vault.StorageStrategy != "universal" {
+		t.Errorf("Storage strategy should be 'universal' by default, got '%s'", cfg.Vault.StorageStrategy)
+	}
+
+	if cfg.Vault.BackupNamespace != "" {
+		t.Errorf("Backup namespace should be empty by default, got '%s'", cfg.Vault.BackupNamespace)
+	}
+
+	if cfg.Vault.CustomPrefix != "" {
+		t.Errorf("Custom prefix should be empty by default, got '%s'", cfg.Vault.CustomPrefix)
 	}
 }
 

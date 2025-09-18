@@ -41,16 +41,25 @@ storage:
 # This will be used if storage.provider is not set
 vault:
   address: "http://localhost:8200"
-    token_file: "~/.ssh-secret-keeper/token"
+  token_file: "~/.ssh-secret-keeper/token"
   mount_path: "ssh-backups"
   namespace: ""
   tls_skip_verify: false
 
+  # NEW: Storage strategy configuration
+  storage_strategy: "universal"    # Options: "universal", "user", "machine-user", "custom"
+  backup_namespace: ""             # Optional namespace for universal strategy
+  custom_prefix: ""                # Required for custom strategy
+
 # Backup behavior settings
 backup:
   ssh_dir: "~/.ssh"  # SSH directory to backup
-  hostname_prefix: true  # Include hostname in Vault path
+  hostname_prefix: false  # Include hostname in Vault path (disabled by default with universal storage)
   retention_count: 10  # Number of backups to keep
+
+  # NEW: Path normalization and cross-machine compatibility
+  normalize_paths: true            # Enable cross-user compatibility
+  cross_machine_restore: true      # Enable cross-machine restore
 
   # Files to include in backup (glob patterns)
   include_patterns:

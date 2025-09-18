@@ -74,22 +74,22 @@ function App() {
     {
       icon: <Shield className="w-8 h-8 text-green-400" />,
       title: "Backup SSH Directory",
-      description: "Complete backup of your ~/.ssh folder with permissions preserved. Securely stores keys, config files, and authorized_keys to HashiCorp Vault."
+      description: "Complete backup of your ~/.ssh folder with permissions preserved. Securely stores keys, config files, and authorized_keys to HashiCorp Vault with client-side encryption."
     },
     {
       icon: <Server className="w-8 h-8 text-amber-400" />,
-      title: "Restore Anywhere",
-      description: "Restore your SSH keys on any machine with Vault access. Perfect for setting up new workstations or recovering from system failures."
+      title: "Cross-Machine Restore",
+      description: "NEW: Backup on laptop, restore on desktop! Universal storage enables cross-machine and cross-user restore. Perfect for developers working across multiple machines."
     },
     {
       icon: <Key className="w-8 h-8 text-cyan-400" />,
-      title: "Analyze & Validate",
-      description: "Check SSH key structure and permissions before backup. Detects key types, validates permissions, and categorizes your SSH setup."
+      title: "Flexible Storage Strategies",
+      description: "Choose from universal (shared), user-scoped, machine-user (legacy), or custom storage strategies. Migration tools help upgrade existing installations."
     },
     {
       icon: <Zap className="w-8 h-8 text-red-400" />,
-      title: "List & Manage",
-      description: "View and manage your stored backups with ease. List available backups, check status, and delete old backups when needed."
+      title: "Smart Analysis & Management",
+      description: "Intelligent SSH analysis with service categorization. List, analyze, and manage backups with comprehensive CLI tools and validation."
     }
   ];
 
@@ -125,9 +125,9 @@ function App() {
                 <TypewriterText text="SSH Secret Keeper" delay={100} />
               </h2>
               <p className="text-xl text-cyan-400 leading-relaxed">
-                Securely backup your ~/.ssh folder to HashiCorp Vault and restore it anywhere.<br />
-                Perfect for developers, system administrators, and DevOps teams<br />
-                who need reliable SSH key management.
+                Securely backup your ~/.ssh folder to HashiCorp Vault with <span className="text-green-400 font-semibold">cross-machine restore</span>.<br />
+                Backup on laptop, restore on desktop! Perfect for developers, system administrators,<br />
+                and DevOps teams who work across multiple machines and environments.
               </p>
               <div className="flex justify-center gap-4 mt-8">
                 <button className="bg-green-600 hover:bg-green-500 px-6 py-3 rounded border border-green-500 transition-colors">
@@ -204,7 +204,7 @@ function App() {
 
       {/* Documentation Section */}
       <section id="docs" className="py-16 px-4 bg-gray-800/30">
-        <div className="max-w-6xl mx-auto">
+        <div className="max-w-7xl mx-auto">
           <h3 className="text-3xl font-bold text-center mb-12 text-green-400">
             ┌─[ Documentation ]─┐
           </h3>
@@ -217,6 +217,7 @@ function App() {
                 { id: 'docker', label: 'Docker Usage' },
                 { id: 'backup', label: 'Backup Guide' },
                 { id: 'restore', label: 'Restore Guide' },
+                { id: 'storage', label: 'Storage Strategies' },
                 { id: 'commands', label: 'All Commands' },
                 { id: 'config', label: 'Configuration' }
               ].map((tab) => (
@@ -235,34 +236,39 @@ function App() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8">
-            <div>
+          {/* Full Width Documentation Content */}
+          <div className="w-full mb-12">
               {activeTab === 'installation' && (
                 <TerminalWindow title="Manual Installation">
                   <div className="space-y-4 text-sm">
                     <div className="text-yellow-400 font-bold">## Manual Binary Download</div>
                     <div className="text-gray-400"># Download for your platform</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</span>
+                      <code className="ml-2 text-white flex-1">curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz</code>
+                      <CopyButton text="curl -L https://github.com/rafaelvzago/ssh-secret-keeper/releases/latest/download/ssh-secret-keeper-VERSION-linux-amd64.tar.gz -o sshsk.tar.gz" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">tar -xzf sshsk.tar.gz</span>
+                      <code className="ml-2 text-white flex-1">tar -xzf sshsk.tar.gz</code>
+                      <CopyButton text="tar -xzf sshsk.tar.gz" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">chmod +x sshsk</span>
+                      <code className="ml-2 text-white flex-1">chmod +x sshsk</code>
+                      <CopyButton text="chmod +x sshsk" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo mv sshsk /usr/local/bin/</span>
+                      <code className="ml-2 text-white flex-1">sudo mv sshsk /usr/local/bin/</code>
+                      <CopyButton text="sudo mv sshsk /usr/local/bin/" />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Verify Installation</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk --version</span>
+                      <code className="ml-2 text-white flex-1">sshsk --version</code>
+                      <CopyButton text="sshsk --version" />
                     </div>
                     <div className="text-cyan-400">SSH Secret Keeper v{config.app.version}</div>
 
@@ -280,49 +286,57 @@ function App() {
                   <div className="space-y-4 text-sm">
                     <div className="text-yellow-400 font-bold">## Install Dependencies</div>
                     <div className="text-gray-400"># Arch Linux</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo pacman -S go make git</span>
+                      <code className="ml-2 text-white flex-1">sudo pacman -S go make git</code>
+                      <CopyButton text="sudo pacman -S go make git" />
                     </div>
 
                     <div className="text-gray-400"># Ubuntu/Debian</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo apt-get install golang-go make git</span>
+                      <code className="ml-2 text-white flex-1">sudo apt-get install golang-go make git</code>
+                      <CopyButton text="sudo apt-get install golang-go make git" />
                     </div>
 
                     <div className="text-gray-400"># Fedora/RHEL</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo dnf install golang make git</span>
+                      <code className="ml-2 text-white flex-1">sudo dnf install golang make git</code>
+                      <CopyButton text="sudo dnf install golang make git" />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Clone and Build</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">git clone https://github.com/rafaelvzago/ssh-secret-keeper.git</span>
+                      <code className="ml-2 text-white flex-1">git clone https://github.com/rafaelvzago/ssh-secret-keeper.git</code>
+                      <CopyButton text="git clone https://github.com/rafaelvzago/ssh-secret-keeper.git" />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">cd ssh-secret-keeper</span>
+                      <code className="ml-2 text-white flex-1">cd ssh-secret-keeper</code>
+                      <CopyButton text="cd ssh-secret-keeper" />
                     </div>
 
                     <div className="text-gray-400"># Build for current platform</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">make build</span>
+                      <code className="ml-2 text-white flex-1">make build</code>
+                      <CopyButton text="make build" />
                     </div>
 
                     <div className="text-gray-400"># Install to /usr/local/bin</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sudo make install</span>
+                      <code className="ml-2 text-white flex-1">sudo make install</code>
+                      <CopyButton text="sudo make install" />
                     </div>
 
                     <div className="text-gray-400"># Verify installation</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk --version</span>
+                      <code className="ml-2 text-white flex-1">sshsk --version</code>
+                      <CopyButton text="sshsk --version" />
                     </div>
                     <div className="text-cyan-400">✓ SSH Secret Keeper v{config.app.version}</div>
                   </div>
@@ -333,71 +347,124 @@ function App() {
                 <TerminalWindow title="Docker Usage">
                   <div className="space-y-4 text-sm">
                     <div className="text-yellow-400 font-bold">## Pull from Docker Hub</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker pull rafaelvzago/ssh-secret-keeper:latest</span>
+                      <code className="ml-2 text-white flex-1">docker pull rafaelvzago/ssh-secret-keeper:latest</code>
+                      <CopyButton text="docker pull rafaelvzago/ssh-secret-keeper:latest" />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Basic Usage</div>
                     <div className="text-gray-400"># Analyze SSH directory</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest analyze</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest analyze' />
+                      </div>
                     </div>
 
-                    <div className="text-gray-400"># Backup SSH keys</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh:ro \</span>
+                    <div className="text-gray-400"># Quick backup (auto-generated name)</div>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest backup' />
+                      </div>
                     </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+
+                    <div className="text-gray-400"># Named backup</div>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "container-$(date +%Y%m%d)"</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest backup "container-$(date +%Y%m%d)"' />
+                      </div>
                     </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest backup "my-backup"</span>
+
+                    <div className="text-gray-400"># Dry run mode</div>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup --dry-run</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro rafaelvzago/ssh-secret-keeper:latest backup --dry-run' />
+                      </div>
                     </div>
 
                     <div className="text-gray-400"># Restore SSH keys</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">docker run --rm -v ~/.ssh:/ssh \</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest restore</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" rafaelvzago/ssh-secret-keeper:latest restore' />
+                      </div>
                     </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
+
+                    <div className="text-yellow-400 font-bold">## NEW: Storage Strategy Configuration</div>
+                    <div className="text-gray-400"># Use universal storage (default - cross-machine)</div>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSH_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"' />
+                      </div>
                     </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest restore</span>
+
+                    <div className="text-gray-400"># Use legacy machine-user storage</div>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="machine-user" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"</div>
+                        </div>
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e SSH_VAULT_STORAGE_STRATEGY="machine-user" rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"' />
+                      </div>
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Using Podman</div>
                     <div className="text-gray-400"># Same commands, just replace 'docker' with 'podman'</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">podman run --rm -v ~/.ssh:/ssh:ro \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_ADDR="https://your-vault:8200" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">-e VAULT_TOKEN="your-token" \</span>
-                    </div>
-                    <div>
-                      <span className="ml-4 text-white">rafaelvzago/ssh-secret-keeper:latest analyze</span>
+                    <div className="relative">
+                      <div className="flex items-start">
+                        <span className="text-green-400 mt-1">$</span>
+                        <div className="ml-2 text-white flex-1">
+                          <div>podman run --rm -v ~/.ssh:/ssh:ro \</div>
+                          <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
+                          <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
+                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</div>
+                          <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest analyze</div>
+                        </div>
+                        <CopyButton text='podman run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSH_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest analyze' />
+                      </div>
                     </div>
                   </div>
                 </TerminalWindow>
@@ -407,63 +474,134 @@ function App() {
                 <TerminalWindow title="🔒 SSH Backup Guide">
                   <div className="space-y-4 text-sm">
                     <div className="bg-green-900/30 border border-green-500/30 rounded p-3">
-                      <div className="text-green-400 font-bold mb-2">📋 Complete Backup Workflow</div>
+                      <div className="text-green-400 font-bold mb-2">📋 Simple Backup Workflow</div>
                       <div className="text-gray-300 text-xs">
-                        Securely backup your entire SSH directory to HashiCorp Vault
+                        Backup your SSH directory using environment variables - no configuration files needed
                       </div>
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Step 1: Initialize</div>
-                    <div>
+                    <div className="text-yellow-400 font-bold">## Step 1: Set Environment Variables</div>
+                    <div className="text-gray-400"># Configure Vault connection</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">export VAULT_ADDR="https://vault.company.com:8200"</span>
+                      <code className="ml-2 text-white flex-1">export VAULT_ADDR="https://vault.company.com:8200"</code>
+                      <CopyButton text='export VAULT_ADDR="https://vault.company.com:8200"' />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">export VAULT_TOKEN="your-vault-token"</span>
-                    </div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk init</span>
-                    </div>
-
-                    <div className="text-yellow-400 font-bold">## Step 2: Analyze (Optional)</div>
-                    <div className="text-gray-400"># See what will be backed up</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk analyze --verbose</span>
+                      <code className="ml-2 text-white flex-1">export VAULT_TOKEN="your-vault-token"</code>
+                      <CopyButton text='export VAULT_TOKEN="your-vault-token"' />
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Step 3: Backup Options</div>
-                    <div className="text-gray-400"># Simple backup</div>
-                    <div>
+                    <div className="text-gray-400"># Configure storage strategy (optional - defaults to "universal")</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                    </div>
+                    <div className="text-gray-400 text-xs mt-1">Available options: "universal", "user", "machine-user", "custom"</div>
+
+                    <div className="text-yellow-400 font-bold">## Step 2: Initialize (No Config Files Created)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk init</code>
+                      <CopyButton text="sshsk init" />
+                    </div>
+                    <div className="text-gray-400 text-xs">Uses environment variables only - no local files created</div>
+
+                    <div className="text-yellow-400 font-bold">## Step 3: Backup Your SSH Keys</div>
+
+                    <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+                      <div className="text-green-400 font-bold">🚀 Quick Backup (Auto-named)</div>
+                      <div className="flex items-center">
+                        <span className="text-green-400">$</span>
+                        <code className="ml-2 text-white flex-1">sshsk backup</code>
+                        <CopyButton text="sshsk backup" />
+                      </div>
+                      <div className="text-gray-400 text-xs mt-1">Creates: backup-YYYYMMDD-HHMMSS</div>
                     </div>
 
-                    <div className="text-gray-400"># Named backup</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup "laptop-$(date +%Y%m%d)"</span>
+                    <div className="bg-cyan-900/20 border border-cyan-500/30 rounded p-3 mt-3">
+                      <div className="text-cyan-400 font-bold">⚡ Complete Backup Example</div>
+                      <div className="text-gray-400 text-xs mb-2">Full workflow in 5 commands:</div>
+                      <div className="space-y-1 text-xs">
+                        <div><span className="text-green-400">$</span> export VAULT_ADDR="https://vault.company.com:8200"</div>
+                        <div><span className="text-green-400">$</span> export VAULT_TOKEN="your-vault-token"</div>
+                        <div><span className="text-green-400">$</span> export SSH_VAULT_STORAGE_STRATEGY="universal"</div>
+                        <div><span className="text-green-400">$</span> sshsk init</div>
+                        <div><span className="text-green-400">$</span> sshsk backup</div>
+                      </div>
                     </div>
 
-                    <div className="text-gray-400"># Interactive file selection</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup --interactive</span>
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded p-3">
+                      <div className="text-blue-400 font-bold">📝 Named Backup</div>
+                      <div className="flex items-center">
+                        <span className="text-green-400">$</span>
+                        <code className="ml-2 text-white flex-1">sshsk backup "my-laptop-keys"</code>
+                        <CopyButton text='sshsk backup "my-laptop-keys"' />
+                      </div>
+                      <div className="flex items-center mt-1">
+                        <span className="text-green-400">$</span>
+                        <code className="ml-2 text-white flex-1">sshsk backup "dev-$(date +%Y%m%d)"</code>
+                        <CopyButton text='sshsk backup "dev-$(date +%Y%m%d)"' />
+                      </div>
                     </div>
 
-                    <div className="text-gray-400"># Dry run (preview only)</div>
-                    <div>
+                    <div className="text-yellow-400 font-bold">## Step 4: Backup Options</div>
+                    <div className="text-gray-400"># Preview what will be backed up</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk backup --dry-run</span>
+                      <code className="ml-2 text-white flex-1">sshsk backup --dry-run</code>
+                      <CopyButton text="sshsk backup --dry-run" />
+                    </div>
+
+                    <div className="text-gray-400"># Choose specific files interactively</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk backup --interactive "selective-backup"</code>
+                      <CopyButton text='sshsk backup --interactive "selective-backup"' />
+                    </div>
+
+                    <div className="text-gray-400"># Custom SSH directory</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk backup --ssh-dir "/custom/path" "custom-backup"</code>
+                      <CopyButton text='sshsk backup --ssh-dir "/custom/path" "custom-backup"' />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Storage Strategy Examples</div>
+                    <div className="text-gray-400"># Universal storage (default - cross-machine restore)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                    </div>
+
+                    <div className="text-gray-400"># User-scoped storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="user"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="user"' />
+                    </div>
+
+                    <div className="text-gray-400"># Custom team storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="custom"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="custom"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_CUSTOM_PREFIX="team-devops"</code>
+                      <CopyButton text='export SSH_VAULT_CUSTOM_PREFIX="team-devops"' />
                     </div>
 
                     <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
                       <div className="text-blue-400 text-xs">
+                        ✓ No configuration files needed - uses environment variables only<br/>
+                        ✓ Cross-machine restore with universal storage (default)<br/>
                         ✓ Preserves exact permissions (0600/0644)<br/>
-                        ✓ Includes MD5 checksums for integrity<br/>
-                        ✓ Stores metadata (timestamps, file sizes)
+                        ✓ Includes MD5 checksums for integrity
                       </div>
                     </div>
                   </div>
@@ -474,171 +612,395 @@ function App() {
                 <TerminalWindow title="🔄 SSH Restore Guide">
                   <div className="space-y-4 text-sm">
                     <div className="bg-cyan-900/30 border border-cyan-500/30 rounded p-3">
-                      <div className="text-cyan-400 font-bold mb-2">📥 Complete Restore Workflow</div>
+                      <div className="text-cyan-400 font-bold mb-2">📥 Simple Restore Workflow</div>
                       <div className="text-gray-300 text-xs">
-                        Restore SSH keys from Vault with flexible options
+                        Restore your SSH keys from Vault using environment variables
                       </div>
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Step 1: List Available Backups</div>
-                    <div>
+                    <div className="text-yellow-400 font-bold">## Step 1: Set Environment Variables</div>
+                    <div className="text-gray-400"># Same as backup - configure Vault connection</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk list</span>
+                      <code className="ml-2 text-white flex-1">export VAULT_ADDR="https://vault.company.com:8200"</code>
+                      <CopyButton text='export VAULT_ADDR="https://vault.company.com:8200"' />
                     </div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk list --detailed</span>
-                    </div>
-
-                    <div className="text-yellow-400 font-bold">## Step 2: Restore Options</div>
-                    <div className="text-gray-400"># Restore latest backup</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore</span>
+                      <code className="ml-2 text-white flex-1">export VAULT_TOKEN="your-vault-token"</code>
+                      <CopyButton text='export VAULT_TOKEN="your-vault-token"' />
                     </div>
 
-                    <div className="text-gray-400"># Restore specific backup</div>
-                    <div>
+                    <div className="text-gray-400"># Configure storage strategy (must match backup strategy)</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore "laptop-20240315"</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                    </div>
+                    <div className="text-gray-400 text-xs mt-1">Available options: "universal", "user", "machine-user", "custom"</div>
+
+                    <div className="text-yellow-400 font-bold">## Step 2: List Available Backups</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk list</code>
+                      <CopyButton text="sshsk list" />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk list --detailed</code>
+                      <CopyButton text="sshsk list --detailed" />
                     </div>
 
-                    <div className="text-gray-400"># Interactive backup selection</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore --select</span>
+                    <div className="text-yellow-400 font-bold">## Step 3: Restore Your Backup</div>
+
+                    <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+                      <div className="text-green-400 font-bold">🚀 Quick Restore (Latest Backup)</div>
+                      <div className="flex items-center">
+                        <span className="text-green-400">$</span>
+                        <code className="ml-2 text-white flex-1">sshsk restore</code>
+                        <CopyButton text="sshsk restore" />
+                      </div>
+                      <div className="text-gray-400 text-xs mt-1">Restores the most recent backup to ~/.ssh</div>
                     </div>
 
-                    <div className="text-gray-400"># Interactive file selection</div>
-                    <div>
+                    <div className="bg-cyan-900/20 border border-cyan-500/30 rounded p-3 mt-3">
+                      <div className="text-cyan-400 font-bold">⚡ Complete Restore Example</div>
+                      <div className="text-gray-400 text-xs mb-2">Full workflow in 4 commands:</div>
+                      <div className="space-y-1 text-xs">
+                        <div><span className="text-green-400">$</span> export VAULT_ADDR="https://vault.company.com:8200"</div>
+                        <div><span className="text-green-400">$</span> export VAULT_TOKEN="your-vault-token"</div>
+                        <div><span className="text-green-400">$</span> export SSH_VAULT_STORAGE_STRATEGY="universal"</div>
+                        <div><span className="text-green-400">$</span> sshsk restore</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded p-3">
+                      <div className="text-blue-400 font-bold">📝 Named Backup Restore</div>
+                      <div className="flex items-center">
+                        <span className="text-green-400">$</span>
+                        <code className="ml-2 text-white flex-1">sshsk restore "my-laptop-keys"</code>
+                        <CopyButton text='sshsk restore "my-laptop-keys"' />
+                      </div>
+                      <div className="flex items-center mt-1">
+                        <span className="text-green-400">$</span>
+                        <code className="ml-2 text-white flex-1">sshsk restore "dev-20240315"</code>
+                        <CopyButton text='sshsk restore "dev-20240315"' />
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Step 4: Restore Options</div>
+                    <div className="text-gray-400"># Preview what will be restored (safe)</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore --interactive</span>
+                      <code className="ml-2 text-white flex-1">sshsk restore --dry-run</code>
+                      <CopyButton text="sshsk restore --dry-run" />
                     </div>
 
                     <div className="text-gray-400"># Restore to custom directory</div>
-                    <div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore --target-dir "/tmp/ssh-restore"</span>
+                      <code className="ml-2 text-white flex-1">sshsk restore --target-dir "/tmp/ssh-backup"</code>
+                      <CopyButton text='sshsk restore --target-dir "/tmp/ssh-backup"' />
                     </div>
 
-                    <div className="text-gray-400"># Restore specific files only</div>
-                    <div>
+                    <div className="text-gray-400"># Choose backup interactively</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore --files "github*,gitlab*"</span>
+                      <code className="ml-2 text-white flex-1">sshsk restore --select</code>
+                      <CopyButton text="sshsk restore --select" />
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Step 3: Safety Options</div>
-                    <div className="text-gray-400"># Preview restore (dry run)</div>
-                    <div>
+                    <div className="text-gray-400"># Restore only specific files</div>
+                    <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore --dry-run</span>
+                      <code className="ml-2 text-white flex-1">sshsk restore --files "github*,gitlab*"</code>
+                      <CopyButton text='sshsk restore --files "github*,gitlab*"' />
                     </div>
 
-                    <div className="text-gray-400"># Overwrite existing files</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">sshsk restore --overwrite</span>
+                    <div className="text-yellow-400 font-bold">## Cross-Machine Restore Example</div>
+                    <div className="text-gray-400"># Backup on laptop</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">laptop$</span>
+                      <code className="ml-2 text-white flex-1">sshsk backup "my-dev-keys"</code>
+                      <CopyButton text='sshsk backup "my-dev-keys"' />
+                    </div>
+
+                    <div className="text-gray-400"># Restore on desktop (different machine)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">desktop$</span>
+                      <code className="ml-2 text-white flex-1">sshsk restore "my-dev-keys"</code>
+                      <CopyButton text='sshsk restore "my-dev-keys"' />
                     </div>
 
                     <div className="bg-green-900/30 border border-green-500/30 rounded p-2 mt-4">
                       <div className="text-green-400 text-xs">
-                        ✓ Preserves original permissions exactly<br/>
+                        ✓ Works with universal storage (default) for cross-machine restore<br/>
+                        ✓ Preserves original permissions exactly (0600/0644)<br/>
                         ✓ Verifies MD5 checksums during restore<br/>
-                        ✓ Interactive confirmation for overwrites
+                        ✓ Interactive confirmation prevents accidental overwrites
                       </div>
                     </div>
                   </div>
                 </TerminalWindow>
               )}
 
+              {activeTab === 'storage' && (
+                <TerminalWindow title="🗂️ Storage Strategies Guide">
+                  <div className="space-y-4 text-sm">
+                    <div className="bg-purple-900/30 border border-purple-500/30 rounded p-3">
+                      <div className="text-purple-400 font-bold mb-2">🎯 Cross-Machine Restore</div>
+                      <div className="text-gray-300 text-xs">
+                        Choose the right storage strategy for your use case
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Available Storage Strategies</div>
+
+                    <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+                      <div className="text-green-400 font-bold">✅ Universal Storage (Default)</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: shared/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Cross-machine restore: backup on laptop, restore on desktop<br/>
+                        • ✅ Cross-user restore: backup as user1, restore as user2<br/>
+                        • ✅ Team sharing: shared backup namespace<br/>
+                        • ✅ Container friendly: perfect for CI/CD
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/20 border border-blue-500/30 rounded p-3">
+                      <div className="text-blue-400 font-bold">👤 User-Scoped Storage</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: users/username/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Cross-machine restore for same user<br/>
+                        • ✅ User isolation in shared Vault<br/>
+                        • ⚠️ Limited to same username
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-900/20 border border-yellow-500/30 rounded p-3">
+                      <div className="text-yellow-400 font-bold">🔒 Machine-User Storage (Legacy)</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: users/hostname-username/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Maximum isolation per machine-user<br/>
+                        • ❌ No cross-machine restore<br/>
+                        • ❌ No cross-user restore<br/>
+                        • 📦 Existing installations (until migrated)
+                      </div>
+                    </div>
+
+                    <div className="bg-purple-900/20 border border-purple-500/30 rounded p-3">
+                      <div className="text-purple-400 font-bold">🎨 Custom Storage</div>
+                      <div className="text-gray-300 text-xs mb-2">Path: custom-prefix/backups/backup-name</div>
+                      <div className="text-white">
+                        • ✅ Team/project organization<br/>
+                        • ✅ Flexible prefix configuration<br/>
+                        • ⚙️ Requires custom_prefix setting
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Migration for Existing Users</div>
+                    <div className="text-gray-400"># Check current storage strategy</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk migrate-status</code>
+                      <CopyButton text="sshsk migrate-status" />
+                    </div>
+
+                    <div className="text-gray-400"># Migrate to universal storage (dry run)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk migrate --from machine-user --to universal --dry-run</code>
+                      <CopyButton text="sshsk migrate --from machine-user --to universal --dry-run" />
+                    </div>
+
+                    <div className="text-gray-400"># Perform actual migration with cleanup</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk migrate --from machine-user --to universal --cleanup</code>
+                      <CopyButton text="sshsk migrate --from machine-user --to universal --cleanup" />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Environment Variable Configuration</div>
+
+                    <div className="text-gray-400"># Universal storage (default)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_NAMESPACE="personal"</code>
+                      <CopyButton text='export SSH_VAULT_BACKUP_NAMESPACE="personal"' />
+                    </div>
+
+                    <div className="text-gray-400"># User-scoped storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="user"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="user"' />
+                    </div>
+
+                    <div className="text-gray-400"># Legacy machine-user storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="machine-user"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="machine-user"' />
+                    </div>
+
+                    <div className="text-gray-400"># Custom team storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="custom"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="custom"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_CUSTOM_PREFIX="team-devops"</code>
+                      <CopyButton text='export SSH_VAULT_CUSTOM_PREFIX="team-devops"' />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Use Cases</div>
+                    <div className="text-white">
+                      <div className="text-green-400">📱 Personal Use:</div> Universal storage for laptop ↔ desktop<br/>
+                      <div className="text-blue-400">👥 Team Environment:</div> Custom prefix for team organization<br/>
+                      <div className="text-yellow-400">🏢 Shared Vault:</div> User-scoped for multi-user isolation<br/>
+                      <div className="text-gray-400">🔒 Maximum Security:</div> Machine-user for strict isolation
+                    </div>
+                  </div>
+                </TerminalWindow>
+              )}
+
               {activeTab === 'commands' && (
-                <TerminalWindow title="Complete Command Reference">
-                  <div className="space-y-3 text-sm">
+                <TerminalWindow title="SSH Secret Keeper Commands">
+                  <div className="space-y-4 text-sm">
+                    <div className="bg-cyan-900/30 border border-cyan-500/30 rounded p-3">
+                      <div className="text-cyan-400 font-bold mb-2">🛠️ Available Commands & Options</div>
+                      <div className="text-gray-300 text-xs">
+                        Complete reference for all sshsk commands and their options
+                      </div>
+                    </div>
+
                     <div className="text-yellow-400 font-bold">## Core Operations</div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk init</span>
-                        <span className="text-gray-400">Initialize configuration</span>
+                    <div className="space-y-2">
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk init</span>
+                          <span className="text-gray-400 text-xs">Initialize configuration</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --vault-addr, --token
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk analyze</span>
-                        <span className="text-gray-400">Analyze SSH directory</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk analyze</span>
+                          <span className="text-gray-400 text-xs">Analyze SSH directory</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --verbose, --ssh-dir
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk backup</span>
-                        <span className="text-gray-400">Create backup</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk backup</span>
+                          <span className="text-gray-400 text-xs">Create backup</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --dry-run, --interactive, --ssh-dir<br/>
+                          Usage: sshsk backup [backup-name]
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk restore</span>
-                        <span className="text-gray-400">Restore from backup</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk restore</span>
+                          <span className="text-gray-400 text-xs">Restore from backup</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --dry-run, --select, --interactive, --target-dir, --files, --overwrite<br/>
+                          Usage: sshsk restore [backup-name]
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk list</span>
-                        <span className="text-gray-400">List available backups</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk list</span>
+                          <span className="text-gray-400 text-xs">List available backups</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --detailed
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk status</span>
-                        <span className="text-gray-400">Show system status</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk status</span>
+                          <span className="text-gray-400 text-xs">Show system status</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --checksums, --vault, --ssh
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">sshsk delete</span>
-                        <span className="text-gray-400">Delete backup</span>
-                      </div>
-                    </div>
-
-                    <div className="text-yellow-400 font-bold">## Build Commands (Make)</div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make build</span>
-                        <span className="text-gray-400">Build for current platform</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make build-all</span>
-                        <span className="text-gray-400">Build all platforms + containers</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make build-binaries</span>
-                        <span className="text-gray-400">Build all platform binaries</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make install</span>
-                        <span className="text-gray-400">Install to /usr/local/bin</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make container-build</span>
-                        <span className="text-gray-400">Build container image</span>
-                      </div>
-                    </div>
-
-                    <div className="text-yellow-400 font-bold">## Testing Commands</div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make test</span>
-                        <span className="text-gray-400">Run tests with coverage</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make test-coverage</span>
-                        <span className="text-gray-400">Generate HTML coverage report</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make test-coverage-check</span>
-                        <span className="text-gray-400">Verify 40%+ coverage (target 85%)</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk delete</span>
+                          <span className="text-gray-400 text-xs">Delete backup</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --force, --interactive<br/>
+                          Usage: sshsk delete [backup-name]
+                        </div>
                       </div>
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Release Commands</div>
-                    <div className="space-y-1">
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make release VERSION=x.y.z</span>
-                        <span className="text-gray-400">Complete release workflow</span>
+                    <div className="text-yellow-400 font-bold">## Storage Management</div>
+                    <div className="space-y-2">
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-green-400 font-mono">sshsk migrate-status</span>
+                          <span className="text-gray-400 text-xs">Show storage strategy info</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Shows current strategy and migration options
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make tag-release VERSION=x.y.z</span>
-                        <span className="text-gray-400">Create git tag</span>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-green-400 font-mono">sshsk migrate</span>
+                          <span className="text-gray-400 text-xs">Migrate between strategies</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --from, --to, --dry-run, --cleanup<br/>
+                          Example: sshsk migrate --from machine-user --to universal
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-cyan-400">make release-snapshot</span>
-                        <span className="text-gray-400">Test release locally</span>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Global Options</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div><span className="text-cyan-400">--config</span> - Specify config file path</div>
+                        <div><span className="text-cyan-400">--verbose</span> - Enable verbose logging</div>
+                        <div><span className="text-cyan-400">--quiet</span> - Suppress output except errors</div>
+                        <div><span className="text-cyan-400">--help</span> - Show help for any command</div>
+                        <div><span className="text-cyan-400">--version</span> - Show version information</div>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Command Examples</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div><span className="text-green-400">$</span> sshsk backup --dry-run "test-backup"</div>
+                        <div><span className="text-green-400">$</span> sshsk restore --select --interactive</div>
+                        <div><span className="text-green-400">$</span> sshsk list --detailed</div>
+                        <div><span className="text-green-400">$</span> sshsk status --checksums</div>
+                        <div><span className="text-green-400">$</span> sshsk delete "old-backup" --force</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
+                      <div className="text-blue-400 text-xs">
+                        💡 Use --help with any command for detailed usage information<br/>
+                        💡 All commands work with environment variables (VAULT_ADDR, VAULT_TOKEN)<br/>
+                        💡 Use --dry-run for safe testing of backup and restore operations
                       </div>
                     </div>
                   </div>
@@ -648,91 +1010,191 @@ function App() {
               {activeTab === 'config' && (
                 <TerminalWindow title="Configuration">
                   <div className="space-y-4 text-sm">
-                    <div className="text-yellow-400 font-bold">## Environment Variables (Recommended)</div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">export VAULT_ADDR="https://vault.company.com:8200"</span>
-                    </div>
-                    <div>
-                      <span className="text-green-400">$</span>
-                      <span className="ml-2 text-white">export VAULT_TOKEN="your-vault-token"</span>
+                    <div className="bg-blue-900/30 border border-blue-500/30 rounded p-3">
+                      <div className="text-blue-400 font-bold mb-2">⚙️ Environment Variable Configuration</div>
+                      <div className="text-gray-300 text-xs">
+                        Configure SSH Secret Keeper using environment variables - no config files needed
+                      </div>
                     </div>
 
-                    <div className="text-yellow-400 font-bold">## Config File</div>
-                    <div className="text-gray-400"># Config file location:</div>
-                    <div className="text-cyan-400">~/.ssh-secret-keeper/config.yaml</div>
-                    <div className="text-gray-400"># Example configuration:</div>
-                    <pre className="text-white">
-{`vault:
-  address: "https://vault.company.com:8200"
-  mount_path: "ssh-backups"
-backup:
-  ssh_dir: "~/.ssh"
-  retention_count: 10
-security:
-  verify_integrity: true`}
-                    </pre>
+                    <div className="text-yellow-400 font-bold">## Required Environment Variables</div>
+                    <div className="text-gray-400"># Essential Vault connection settings</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export VAULT_ADDR="https://vault.company.com:8200"</code>
+                      <CopyButton text='export VAULT_ADDR="https://vault.company.com:8200"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export VAULT_TOKEN="your-vault-token"</code>
+                      <CopyButton text='export VAULT_TOKEN="your-vault-token"' />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Storage Strategy Configuration</div>
+                    <div className="text-gray-400"># Universal storage (default - cross-machine restore)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_NAMESPACE="personal"</code>
+                      <CopyButton text='export SSH_VAULT_BACKUP_NAMESPACE="personal"' />
+                    </div>
+
+                    <div className="text-gray-400"># User-scoped storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="user"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="user"' />
+                    </div>
+
+                    <div className="text-gray-400"># Custom team storage</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="custom"</code>
+                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="custom"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_CUSTOM_PREFIX="team-devops"</code>
+                      <CopyButton text='export SSH_VAULT_CUSTOM_PREFIX="team-devops"' />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Optional Configuration</div>
+                    <div className="text-gray-400"># Backup behavior</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_SSH_DIR="~/.ssh"</code>
+                      <CopyButton text='export SSH_VAULT_BACKUP_SSH_DIR="~/.ssh"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_RETENTION_COUNT="10"</code>
+                      <CopyButton text='export SSH_VAULT_BACKUP_RETENTION_COUNT="10"' />
+                    </div>
+
+                    <div className="text-gray-400"># Vault settings</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_MOUNT_PATH="ssh-backups"</code>
+                      <CopyButton text='export SSH_VAULT_MOUNT_PATH="ssh-backups"' />
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">export SSH_VAULT_NAMESPACE="team-namespace"</code>
+                      <CopyButton text='export SSH_VAULT_NAMESPACE="team-namespace"' />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Complete Setup Example</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div className="text-cyan-400"># Complete environment setup for universal storage</div>
+                        <div><span className="text-green-400">$</span> export VAULT_ADDR="https://vault.company.com:8200"</div>
+                        <div><span className="text-green-400">$</span> export VAULT_TOKEN="hvs.your-vault-token"</div>
+                        <div><span className="text-green-400">$</span> export SSH_VAULT_STORAGE_STRATEGY="universal"</div>
+                        <div><span className="text-green-400">$</span> export SSH_VAULT_BACKUP_NAMESPACE="personal"</div>
+                        <div><span className="text-green-400">$</span> sshsk init</div>
+                        <div><span className="text-green-400">$</span> sshsk backup "my-laptop-keys"</div>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Environment Variable Priority</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div className="text-yellow-400">Configuration priority (highest to lowest):</div>
+                        <div>1. Command line flags</div>
+                        <div>2. Environment variables</div>
+                        <div>3. Config file (~/.ssh-secret-keeper/config.yaml)</div>
+                        <div>4. Default values</div>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Configuration Tips</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div>💡 Use environment variables for containers and CI/CD</div>
+                        <div>💡 VAULT_TOKEN takes priority over token files</div>
+                        <div>💡 Universal storage enables cross-machine restore</div>
+                        <div>💡 Set variables in ~/.bashrc or ~/.zshrc for persistence</div>
+                        <div>💡 Use --dry-run to test configuration changes safely</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-green-900/30 border border-green-500/30 rounded p-2 mt-4">
+                      <div className="text-green-400 text-xs">
+                        ✓ Environment variables work without any config files<br/>
+                        ✓ Perfect for containers, CI/CD, and automation<br/>
+                        ✓ No secrets stored on disk when using VAULT_TOKEN<br/>
+                        ✓ Easy to switch between different Vault instances
+                      </div>
+                    </div>
                   </div>
                 </TerminalWindow>
               )}
+          </div>
+
+          {/* Information and Quick Links moved below documentation */}
+          <div className="grid md:grid-cols-2 gap-8 mt-12">
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2">
+                <Lock className="w-5 h-5" />
+                Information
+              </h4>
+              <ul className="space-y-2 text-gray-300 text-sm">
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Requires HashiCorp Vault installation
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  MD5 checksums verify backup integrity
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  List and manage multiple backup versions
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Cross-machine and cross-user restore support
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Migration tools for existing installations
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Open-source community project
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
+                  Production-ready security features
+                </li>
+              </ul>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-amber-400 font-bold mb-3 flex items-center gap-2">
-                  <Lock className="w-5 h-5" />
-                  Information
-                </h4>
-                <ul className="space-y-2 text-gray-300 text-sm">
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Requires HashiCorp Vault installation
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    MD5 checksums verify backup integrity
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    List and manage multiple backup versions
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Future: Support for other secret stores
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Open-source community project
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-400">✓</span>
-                    Production-ready security features
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
-                <h4 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
-                  <Book className="w-5 h-5" />
-                  Quick Links
-                </h4>
-                <div className="space-y-2">
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Complete Make Target Reference
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Backup/Restore Best Practices
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Vault Security Configuration
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → Container Deployment Guide
-                  </a>
-                  <a href="#" className="block text-cyan-400 hover:text-cyan-300 text-sm">
-                    → GitHub Repository
-                  </a>
-                </div>
+            <div className="bg-gray-900 border border-gray-700 rounded-lg p-6">
+              <h4 className="text-cyan-400 font-bold mb-3 flex items-center gap-2">
+                <Book className="w-5 h-5" />
+                Quick Links
+              </h4>
+              <div className="space-y-2">
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/STORAGE_STRATEGIES.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Storage Strategies Guide
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/CONFIGURATION.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Complete Configuration Reference
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/Makefile" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Make Target Reference
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/QUICK_START.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Quick Start Guide
+                </a>
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → GitHub Repository
+                </a>
               </div>
             </div>
           </div>

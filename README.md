@@ -27,13 +27,16 @@ A secure, intelligent tool for backing up SSH keys and configuration to HashiCor
 
 - Complete SSH Directory Backup with metadata
 - Selective File Restore with permission verification
+- **Cross-machine/user restore** - backup on one machine, restore anywhere
+- **Flexible storage strategies** for different use cases and team environments
 - Interactive Mode for file and backup selection
 - Dry-run Support for safe testing
 - Multiple Backup Versions with retention
-- Cross-platform Support (Linux, macOS)
+- Cross-platform Support (Linux, macOS, Windows)
 - Container Ready with Docker and Podman support
 - CI/CD Integration friendly
 - Permission Security validation and warnings
+- **Migration tools** for upgrading from legacy storage
 
 ## Project Site
 
@@ -222,6 +225,29 @@ RESTORE_DIR="/tmp/restored-ssh-$(date +%Y%m%d)"
 sshsk restore --target-dir "${RESTORE_DIR}"
 ```
 
+### 5. Enable Cross-Machine Restore (New!)
+
+By default, SSH Secret Keeper now uses **universal storage** which enables cross-machine and cross-user restore. For existing users with the legacy machine-user storage:
+
+```bash
+# Check current storage strategy
+sshsk migrate-status
+
+# Migrate to universal storage (recommended)
+sshsk migrate --from machine-user --to universal --dry-run  # Preview first
+sshsk migrate --from machine-user --to universal --cleanup  # Perform migration
+
+# Now you can restore backups on any machine!
+```
+
+**Storage Strategies**:
+- **Universal** (default): Backup on laptop, restore on desktop/server
+- **User-scoped**: Per-user isolation with cross-machine capability
+- **Machine-user** (legacy): Tied to specific machine-user combination
+- **Custom**: Team/project-based organization
+
+See [Storage Strategies Guide](docs/STORAGE_STRATEGIES.md) for detailed information.
+
 ## Commands Reference
 
 ### Core Commands
@@ -235,6 +261,8 @@ sshsk restore --target-dir "${RESTORE_DIR}"
 | `delete` | Delete a backup from Vault | `sshsk delete "${BACKUP_NAME}" --force` |
 | `analyze` | Analyze SSH directory structure | `sshsk analyze --verbose` |
 | `status` | Show configuration and connection status | `sshsk status --checksums` |
+| `migrate` | **NEW**: Migrate between storage strategies | `sshsk migrate --from machine-user --to universal` |
+| `migrate-status` | **NEW**: Show storage strategy information | `sshsk migrate-status` |
 
 ### Command Options
 
