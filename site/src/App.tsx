@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Shield, Key, Server, Copy, Check, Github, Book, Zap, Lock, RefreshCw } from 'lucide-react';
+import { Terminal, Shield, Key, Server, Copy, Check, Github, Book, Lock, RefreshCw } from 'lucide-react';
 import { config } from './config';
 
 const TypewriterText: React.FC<{ text: string; delay?: number }> = ({ text, delay = 50 }) => {
@@ -85,11 +85,6 @@ function App() {
       icon: <Key className="w-8 h-8 text-cyan-400" />,
       title: "Flexible Storage Strategies",
       description: "Choose from universal (shared), user-scoped, machine-user (legacy), or custom storage strategies. Migration tools help upgrade existing installations."
-    },
-    {
-      icon: <Zap className="w-8 h-8 text-red-400" />,
-      title: "Smart Analysis & Management",
-      description: "Intelligent SSH analysis with service categorization. List, analyze, and manage backups with comprehensive CLI tools and validation."
     },
     {
       icon: <RefreshCw className="w-8 h-8 text-purple-400" />,
@@ -252,7 +247,7 @@ function App() {
             ┌─[ Core Features ]─┐
           </h3>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <div key={index} className="bg-gray-800 border border-gray-700 rounded-lg p-6 hover:border-gray-600 transition-colors">
                 <div className="flex items-center gap-3 mb-4">
