@@ -699,3 +699,102 @@ func BenchmarkHandler_EncryptDecrypt(b *testing.B) {
 		}
 	}
 }
+
+// Test for Issue #17 defensive validation fix
+func TestHandler_VerifyRestorePermissions_Issue17_DefensiveFix(t *testing.T) {
+	handler := New()
+
+	// Test cases simulating old backups with incorrect KeyInfo
+	testCases := []struct {
+		name        string
+		filename    string
+		permissions os.FileMode
+		storedType  analyzer.KeyType // Incorrect type from old backup
+		expectError bool
+		description string
+	}{
+		{
+			name:        "pub_file_stored_as_private_0644",
+			filename:    "bitbucket_rsa.pub",
+			permissions: 0644,
+			storedType:  analyzer.KeyTypePrivate, // WRONG - old backup mistake
+			expectError: false,                   // Should be fixed by defensive logic
+			description: "0644 permissions on .pub file incorrectly stored as private",
+		},
+		{
+			name:        "pub_file_stored_as_private_0600",
+			filename:    "cci.pub",
+			permissions: 0600,
+			storedType:  analyzer.KeyTypePrivate, // WRONG - old backup mistake
+			expectError: false,                   // Should be fixed by defensive logic
+			description: "0600 permissions on .pub file incorrectly stored as private",
+		},
+		{
+			name:        "actual_private_key_0644",
+			filename:    "id_rsa",
+			permissions: 0644,
+			storedType:  analyzer.KeyTypePrivate, // CORRECT
+			expectError: false,                   // VerifyRestorePermissions logs warnings but doesn't fail
+			description: "Actual private key with world-readable permissions",
+		},
+		{
+			name:        "pub_file_correctly_stored",
+			filename:    "id_rsa.pub",
+			permissions: 0644,
+			storedType:  analyzer.KeyTypePublic, // CORRECT
+			expectError: false,
+			description: "Public key correctly stored and validated",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Create KeyInfo with the stored type (potentially incorrect)
+			keyInfo := &analyzer.KeyInfo{
+				Filename: tc.filename,
+				Type:     tc.storedType,
+				Format:   analyzer.FormatRSA,
+			}
+
+			// Create minimal backup structure
+			backup := &BackupData{
+				Files: map[string]*FileData{
+					tc.filename: {
+						Filename:    tc.filename,
+						Permissions: tc.permissions,
+						KeyInfo:     keyInfo,
+						Content:     []byte("test content"),
+					},
+				},
+			}
+
+			// Create temp directory and file for testing
+			tmpDir := t.TempDir()
+			// Fix SSH directory permissions for test
+			if err := os.Chmod(tmpDir, 0700); err != nil {
+				t.Fatalf("Failed to set directory permissions: %v", err)
+			}
+			tmpFile := filepath.Join(tmpDir, tc.filename)
+			if err := os.WriteFile(tmpFile, []byte("test content"), tc.permissions); err != nil {
+				t.Fatalf("Failed to create test file: %v", err)
+			}
+
+			// Test the validation
+			err := handler.VerifyRestorePermissions(backup, tmpDir)
+
+			if tc.expectError {
+				if err == nil {
+					t.Errorf("Expected error for %s but got none", tc.description)
+				} else {
+					t.Logf("✅ Expected error for %s: %v", tc.description, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Expected no error for %s but got: %v", tc.description, err)
+				} else {
+					t.Logf("✅ No error for %s as expected", tc.description)
+				}
+			}
+		})
+	}
+}

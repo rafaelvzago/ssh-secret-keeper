@@ -294,3 +294,82 @@ func TestRSAKeyDetector_GetRelatedFiles(t *testing.T) {
 		t.Errorf("Expected related file id_rsa.pub, got %s", related[0])
 	}
 }
+
+// Test for the specific bug reported in issue #17
+func TestRSAKeyDetector_PubFilesAlwaysPublic(t *testing.T) {
+	detector := &RSAKeyDetector{}
+
+	// Test that .pub files are always detected as public keys, regardless of content
+	testCases := []struct {
+		filename string
+		content  []byte
+		desc     string
+	}{
+		{"bitbucket_rsa.pub", []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDT1234567890 user@host"), "normal RSA public key"},
+		{"cci.pub", []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDT9876543210 user@host"), "another RSA public key"},
+		{"id_rsa.pub", []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDT1111111111 user@host"), "standard id_rsa.pub"},
+		{"service.pub", []byte("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI1234567890 user@host"), "Ed25519 key with .pub extension"},
+		{"test.pub", []byte("some unusual content"), "unusual content with .pub extension"},
+		{"empty.pub", []byte(""), "empty .pub file"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.filename, func(t *testing.T) {
+			keyInfo, detected := detector.Detect(tc.filename, tc.content)
+			if !detected {
+				t.Errorf("RSAKeyDetector should detect .pub files, but did not detect %s (%s)", tc.filename, tc.desc)
+				return
+			}
+			if keyInfo.Type != KeyTypePublic {
+				t.Errorf("Expected KeyTypePublic for %s (%s), got %s", tc.filename, tc.desc, keyInfo.Type)
+			}
+			if keyInfo.Format != FormatRSA {
+				t.Errorf("Expected FormatRSA for %s (%s), got %s", tc.filename, tc.desc, keyInfo.Format)
+			}
+		})
+	}
+}
+
+// Test that the fix doesn't break existing functionality
+func TestRSAKeyDetector_PrivateKeyDetection(t *testing.T) {
+	detector := &RSAKeyDetector{}
+
+	testCases := []struct {
+		filename string
+		content  []byte
+		desc     string
+	}{
+		{"id_rsa", []byte("-----BEGIN RSA PRIVATE KEY-----\nMIIEpAIBAAKCAQEA1234567890abcdef\n-----END RSA PRIVATE KEY-----"), "RSA private key with content"},
+		{"key", []byte("-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAA\n-----END OPENSSH PRIVATE KEY-----"), "OpenSSH private key with content"},
+		{"service_rsa", []byte("some content"), "filename pattern matching"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.filename, func(t *testing.T) {
+			keyInfo, detected := detector.Detect(tc.filename, tc.content)
+			if !detected {
+				t.Errorf("RSAKeyDetector should detect private key %s (%s)", tc.filename, tc.desc)
+				return
+			}
+			if keyInfo.Type != KeyTypePrivate {
+				t.Errorf("Expected KeyTypePrivate for %s (%s), got %s", tc.filename, tc.desc, keyInfo.Type)
+			}
+		})
+	}
+}
+
+// Test content-based public key detection still works
+func TestRSAKeyDetector_ContentBasedPublicKey(t *testing.T) {
+	detector := &RSAKeyDetector{}
+
+	content := []byte("ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDT1234567890 user@host")
+	keyInfo, detected := detector.Detect("some_key", content)
+
+	if !detected {
+		t.Error("RSAKeyDetector should detect ssh-rsa content")
+		return
+	}
+	if keyInfo.Type != KeyTypePublic {
+		t.Errorf("Expected KeyTypePublic for ssh-rsa content, got %s", keyInfo.Type)
+	}
+}
