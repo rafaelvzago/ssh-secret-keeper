@@ -51,6 +51,7 @@ flexible backup/restore operations.`,
 		newMigrateCommand(cfg),
 		newMigrateStatusCommand(cfg),
 		newVersionCommand(),
+		newUpdateCommand(cfg),
 	)
 
 	return rootCmd

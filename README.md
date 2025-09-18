@@ -97,6 +97,23 @@ The installation script:
 - ✅ **Handles** existing installations and updates
 - ✅ **Fallback** to building from source if needed
 
+### Self-Update
+
+Once installed, SSH Secret Keeper can update itself to the latest version:
+
+```bash
+# Check for updates
+sshsk update --check
+
+# Update to latest version
+sshsk update
+
+# Update to specific version
+sshsk update --version v1.0.5
+```
+
+See [Update Documentation](docs/UPDATE.md) for more details.
+
 ### Option 2: Manual Download
 ```bash
 # Download latest release (replace VERSION and ARCH)

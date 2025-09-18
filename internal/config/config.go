@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/rzago/ssh-secret-keeper/internal/update"
 	"github.com/spf13/viper"
 	"gopkg.in/yaml.v3"
 )
@@ -18,7 +19,8 @@ type Config struct {
 	Backup    BackupConfig   `yaml:"backup" mapstructure:"backup"`
 	Security  SecurityConfig `yaml:"security" mapstructure:"security"`
 	Logging   LoggingConfig  `yaml:"logging" mapstructure:"logging"`
-	Detectors DetectorConfig `yaml:"detectors" mapstructure:"detectors"`
+	Detectors DetectorConfig        `yaml:"detectors" mapstructure:"detectors"`
+	Update    *update.UpdateConfig `yaml:"update,omitempty" mapstructure:"update"`
 }
 
 // VaultConfig holds Vault connection settings
@@ -71,6 +73,7 @@ type DetectorConfig struct {
 	ServiceMapping map[string]string `yaml:"service_mapping" mapstructure:"service_mapping"`
 	PurposeRules   map[string]string `yaml:"purpose_rules" mapstructure:"purpose_rules"`
 }
+
 
 // Default returns a configuration with default values
 func Default() *Config {

@@ -143,3 +143,11 @@ detectors:
     "*personal*": "personal"
     "*service*": "service"
     "*cloud*": "service"
+
+# Update configuration (optional)
+# update:
+#   check_on_startup: false         # Check for updates when running commands
+#   auto_update: false              # Automatically install updates (not recommended)
+#   channel: "stable"               # Update channel: stable, beta
+#   check_interval: "24h"           # How often to check for updates
+#   github_repo: "rafaelvzago/ssh-secret-keeper"  # GitHub repository
