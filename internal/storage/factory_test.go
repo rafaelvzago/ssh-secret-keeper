@@ -39,7 +39,7 @@ func TestFactory_CreateStorage(t *testing.T) {
 				},
 			},
 			envVaultToken: "test-token",
-			wantError:     true, // Will fail on actual vault client creation
+			wantError:     false, // StorageService creates successfully, fails on use
 			wantProvider:  "vault",
 		},
 		{
@@ -56,7 +56,7 @@ func TestFactory_CreateStorage(t *testing.T) {
 			},
 			envVaultAddr:  "http://env-address:8200",
 			envVaultToken: "test-token",
-			wantError:     true, // Will fail on actual vault client creation
+			wantError:     false, // StorageService creates successfully, fails on use
 			wantProvider:  "vault",
 		},
 		{
@@ -72,7 +72,7 @@ func TestFactory_CreateStorage(t *testing.T) {
 				},
 			},
 			envVaultToken: "test-token",
-			wantError:     true, // Will fail on actual vault client creation
+			wantError:     false, // StorageService creates successfully, fails on use
 			wantProvider:  "vault",
 		},
 		{
@@ -182,7 +182,6 @@ func TestFactory_CreateStorage(t *testing.T) {
 		})
 	}
 }
-
 
 func TestFactory_CreateStorage_DefaultProvider(t *testing.T) {
 	factory := NewFactory()

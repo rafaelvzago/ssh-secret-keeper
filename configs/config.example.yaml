@@ -7,7 +7,7 @@ version: "1.0"
 # 1. VAULT_ADDR environment variable is required (Vault server address)
 # 2. Authentication via VAULT_TOKEN environment variable OR token file
 #    - VAULT_TOKEN takes priority if both are set
-#    - Token file path can be overridden with SSH_SECRET_VAULT_TOKEN_FILE env var
+#    - Token file path can be overridden with SSHSK_VAULT_TOKEN_FILE env var
 
 # Storage provider configuration
 storage:

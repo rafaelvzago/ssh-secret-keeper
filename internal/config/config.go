@@ -151,7 +151,7 @@ func Load() (*Config, error) {
 	viper.AddConfigPath("/etc/ssh-secret-keeper")
 
 	// Environment variables
-	viper.SetEnvPrefix("SSH_VAULT")
+	viper.SetEnvPrefix("SSHSK")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
@@ -176,8 +176,8 @@ func Load() (*Config, error) {
 	}
 	cfg.Vault.Address = vaultAddr
 
-	// Override token file path if SSH_SECRET_VAULT_TOKEN_FILE is set
-	if tokenFileEnv := os.Getenv("SSH_SECRET_VAULT_TOKEN_FILE"); tokenFileEnv != "" {
+	// Override token file path if SSHSK_VAULT_TOKEN_FILE is set
+	if tokenFileEnv := os.Getenv("SSHSK_VAULT_TOKEN_FILE"); tokenFileEnv != "" {
 		cfg.Vault.TokenFile = tokenFileEnv
 	}
 

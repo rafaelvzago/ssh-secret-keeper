@@ -276,39 +276,39 @@ sshsk restore --select
 
 ## Environment Variables
 
-All configuration options can be overridden with environment variables using the prefix `SSH_VAULT_` and replacing dots with underscores:
+All configuration options can be overridden with environment variables using the prefix `SSHSK_` and replacing dots with underscores:
 
 ### Vault Configuration
 ```bash
-export SSH_VAULT_ADDRESS="https://vault.company.com:8200"
-export SSH_VAULT_TOKEN_FILE="/path/to/token"
-export SSH_VAULT_MOUNT_PATH="ssh-backups"
-export SSH_VAULT_STORAGE_STRATEGY="universal"
-export SSH_VAULT_BACKUP_NAMESPACE="team-devops"
-export SSH_VAULT_CUSTOM_PREFIX="my-team"
+export SSHSK_VAULT_ADDRESS="https://vault.company.com:8200"
+export SSHSK_VAULT_TOKEN_FILE="/path/to/token"
+export SSHSK_VAULT_MOUNT_PATH="ssh-backups"
+export SSHSK_VAULT_STORAGE_STRATEGY="universal"
+export SSHSK_VAULT_BACKUP_NAMESPACE="team-devops"
+export SSHSK_VAULT_CUSTOM_PREFIX="my-team"
 ```
 
 ### Backup Configuration
 ```bash
-export SSH_VAULT_BACKUP_SSH_DIR="/custom/ssh/path"
-export SSH_VAULT_BACKUP_RETENTION_COUNT="20"
-export SSH_VAULT_BACKUP_NORMALIZE_PATHS="true"
-export SSH_VAULT_BACKUP_CROSS_MACHINE_RESTORE="true"
-export SSH_VAULT_BACKUP_HOSTNAME_PREFIX="false"
+export SSHSK_BACKUP_SSH_DIR="/custom/ssh/path"
+export SSHSK_BACKUP_RETENTION_COUNT="20"
+export SSHSK_BACKUP_NORMALIZE_PATHS="true"
+export SSHSK_BACKUP_CROSS_MACHINE_RESTORE="true"
+export SSHSK_BACKUP_HOSTNAME_PREFIX="false"
 ```
 
 ### Security Configuration
 ```bash
-export SSH_VAULT_SECURITY_ALGORITHM="AES-256-GCM"
-export SSH_VAULT_SECURITY_ITERATIONS="100000"
-export SSH_VAULT_SECURITY_PER_FILE_ENCRYPT="true"
-export SSH_VAULT_SECURITY_VERIFY_INTEGRITY="true"
+export SSHSK_SECURITY_ALGORITHM="AES-256-GCM"
+export SSHSK_SECURITY_ITERATIONS="100000"
+export SSHSK_SECURITY_PER_FILE_ENCRYPT="true"
+export SSHSK_SECURITY_VERIFY_INTEGRITY="true"
 ```
 
 ### Logging Configuration
 ```bash
-export SSH_VAULT_LOGGING_LEVEL="debug"
-export SSH_VAULT_LOGGING_FORMAT="json"
+export SSHSK_LOGGING_LEVEL="debug"
+export SSHSK_LOGGING_FORMAT="json"
 ```
 
 ### Vault Configuration
@@ -317,29 +317,29 @@ export SSH_VAULT_LOGGING_FORMAT="json"
 export VAULT_ADDR="https://vault.company.com:8200"
 
 # Alternative: SSH Secret Keeper specific environment variable
-export SSH_SECRET_VAULT_ADDRESS="https://vault.company.com:8200"
+export SSHSK_VAULT_ADDRESS="https://vault.company.com:8200"
 
 # Token file path
-export SSH_SECRET_VAULT_TOKEN_FILE="/path/to/vault/token"
+export SSHSK_VAULT_TOKEN_FILE="/path/to/vault/token"
 
 # Mount path in Vault
-export SSH_SECRET_VAULT_MOUNT_PATH="ssh-backups"
+export SSHSK_VAULT_MOUNT_PATH="ssh-backups"
 
 # Vault namespace (Enterprise)
-export SSH_SECRET_VAULT_NAMESPACE="team-namespace"
+export SSHSK_VAULT_NAMESPACE="team-namespace"
 
 # Skip TLS verification (not recommended)
-export SSH_SECRET_VAULT_TLS_SKIP_VERIFY="false"
+export SSHSK_VAULT_TLS_SKIP_VERIFY="false"
 ```
 
-**Note**: The `VAULT_ADDR` environment variable is **required** and takes precedence over the configuration file and `SSH_SECRET_VAULT_ADDRESS` environment variable, following HashiCorp Vault's standard convention. The application will fail to start if `VAULT_ADDR` is not set.
+**Note**: The `VAULT_ADDR` environment variable is **required** and takes precedence over the configuration file and `SSHSK_VAULT_ADDRESS` environment variable, following HashiCorp Vault's standard convention. The application will fail to start if `VAULT_ADDR` is not set.
 
 ### Authentication Priority
 
 The application uses the following priority for Vault authentication:
 
 1. **VAULT_TOKEN environment variable** (highest priority)
-2. **Token file** (as specified in configuration or SSH_SECRET_VAULT_TOKEN_FILE)
+2. **Token file** (as specified in configuration or SSHSK_VAULT_TOKEN_FILE)
 3. **Error** (if neither is available)
 
 For enhanced security, especially in containerized or CI/CD environments, using `VAULT_TOKEN` environment variable is recommended over token files.
@@ -347,34 +347,34 @@ For enhanced security, especially in containerized or CI/CD environments, using 
 ### Backup Configuration
 ```bash
 # SSH directory to backup
-export SSH_SECRET_BACKUP_SSH_DIR="/custom/ssh/path"
+export SSHSK_BACKUP_SSH_DIR="/custom/ssh/path"
 
 # Include hostname in path
-export SSH_SECRET_BACKUP_HOSTNAME_PREFIX="true"
+export SSHSK_BACKUP_HOSTNAME_PREFIX="true"
 
 # Number of backups to keep
-export SSH_SECRET_BACKUP_RETENTION_COUNT="20"
+export SSHSK_BACKUP_RETENTION_COUNT="20"
 ```
 
 ### Security Configuration
 ```bash
 # PBKDF2 iterations
-export SSH_SECRET_SECURITY_ITERATIONS="150000"
+export SSHSK_SECURITY_ITERATIONS="150000"
 
 # Per-file encryption
-export SSH_SECRET_SECURITY_PER_FILE_ENCRYPT="true"
+export SSHSK_SECURITY_PER_FILE_ENCRYPT="true"
 
 # Integrity verification
-export SSH_SECRET_SECURITY_VERIFY_INTEGRITY="true"
+export SSHSK_SECURITY_VERIFY_INTEGRITY="true"
 ```
 
 ### Logging Configuration
 ```bash
 # Log level
-export SSH_SECRET_LOGGING_LEVEL="debug"
+export SSHSK_LOGGING_LEVEL="debug"
 
 # Log format
-export SSH_SECRET_LOGGING_FORMAT="json"
+export SSHSK_LOGGING_FORMAT="json"
 ```
 
 ## Command Line Flags
@@ -623,7 +623,7 @@ sshsk status --verbose
 sshsk --config /path/to/config.yaml status
 
 # Override with environment
-SSH_SECRET_LOGGING_LEVEL=debug sshsk status
+SSHSK_LOGGING_LEVEL=debug sshsk status
 ```
 
 ### Common Issues

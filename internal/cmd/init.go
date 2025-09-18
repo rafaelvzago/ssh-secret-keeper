@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -95,20 +96,21 @@ func runInit(cfg *config.Config, opts initOptions) error {
 
 	// Test Vault connection
 	fmt.Printf("Testing Vault connection to %s...\n", cfg.Vault.Address)
-	vaultClient, err := vault.New(&cfg.Vault)
+	storageService, err := vault.NewStorageService(&cfg.Vault)
 	if err != nil {
 		return fmt.Errorf("failed to connect to Vault: %w", err)
 	}
-	defer vaultClient.Close()
+	defer storageService.Close()
 
-	if err := vaultClient.TestConnection(); err != nil {
+	ctx := context.Background()
+	if err := storageService.TestConnection(ctx); err != nil {
 		return fmt.Errorf("Vault connection test failed: %w", err)
 	}
 	fmt.Printf("✓ Vault connection successful\n")
 
 	// Ensure mount exists
 	fmt.Printf("Setting up Vault mount: %s\n", cfg.Vault.MountPath)
-	if err := vaultClient.EnsureMountExists(); err != nil {
+	if err := storageService.EnsureMountExists(ctx); err != nil {
 		return fmt.Errorf("failed to setup Vault mount: %w", err)
 	}
 	fmt.Printf("✓ Vault mount ready\n")

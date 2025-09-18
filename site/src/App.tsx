@@ -429,10 +429,10 @@ function App() {
                           <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
                           <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
                           <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
-                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</div>
+                          <div className="ml-2">-e SSHSK_VAULT_STORAGE_STRATEGY="universal" \</div>
                           <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"</div>
                         </div>
-                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSH_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"' />
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSHSK_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest backup "cross-machine-backup"' />
                       </div>
                     </div>
 
@@ -442,10 +442,10 @@ function App() {
                         <span className="text-green-400 mt-1">$</span>
                         <div className="ml-2 text-white flex-1">
                           <div>docker run --rm -v ~/.ssh:/ssh:ro \</div>
-                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="machine-user" \</div>
+                          <div className="ml-2">-e SSHSK_VAULT_STORAGE_STRATEGY="machine-user" \</div>
                           <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"</div>
                         </div>
-                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e SSH_VAULT_STORAGE_STRATEGY="machine-user" rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"' />
+                        <CopyButton text='docker run --rm -v ~/.ssh:/ssh:ro -e SSHSK_VAULT_STORAGE_STRATEGY="machine-user" rafaelvzago/ssh-secret-keeper:latest backup "isolated-backup"' />
                       </div>
                     </div>
 
@@ -458,10 +458,10 @@ function App() {
                           <div>podman run --rm -v ~/.ssh:/ssh:ro \</div>
                           <div className="ml-2">-e VAULT_ADDR="https://your-vault:8200" \</div>
                           <div className="ml-2">-e VAULT_TOKEN="your-token" \</div>
-                          <div className="ml-2">-e SSH_VAULT_STORAGE_STRATEGY="universal" \</div>
+                          <div className="ml-2">-e SSHSK_VAULT_STORAGE_STRATEGY="universal" \</div>
                           <div className="ml-2">rafaelvzago/ssh-secret-keeper:latest analyze</div>
                         </div>
-                        <CopyButton text='podman run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSH_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest analyze' />
+                        <CopyButton text='podman run --rm -v ~/.ssh:/ssh:ro -e VAULT_ADDR="https://your-vault:8200" -e VAULT_TOKEN="your-token" -e SSHSK_VAULT_STORAGE_STRATEGY="universal" rafaelvzago/ssh-secret-keeper:latest analyze' />
                       </div>
                     </div>
                   </div>
@@ -494,8 +494,8 @@ function App() {
                     <div className="text-gray-400"># Configure storage strategy (optional - defaults to "universal")</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="universal"' />
                     </div>
                     <div className="text-gray-400 text-xs mt-1">Available options: "universal", "user", "machine-user", "custom"</div>
 
@@ -525,7 +525,7 @@ function App() {
                       <div className="space-y-1 text-xs">
                         <div><span className="text-green-400">$</span> export VAULT_ADDR="https://vault.company.com:8200"</div>
                         <div><span className="text-green-400">$</span> export VAULT_TOKEN="your-vault-token"</div>
-                        <div><span className="text-green-400">$</span> export SSH_VAULT_STORAGE_STRATEGY="universal"</div>
+                        <div><span className="text-green-400">$</span> export SSHSK_VAULT_STORAGE_STRATEGY="universal"</div>
                         <div><span className="text-green-400">$</span> sshsk init</div>
                         <div><span className="text-green-400">$</span> sshsk backup</div>
                       </div>
@@ -571,27 +571,27 @@ function App() {
                     <div className="text-gray-400"># Universal storage (default - cross-machine restore)</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="universal"' />
                     </div>
 
                     <div className="text-gray-400"># User-scoped storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="user"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="user"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="user"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="user"' />
                     </div>
 
                     <div className="text-gray-400"># Custom team storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="custom"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="custom"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="custom"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="custom"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_CUSTOM_PREFIX="team-devops"</code>
-                      <CopyButton text='export SSH_VAULT_CUSTOM_PREFIX="team-devops"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"</code>
+                      <CopyButton text='export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"' />
                     </div>
 
                     <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
@@ -632,8 +632,8 @@ function App() {
                     <div className="text-gray-400"># Configure storage strategy (must match backup strategy)</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="universal"' />
                     </div>
                     <div className="text-gray-400 text-xs mt-1">Available options: "universal", "user", "machine-user", "custom"</div>
 
@@ -667,7 +667,7 @@ function App() {
                       <div className="space-y-1 text-xs">
                         <div><span className="text-green-400">$</span> export VAULT_ADDR="https://vault.company.com:8200"</div>
                         <div><span className="text-green-400">$</span> export VAULT_TOKEN="your-vault-token"</div>
-                        <div><span className="text-green-400">$</span> export SSH_VAULT_STORAGE_STRATEGY="universal"</div>
+                        <div><span className="text-green-400">$</span> export SSHSK_VAULT_STORAGE_STRATEGY="universal"</div>
                         <div><span className="text-green-400">$</span> sshsk restore</div>
                       </div>
                     </div>
@@ -823,39 +823,39 @@ function App() {
                     <div className="text-gray-400"># Universal storage (default)</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="universal"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_NAMESPACE="personal"</code>
-                      <CopyButton text='export SSH_VAULT_BACKUP_NAMESPACE="personal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_BACKUP_NAMESPACE="personal"</code>
+                      <CopyButton text='export SSHSK_VAULT_BACKUP_NAMESPACE="personal"' />
                     </div>
 
                     <div className="text-gray-400"># User-scoped storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="user"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="user"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="user"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="user"' />
                     </div>
 
                     <div className="text-gray-400"># Legacy machine-user storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="machine-user"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="machine-user"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="machine-user"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="machine-user"' />
                     </div>
 
                     <div className="text-gray-400"># Custom team storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="custom"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="custom"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="custom"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="custom"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_CUSTOM_PREFIX="team-devops"</code>
-                      <CopyButton text='export SSH_VAULT_CUSTOM_PREFIX="team-devops"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"</code>
+                      <CopyButton text='export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"' />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Use Cases</div>
@@ -1032,57 +1032,57 @@ function App() {
                     <div className="text-gray-400"># Universal storage (default - cross-machine restore)</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="universal"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="universal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="universal"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="universal"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_NAMESPACE="personal"</code>
-                      <CopyButton text='export SSH_VAULT_BACKUP_NAMESPACE="personal"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_BACKUP_NAMESPACE="personal"</code>
+                      <CopyButton text='export SSHSK_VAULT_BACKUP_NAMESPACE="personal"' />
                     </div>
 
                     <div className="text-gray-400"># User-scoped storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="user"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="user"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="user"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="user"' />
                     </div>
 
                     <div className="text-gray-400"># Custom team storage</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_STORAGE_STRATEGY="custom"</code>
-                      <CopyButton text='export SSH_VAULT_STORAGE_STRATEGY="custom"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_STORAGE_STRATEGY="custom"</code>
+                      <CopyButton text='export SSHSK_VAULT_STORAGE_STRATEGY="custom"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_CUSTOM_PREFIX="team-devops"</code>
-                      <CopyButton text='export SSH_VAULT_CUSTOM_PREFIX="team-devops"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"</code>
+                      <CopyButton text='export SSHSK_VAULT_CUSTOM_PREFIX="team-devops"' />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Optional Configuration</div>
                     <div className="text-gray-400"># Backup behavior</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_SSH_DIR="~/.ssh"</code>
-                      <CopyButton text='export SSH_VAULT_BACKUP_SSH_DIR="~/.ssh"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_BACKUP_SSH_DIR="~/.ssh"</code>
+                      <CopyButton text='export SSHSK_BACKUP_SSH_DIR="~/.ssh"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_BACKUP_RETENTION_COUNT="10"</code>
-                      <CopyButton text='export SSH_VAULT_BACKUP_RETENTION_COUNT="10"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_BACKUP_RETENTION_COUNT="10"</code>
+                      <CopyButton text='export SSHSK_BACKUP_RETENTION_COUNT="10"' />
                     </div>
 
                     <div className="text-gray-400"># Vault settings</div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_MOUNT_PATH="ssh-backups"</code>
-                      <CopyButton text='export SSH_VAULT_MOUNT_PATH="ssh-backups"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_MOUNT_PATH="ssh-backups"</code>
+                      <CopyButton text='export SSHSK_VAULT_MOUNT_PATH="ssh-backups"' />
                     </div>
                     <div className="flex items-center">
                       <span className="text-green-400">$</span>
-                      <code className="ml-2 text-white flex-1">export SSH_VAULT_NAMESPACE="team-namespace"</code>
-                      <CopyButton text='export SSH_VAULT_NAMESPACE="team-namespace"' />
+                      <code className="ml-2 text-white flex-1">export SSHSK_VAULT_NAMESPACE="team-namespace"</code>
+                      <CopyButton text='export SSHSK_VAULT_NAMESPACE="team-namespace"' />
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Complete Setup Example</div>
@@ -1091,8 +1091,8 @@ function App() {
                         <div className="text-cyan-400"># Complete environment setup for universal storage</div>
                         <div><span className="text-green-400">$</span> export VAULT_ADDR="https://vault.company.com:8200"</div>
                         <div><span className="text-green-400">$</span> export VAULT_TOKEN="hvs.your-vault-token"</div>
-                        <div><span className="text-green-400">$</span> export SSH_VAULT_STORAGE_STRATEGY="universal"</div>
-                        <div><span className="text-green-400">$</span> export SSH_VAULT_BACKUP_NAMESPACE="personal"</div>
+                        <div><span className="text-green-400">$</span> export SSHSK_VAULT_STORAGE_STRATEGY="universal"</div>
+                        <div><span className="text-green-400">$</span> export SSHSK_VAULT_BACKUP_NAMESPACE="personal"</div>
                         <div><span className="text-green-400">$</span> sshsk init</div>
                         <div><span className="text-green-400">$</span> sshsk backup "my-laptop-keys"</div>
                       </div>

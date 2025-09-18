@@ -8,53 +8,53 @@ import (
 	"github.com/rzago/ssh-secret-keeper/internal/vault"
 )
 
-// VaultProvider wraps the existing Vault client to implement StorageProvider
+// VaultProvider wraps the Vault storage service to implement StorageProvider
 type VaultProvider struct {
-	client *vault.Client
+	service *vault.StorageService
 }
 
 func NewVaultProvider(cfg *config.VaultConfig) (*VaultProvider, error) {
-	client, err := vault.New(cfg)
+	service, err := vault.NewStorageService(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create vault client: %w", err)
+		return nil, fmt.Errorf("failed to create vault storage service: %w", err)
 	}
 
 	return &VaultProvider{
-		client: client,
+		service: service,
 	}, nil
 }
 
 func (v *VaultProvider) TestConnection(ctx context.Context) error {
-	return v.client.TestConnection()
+	return v.service.TestConnection(ctx)
 }
 
 func (v *VaultProvider) Close() error {
-	v.client.Close()
+	v.service.Close()
 	return nil
 }
 
 func (v *VaultProvider) StoreBackup(ctx context.Context, backupName string, data map[string]interface{}) error {
-	return v.client.StoreBackup(backupName, data)
+	return v.service.StoreBackup(ctx, backupName, data)
 }
 
 func (v *VaultProvider) GetBackup(ctx context.Context, backupName string) (map[string]interface{}, error) {
-	return v.client.GetBackup(backupName)
+	return v.service.GetBackup(ctx, backupName)
 }
 
 func (v *VaultProvider) ListBackups(ctx context.Context) ([]string, error) {
-	return v.client.ListBackups()
+	return v.service.ListBackups(ctx)
 }
 
 func (v *VaultProvider) DeleteBackup(ctx context.Context, backupName string) error {
-	return v.client.DeleteBackup(backupName)
+	return v.service.DeleteBackup(ctx, backupName)
 }
 
 func (v *VaultProvider) StoreMetadata(ctx context.Context, metadata map[string]interface{}) error {
-	return v.client.StoreMetadata(metadata)
+	return v.service.StoreMetadata(ctx, metadata)
 }
 
 func (v *VaultProvider) GetMetadata(ctx context.Context) (map[string]interface{}, error) {
-	return v.client.GetMetadata()
+	return v.service.GetMetadata(ctx)
 }
 
 func (v *VaultProvider) GetProviderType() string {
@@ -62,5 +62,5 @@ func (v *VaultProvider) GetProviderType() string {
 }
 
 func (v *VaultProvider) GetBasePath() string {
-	return v.client.GetBasePath()
+	return v.service.GetBasePath()
 }
