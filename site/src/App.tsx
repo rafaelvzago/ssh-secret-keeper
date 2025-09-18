@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Terminal, Shield, Key, Server, Copy, Check, Github, Book, Zap, Lock } from 'lucide-react';
+import { Terminal, Shield, Key, Server, Copy, Check, Github, Book, Lock, RefreshCw } from 'lucide-react';
 import { config } from './config';
 
 const TypewriterText: React.FC<{ text: string; delay?: number }> = ({ text, delay = 50 }) => {
@@ -87,9 +87,9 @@ function App() {
       description: "Choose from universal (shared), user-scoped, machine-user (legacy), or custom storage strategies. Migration tools help upgrade existing installations."
     },
     {
-      icon: <Zap className="w-8 h-8 text-red-400" />,
-      title: "Smart Analysis & Management",
-      description: "Intelligent SSH analysis with service categorization. List, analyze, and manage backups with comprehensive CLI tools and validation."
+      icon: <RefreshCw className="w-8 h-8 text-purple-400" />,
+      title: "Self-Updating",
+      description: "Built-in update command with automatic backup and rollback. Update to latest version with a single command. Checksum verification ensures integrity and safety."
     }
   ];
 
@@ -208,6 +208,18 @@ function App() {
               <div className="text-gray-400 text-sm">
                 # Quick installation script - detects your OS and installs automatically
               </div>
+
+              <div className="mt-4 pt-4 border-t border-gray-700">
+                <div className="text-yellow-400 text-sm font-bold mb-2">Already installed? Update with:</div>
+                <div className="flex items-center">
+                  <span className="text-green-400">$</span>
+                  <code className="ml-2 text-white flex-1">sudo sshsk update</code>
+                  <CopyButton text="sudo sshsk update" />
+                </div>
+                <div className="text-gray-400 text-sm mt-1">
+                  # Built-in self-updating - no need to re-run the installer
+                </div>
+              </div>
             </div>
           </TerminalWindow>
 
@@ -262,6 +274,7 @@ function App() {
             <div className="bg-gray-900 border border-gray-700 rounded-lg p-1 inline-flex">
               {[
                 { id: 'installation', label: 'Installation' },
+                { id: 'update', label: 'Update' },
                 { id: 'build', label: 'Build from Source' },
                 { id: 'docker', label: 'Docker Usage' },
                 { id: 'backup', label: 'Backup Guide' },
@@ -324,6 +337,127 @@ function App() {
                     <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
                       <div className="text-blue-400 text-xs">
                         💡 For easier installation, use the quick install script above
+                      </div>
+                    </div>
+                  </div>
+                </TerminalWindow>
+              )}
+
+              {activeTab === 'update' && (
+                <TerminalWindow title="🔄 Update Management">
+                  <div className="space-y-4 text-sm">
+                    <div className="bg-purple-900/30 border border-purple-500/30 rounded p-3">
+                      <div className="text-purple-400 font-bold mb-2">🚀 Self-Updating Feature</div>
+                      <div className="text-gray-300 text-xs">
+                        Keep SSH Secret Keeper up-to-date with built-in update commands
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Quick Update Commands</div>
+
+                    <div className="text-gray-400"># Check for updates without installing</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk update --check</code>
+                      <CopyButton text="sshsk update --check" />
+                    </div>
+
+                    <div className="text-gray-400"># Update to the latest stable version</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sudo sshsk update</code>
+                      <CopyButton text="sudo sshsk update" />
+                    </div>
+
+                    <div className="text-gray-400"># Update to a specific version</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sudo sshsk update --version v1.0.5</code>
+                      <CopyButton text="sudo sshsk update --version v1.0.5" />
+                    </div>
+
+                    <div className="text-gray-400"># Include pre-release versions</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sudo sshsk update --pre-release</code>
+                      <CopyButton text="sudo sshsk update --pre-release" />
+                    </div>
+
+                    <div className="text-gray-400"># Force reinstall even if already on latest</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sudo sshsk update --force</code>
+                      <CopyButton text="sudo sshsk update --force" />
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Update Process</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div className="text-green-400">The update process includes:</div>
+                        <div>1. 🔍 Check for the latest release on GitHub</div>
+                        <div>2. 📥 Download appropriate binary for your platform</div>
+                        <div>3. ✅ Verify download integrity (checksum)</div>
+                        <div>4. 💾 Create backup of current binary</div>
+                        <div>5. 🧪 Verify new binary works correctly</div>
+                        <div>6. 🔄 Replace old binary with new version</div>
+                        <div>7. ⚡ Automatic rollback on failure</div>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Safety Features</div>
+                    <div className="bg-green-900/20 border border-green-500/30 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div><span className="text-green-400">✓</span> Automatic backup before update</div>
+                        <div><span className="text-green-400">✓</span> Checksum verification for integrity</div>
+                        <div><span className="text-green-400">✓</span> Binary verification before replacement</div>
+                        <div><span className="text-green-400">✓</span> Automatic rollback on failure</div>
+                        <div><span className="text-green-400">✓</span> Preserves file permissions</div>
+                        <div><span className="text-green-400">✓</span> Safe handling of running processes</div>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Update Options</div>
+                    <div className="bg-gray-800 rounded p-3">
+                      <div className="text-gray-300 text-xs space-y-1">
+                        <div><span className="text-cyan-400">--check</span> - Check for updates without installing</div>
+                        <div><span className="text-cyan-400">--version VERSION</span> - Update to specific version</div>
+                        <div><span className="text-cyan-400">--pre-release</span> - Include pre-release versions</div>
+                        <div><span className="text-cyan-400">--force</span> - Force update even if on latest</div>
+                        <div><span className="text-cyan-400">--no-backup</span> - Skip backup creation (not recommended)</div>
+                        <div><span className="text-cyan-400">--skip-checksum</span> - Skip checksum verification (not recommended)</div>
+                        <div><span className="text-cyan-400">--skip-verify</span> - Skip binary verification</div>
+                        <div><span className="text-cyan-400">-y, --yes</span> - Skip confirmation prompt</div>
+                      </div>
+                    </div>
+
+                    <div className="text-yellow-400 font-bold">## Common Scenarios</div>
+
+                    <div className="text-gray-400"># Check current version</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk --version</code>
+                      <CopyButton text="sshsk --version" />
+                    </div>
+
+                    <div className="text-gray-400"># Check and update if available</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sshsk update --check && sudo sshsk update</code>
+                      <CopyButton text="sshsk update --check && sudo sshsk update" />
+                    </div>
+
+                    <div className="text-gray-400"># Auto-update without prompts (for scripts)</div>
+                    <div className="flex items-center">
+                      <span className="text-green-400">$</span>
+                      <code className="ml-2 text-white flex-1">sudo sshsk update --yes</code>
+                      <CopyButton text="sudo sshsk update --yes" />
+                    </div>
+
+                    <div className="bg-blue-900/30 border border-blue-500/30 rounded p-2 mt-4">
+                      <div className="text-blue-400 text-xs">
+                        💡 Updates require sudo for system-wide installations (/usr/local/bin)<br/>
+                        💡 The installer script always installs the latest version<br/>
+                        💡 Docker users should pull new images instead: docker pull rafaelvzago/ssh-secret-keeper:latest
                       </div>
                     </div>
                   </div>
@@ -998,6 +1132,16 @@ function App() {
                           Usage: sshsk delete [backup-name]
                         </div>
                       </div>
+                      <div className="bg-gray-800 rounded p-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-cyan-400 font-mono">sshsk update</span>
+                          <span className="text-gray-400 text-xs">Update to latest version</span>
+                        </div>
+                        <div className="text-gray-300 text-xs mt-1 ml-4">
+                          Options: --check, --version, --pre-release, --force, --no-backup<br/>
+                          Usage: sshsk update [--version v1.0.5]
+                        </div>
+                      </div>
                     </div>
 
                     <div className="text-yellow-400 font-bold">## Storage Management</div>
@@ -1214,6 +1358,10 @@ function App() {
                 </li>
                 <li className="flex items-center gap-2">
                   <span className="text-green-400">✓</span>
+                  Built-in self-updating with automatic backup
+                </li>
+                <li className="flex items-center gap-2">
+                  <span className="text-green-400">✓</span>
                   Open-source community project
                 </li>
                 <li className="flex items-center gap-2">
@@ -1229,6 +1377,9 @@ function App() {
                 Quick Links
               </h4>
               <div className="space-y-2">
+                <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/UPDATE.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
+                  → Update & Self-Updating Guide
+                </a>
                 <a href="https://github.com/rafaelvzago/ssh-secret-keeper/blob/main/docs/STORAGE_STRATEGIES.md" className="block text-cyan-400 hover:text-cyan-300 text-sm">
                   → Storage Strategies Guide
                 </a>
