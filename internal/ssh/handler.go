@@ -239,6 +239,7 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 	for filename, fileData := range backup.Files {
 		// Skip if file filtered out
 		if !h.shouldRestoreFile(filename, options) {
+			log.Debug().Str("file", filename).Msg("File filtered out, skipping")
 			continue
 		}
 
@@ -253,6 +254,15 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 			continue
 		}
 
+		// Debug: Log file data details
+		log.Debug().
+			Str("file", filename).
+			Int64("content_length", int64(len(fileData.Content))).
+			Bool("content_is_nil", fileData.Content == nil).
+			Str("target_path", targetPath).
+			Bool("overwrite_enabled", options.Overwrite).
+			Msg("Processing file for restore")
+
 		// Check if file exists and handle conflicts
 		if _, err := os.Stat(targetPath); err == nil && !options.Overwrite {
 			if options.Interactive {
@@ -266,13 +276,36 @@ func (h *Handler) RestoreFiles(backup *BackupData, targetDir string, options Res
 			}
 		}
 
+		// Check for empty content
+		if fileData.Content == nil {
+			log.Error().Str("file", filename).Msg("CRITICAL: File content is nil - cannot restore file")
+			continue
+		}
+
+		if len(fileData.Content) == 0 {
+			log.Warn().Str("file", filename).Msg("File content is empty - creating empty file")
+		}
+
 		// Determine appropriate permissions for the file
 		permissions := h.getAppropriatePermissions(fileData)
 
 		// Write file content with appropriate permissions
+		log.Debug().
+			Str("file", filename).
+			Str("target_path", targetPath).
+			Int("content_bytes", len(fileData.Content)).
+			Str("permissions", fmt.Sprintf("%04o", permissions&os.ModePerm)).
+			Msg("Writing file to disk")
+
 		if err := os.WriteFile(targetPath, fileData.Content, permissions); err != nil {
 			return fmt.Errorf("failed to write file %s: %w", filename, err)
 		}
+
+		log.Info().
+			Str("file", filename).
+			Str("target_path", targetPath).
+			Int("bytes_written", len(fileData.Content)).
+			Msg("✓ File successfully written to disk")
 
 		// Ensure permissions are set correctly (os.WriteFile only sets permissions for new files)
 		if err := os.Chmod(targetPath, permissions); err != nil {
