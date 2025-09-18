@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/rzago/ssh-secret-keeper/internal/analyzer"
 	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/files"
 	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
 	"github.com/rzago/ssh-secret-keeper/internal/ssh"
 	"github.com/rzago/ssh-secret-keeper/internal/storage"
@@ -138,8 +139,9 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 
 	// No passphrase needed - the storage provider is responsible for security
 
-	// Initialize SSH handler
+	// Initialize SSH handler and restore service
 	sshHandler := ssh.New()
+	restoreService := files.NewRestoreService()
 
 	// Backup data is ready for restore (no decryption needed)
 	fmt.Printf("✓ Backup data loaded successfully\n")
@@ -168,9 +170,9 @@ func runRestore(cfg *config.Config, opts restoreOptions) error {
 		FileFilter:  opts.fileFilter,
 	}
 
-	// Restore files
+	// Restore files using the dedicated restore service (which handles path expansion)
 	fmt.Printf("Restoring files to %s...\n", opts.targetDir)
-	if err := sshHandler.RestoreFiles(backupData, opts.targetDir, restoreOpts); err != nil {
+	if err := restoreService.RestoreFiles(backupData, opts.targetDir, restoreOpts); err != nil {
 		return fmt.Errorf("failed to restore files: %w", err)
 	}
 
@@ -349,8 +351,22 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 				fileData.Permissions = os.FileMode(0600)
 			}
 
+			// Parse file size - handle multiple numeric types from JSON
 			if size, ok := fileDataMap["size"].(float64); ok {
 				fileData.Size = int64(size)
+				log.Debug().Str("file", filename).Float64("size_float64", size).Msg("Parsed size from float64")
+			} else if size, ok := fileDataMap["size"].(int64); ok {
+				fileData.Size = size
+				log.Debug().Str("file", filename).Int64("size_int64", size).Msg("Parsed size from int64")
+			} else if size, ok := fileDataMap["size"].(int); ok {
+				fileData.Size = int64(size)
+				log.Debug().Str("file", filename).Int("size_int", size).Msg("Parsed size from int")
+			} else if sizeInterface := fileDataMap["size"]; sizeInterface != nil {
+				log.Warn().
+					Str("file", filename).
+					Interface("size_value", sizeInterface).
+					Str("size_type", fmt.Sprintf("%T", sizeInterface)).
+					Msg("Unknown size type in backup data - file size will be 0")
 			}
 
 			if checksum, ok := fileDataMap["checksum"].(string); ok {
@@ -366,7 +382,22 @@ func parseVaultBackup(vaultData map[string]interface{}) (*ssh.BackupData, error)
 			// Parse file content
 			if content, ok := fileDataMap["content"].(string); ok {
 				fileData.Content = []byte(content)
-				log.Debug().Str("file", filename).Msg("Parsed file content successfully")
+
+				// Update size to match actual content length for consistency
+				actualSize := int64(len(fileData.Content))
+				if fileData.Size != actualSize {
+					log.Debug().
+						Str("file", filename).
+						Int64("stored_size", fileData.Size).
+						Int64("actual_size", actualSize).
+						Msg("Updating file size to match actual content length")
+					fileData.Size = actualSize
+				}
+
+				log.Debug().
+					Str("file", filename).
+					Int64("content_length", actualSize).
+					Msg("Parsed file content successfully")
 			}
 
 			// Parse key info if available
