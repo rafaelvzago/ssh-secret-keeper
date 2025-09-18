@@ -11,6 +11,7 @@ import (
 	"github.com/rzago/ssh-secret-keeper/internal/config"
 	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
 	"github.com/rzago/ssh-secret-keeper/internal/storage"
+	"github.com/rzago/ssh-secret-keeper/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -232,6 +233,11 @@ func runStatus(cfg *config.Config, opts statusOptions) error {
 		fmt.Printf("  • Use 'sshsk status --checksums' to view MD5 checksums\n")
 	}
 
+	// Add cross-machine compatibility check
+	if err := checkCrossMachineCompatibility(cfg); err != nil {
+		log.Debug().Err(err).Msg("Error checking cross-machine compatibility")
+	}
+
 	return nil
 }
 
@@ -339,6 +345,42 @@ func showBackupDetails(provider interfaces.StorageProvider, backupName string, s
 				keyType, size, permissions)
 			fmt.Printf("\n")
 		}
+	}
+
+	return nil
+}
+
+// checkCrossMachineCompatibility checks and displays cross-machine restore compatibility
+func checkCrossMachineCompatibility(cfg *config.Config) error {
+	currentStrategy, err := vault.ParseStrategy(cfg.Vault.StorageStrategy)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("\n🔄 Cross-Machine Compatibility:\n")
+	switch currentStrategy {
+	case vault.StrategyUniversal:
+		fmt.Printf("  ✅ Universal storage - backups accessible from any machine/user\n")
+		if cfg.Vault.BackupNamespace != "" {
+			fmt.Printf("     Namespace: %s\n", cfg.Vault.BackupNamespace)
+		}
+	case vault.StrategyUser:
+		fmt.Printf("  ✅ User-scoped storage - backups accessible from any machine for same user\n")
+		fmt.Printf("  ℹ️  Consider 'universal' strategy for maximum flexibility\n")
+		fmt.Printf("     Migration: sshsk migrate --from user --to universal --dry-run\n")
+	case vault.StrategyMachineUser:
+		fmt.Printf("  ❌ Machine-user storage - backups tied to this specific machine\n")
+		fmt.Printf("  💡 Recommendation: Migrate to 'universal' for cross-machine restore\n")
+		fmt.Printf("     Quick fix: export SSH_VAULT_STORAGE_STRATEGY=\"universal\"\n")
+		fmt.Printf("     Migration: sshsk migrate --from machine-user --to universal --dry-run\n")
+	case vault.StrategyCustom:
+		fmt.Printf("  ⚠️  Custom storage - compatibility depends on configuration\n")
+		if cfg.Vault.CustomPrefix != "" {
+			fmt.Printf("     Custom prefix: %s\n", cfg.Vault.CustomPrefix)
+		}
+		fmt.Printf("     Consider 'universal' for maximum compatibility\n")
+	default:
+		fmt.Printf("  ❓ Unknown storage strategy: %s\n", cfg.Vault.StorageStrategy)
 	}
 
 	return nil

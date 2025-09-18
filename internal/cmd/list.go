@@ -6,11 +6,14 @@ import (
 	"fmt"
 	"os"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/rzago/ssh-secret-keeper/internal/config"
+	"github.com/rzago/ssh-secret-keeper/internal/interfaces"
 	"github.com/rzago/ssh-secret-keeper/internal/storage"
+	"github.com/rzago/ssh-secret-keeper/internal/vault"
 	"github.com/spf13/cobra"
 )
 
@@ -78,8 +81,10 @@ func runList(cfg *config.Config, opts listOptions) error {
 	}
 
 	if len(backupNames) == 0 {
-		fmt.Printf("No backups found in %s storage.\n", storageProvider.GetProviderType())
-		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
+		// Enhanced: Check for backups in other storage strategies
+		if err := handleNoBackupsFound(cfg, storageProvider, ctx, opts.outputJSON); err != nil {
+			log.Debug().Err(err).Msg("Error checking for cross-machine backups")
+		}
 		return nil
 	}
 
@@ -232,4 +237,191 @@ func formatBytes(bytes int64) string {
 		exp++
 	}
 	return fmt.Sprintf("%.1f %cB", float64(bytes)/float64(div), "KMGTPE"[exp])
+}
+
+// AlternativeBackupLocation represents backups found in alternative storage paths
+type AlternativeBackupLocation struct {
+	Strategy      vault.StorageStrategy
+	Path          string
+	Description   string
+	BackupCount   int
+	SampleBackups []string
+}
+
+// handleNoBackupsFound checks for backups in other storage strategies and provides guidance
+func handleNoBackupsFound(cfg *config.Config, storageProvider interfaces.StorageProvider, ctx context.Context, outputJSON bool) error {
+	if outputJSON {
+		// For JSON output, just return empty result
+		encoder := json.NewEncoder(os.Stdout)
+		encoder.SetIndent("", "  ")
+		return encoder.Encode(map[string]interface{}{
+			"backups": []backupInfo{},
+			"count":   0,
+		})
+	}
+
+	fmt.Printf("No backups found in %s storage.\n", storageProvider.GetProviderType())
+
+	// Only check for cross-machine backups if using Vault storage
+	if storageProvider.GetProviderType() != "vault" {
+		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
+		return nil
+	}
+
+	// Check current strategy
+	currentStrategy, err := vault.ParseStrategy(cfg.Vault.StorageStrategy)
+	if err != nil {
+		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
+		return nil
+	}
+
+	// If already using universal, no need to check further
+	if currentStrategy == vault.StrategyUniversal {
+		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
+		return nil
+	}
+
+	// Check for backups in alternative storage strategies
+	alternativeBackups := findAlternativeBackups(cfg, ctx)
+
+	if len(alternativeBackups) > 0 {
+		fmt.Printf("\n🔍 **Cross-Machine Backup Detection**\n")
+		fmt.Printf("═════════════════════════════════════\n")
+		fmt.Printf("Found %d backup location(s) with existing backups:\n\n", len(alternativeBackups))
+
+		for _, alt := range alternativeBackups {
+			fmt.Printf("📦 %s (%d backups)\n", alt.Description, alt.BackupCount)
+			fmt.Printf("   Path: %s\n", alt.Path)
+			if len(alt.SampleBackups) > 0 {
+				sampleCount := min(3, len(alt.SampleBackups))
+				fmt.Printf("   Recent: %s\n", strings.Join(alt.SampleBackups[:sampleCount], ", "))
+			}
+			fmt.Printf("\n")
+		}
+
+		fmt.Printf("💡 **Solution - Enable Cross-Machine Restore:**\n")
+		fmt.Printf("These backups are likely from a different machine or user.\n")
+		fmt.Printf("To access them from this machine, migrate to universal storage:\n\n")
+
+		// Determine the most likely source strategy
+		mostLikelySource := determineMostLikelySource(alternativeBackups)
+		if mostLikelySource != "" {
+			fmt.Printf("🚀 **Quick Fix:**\n")
+			fmt.Printf("   sshsk migrate --from %s --to universal --dry-run\n", mostLikelySource)
+			fmt.Printf("   sshsk migrate --from %s --to universal --cleanup\n\n", mostLikelySource)
+		}
+
+		fmt.Printf("📚 **Learn More:**\n")
+		fmt.Printf("   sshsk migrate-status  # Show all available strategies\n")
+		fmt.Printf("   sshsk migrate --help  # Migration command help\n")
+	} else {
+		fmt.Printf("Use 'sshsk backup' to create your first backup.\n")
+	}
+
+	return nil
+}
+
+// findAlternativeBackups scans for backups in other storage strategies
+func findAlternativeBackups(cfg *config.Config, ctx context.Context) []AlternativeBackupLocation {
+	var alternatives []AlternativeBackupLocation
+
+	// Check current strategy
+	currentStrategy, err := vault.ParseStrategy(cfg.Vault.StorageStrategy)
+	if err != nil {
+		return alternatives
+	}
+
+	// Check each strategy except the current one
+	strategies := []vault.StorageStrategy{
+		vault.StrategyMachineUser, // Most likely for cross-machine issues
+		vault.StrategyUser,
+		vault.StrategyUniversal,
+	}
+
+	for _, strategy := range strategies {
+		if strategy == currentStrategy {
+			continue
+		}
+
+		if alt := scanStrategyForBackups(cfg, strategy, ctx); alt != nil {
+			alternatives = append(alternatives, *alt)
+		}
+	}
+
+	return alternatives
+}
+
+// scanStrategyForBackups scans a specific strategy for backups
+func scanStrategyForBackups(cfg *config.Config, strategy vault.StorageStrategy, ctx context.Context) *AlternativeBackupLocation {
+	// Create a temporary path generator for this strategy
+	pathGenerator := vault.NewPathGenerator(strategy, cfg.Vault.CustomPrefix, cfg.Vault.BackupNamespace)
+	basePath, err := pathGenerator.GenerateBasePath()
+	if err != nil {
+		return nil
+	}
+
+	// Try to create a migration service to list backups in this path
+	migrationService, err := vault.NewMigrationService(&cfg.Vault, strategy, vault.StrategyUniversal)
+	if err != nil {
+		return nil
+	}
+
+	// List backups in this alternative location
+	backups, err := migrationService.ListBackupsToMigrate(ctx)
+	if err != nil || len(backups) == 0 {
+		return nil
+	}
+
+	// Sort backups to get most recent ones first
+	sort.Strings(backups)
+	if len(backups) > 1 {
+		// Reverse to get most recent first (assuming timestamp-based naming)
+		for i, j := 0, len(backups)-1; i < j; i, j = i+1, j-1 {
+			backups[i], backups[j] = backups[j], backups[i]
+		}
+	}
+
+	return &AlternativeBackupLocation{
+		Strategy:      strategy,
+		Path:          basePath,
+		Description:   pathGenerator.GetStrategyDescription(),
+		BackupCount:   len(backups),
+		SampleBackups: backups,
+	}
+}
+
+// determineMostLikelySource determines the most likely source strategy for migration
+func determineMostLikelySource(alternatives []AlternativeBackupLocation) string {
+	if len(alternatives) == 0 {
+		return ""
+	}
+
+	// Prefer machine-user strategy as it's the most common legacy case
+	for _, alt := range alternatives {
+		if alt.Strategy == vault.StrategyMachineUser {
+			return string(alt.Strategy)
+		}
+	}
+
+	// Otherwise, return the one with the most backups
+	var best *AlternativeBackupLocation
+	for i := range alternatives {
+		if best == nil || alternatives[i].BackupCount > best.BackupCount {
+			best = &alternatives[i]
+		}
+	}
+
+	if best != nil {
+		return string(best.Strategy)
+	}
+
+	return ""
+}
+
+// min returns the minimum of two integers
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
 }
