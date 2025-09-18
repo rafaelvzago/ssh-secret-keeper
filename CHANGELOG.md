@@ -10,6 +10,16 @@ All notable changes to SSH Secret Keeper will be documented in this file.
   - Windows-specific code paths have been removed
   - Users on Windows should migrate to WSL2 (Windows Subsystem for Linux) or use alternative solutions
 
+## [1.0.5] - 2025-09-18
+
+### Fixed
+- Fixed duplicate UpdateConfig struct definition causing build failures
+- Properly import UpdateConfig from internal/update/types.go
+- Resolved GitHub Actions CI/CD build issues
+
+### Changed
+- Updated site version display to match release version
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
